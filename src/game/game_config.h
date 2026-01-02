@@ -6,6 +6,7 @@
 #define GAME_TITLE "SNAKE GAME"
 #define MENU_TITLE_TEXT "Snake Game"
 #define MENU_START_TEXT "Press ENTER to START"
+#define MENU_TO_QUIT    "Press ESC to Quit"
 #define GAMEOVER_TITLE_TEXT "Game Over"
 #define GAMEOVER_RESTART_TEXT "Press ENTER for Menu"
 

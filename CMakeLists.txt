@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(CRayEngine VERSION 0.001)
+project(CRayEngine VERSION 0.002)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -20,11 +20,15 @@ set(SOURCES
     src/engine/core/engine.c
     src/engine/core/ui_helper.c
     src/engine/core/logger.c
+    src/engine/core/scene_manager.c
 
     # Game
     src/game/game.c
     src/game/entities/snake.c
     src/game/entities/food.c
+    src/game/game_scenes.c
+    src/game/menu.c
+    src/game/game_over.c
 )
 
 # --- Executable ---

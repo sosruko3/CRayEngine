@@ -4,6 +4,8 @@
 #include "config.h"
 #include "logger.h"
 #include <stdlib.h>
+#include "scene_manager.h"
+#include "scene.h"
 
 
 void Engine_Init(int width, int height, const char* title) {
@@ -21,24 +23,22 @@ void Engine_Init(int width, int height, const char* title) {
         exit(1);
     }
 
+    SceneManager_Init();
+
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
 
-void Engine_Run(GameUpdateCallback update, GameDrawCallback draw) {
+void Engine_Run() {
     Log(LOG_LVL_INFO,"Entering main loop");
     while (!WindowShouldClose()) {
         // Update
-        if (update) {
-            update();
-        }
+        SceneManager_Update();
 
         // Draw
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        if (draw) {
-            draw();
-        }
+        SceneManager_Draw();
 
         EndDrawing();
     }
@@ -48,7 +48,9 @@ void Engine_Run(GameUpdateCallback update, GameDrawCallback draw) {
 void Engine_Shutdown(void) {
     Log(LOG_LVL_INFO,"Shutting down Raylib...");
     CloseWindow();
+    SceneManager_Shutdown();
 
     // Add failsafes later on.
     Log(LOG_LVL_INFO,"Engine Shutdown Complete.");
+    Logger_Shutdown();
 }
