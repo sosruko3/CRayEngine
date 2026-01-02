@@ -1,0 +1,34 @@
+# Build directories
+build/
+cmake-build-*/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble/
+
+# C/C++ artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+*.dSYM/
+*.su
+
+# CMake
+CMakeUserPresets.json
+compile_commands.json
+
+# Editor
+*.swp
+*.swo
+
+# Clang tools
+.clangd
