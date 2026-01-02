@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
-project(SnakeGame C)
+project(CRayEngine VERSION 0.001)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # --- Fetch Raylib ---
 include(FetchContent)
@@ -12,7 +13,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(raylib)
 
 # --- Sources ---
-file(GLOB_RECURSE SOURCES "src/*.c")
+set(SOURCES
+    src/main.c
+
+    # Core Engine
+    src/engine/core/engine.c
+    src/engine/core/ui_helper.c
+    src/engine/core/logger.c
+
+    # Game
+    src/game/game.c
+    src/game/entities/snake.c
+    src/game/entities/food.c
+)
 
 # --- Executable ---
 add_executable(${PROJECT_NAME} ${SOURCES})

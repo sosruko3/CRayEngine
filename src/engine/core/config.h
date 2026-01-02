@@ -6,6 +6,8 @@
 #define SCREEN_HEIGHT 1080
 #define CELL_SIZE     40
 
+#define TARGET_FRAMERATE 60
+
 // These calculate automatically based on the values above
 #define GRID_WIDTH    (SCREEN_WIDTH / CELL_SIZE)
 #define GRID_HEIGHT   (SCREEN_HEIGHT / CELL_SIZE)
