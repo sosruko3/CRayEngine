@@ -32,7 +32,7 @@ This project is currently on very early development. Plan is to create a custom 
 ### Instructions
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/sosruko3/CRayEngine.git](https://github.com/sosruko3/CRayEngine.git)
+   git clone https://github.com/sosruko3/CRayEngine.git
    cd CRayEngine
 2. Generate build files and compile it.
 ```bash
