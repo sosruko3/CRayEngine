@@ -7,15 +7,20 @@ This project is currently on very early development. Plan is to create a custom 
 ![Code Size](https://img.shields.io/github/languages/code-size/sosruko3/CRayEngine)
 
 ## Features (Current)
-- **Logging System:** Thread-safe logging with file history, rotation, and multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
+- **Log System:** Thread-safe logging with file history, rotation, and multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
 - **Configuration:** Externalized game settings via header config.
 - **Cross-Platform:** CMake build system supporting Windows and Linux.
 
-## Roadmap
+## TODO
 - [ ] **Scene Manager** (State Machine for Menu/Gameplay switching)
 - [ ] Input Abstraction Layer
+- [ ] Config Manager
 - [ ] Resource/Asset Manager
 - [ ] Audio Mixer
+- [ ] Memory Management
+- [ ] Entity System
+- [ ] Collision System
+- [ ] UI
 
 ## Building
 
@@ -27,7 +32,7 @@ This project is currently on very early development. Plan is to create a custom 
 ### Instructions
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/sosruko3/CRayEngine.git](https://github.com/sosruko3/CRayEngine.git)
+   git clone https://github.com/sosruko3/CRayEngine.git
    cd CRayEngine
 2. Generate build files and compile it.
 ```bash
