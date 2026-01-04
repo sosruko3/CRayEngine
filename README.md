@@ -8,12 +8,14 @@ This project is currently on very early development. Plan is to create a custom 
 
 ## Features (Current)
 - **Log System:** Thread-safe logging with file history, rotation, and multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
+- ** Scene Manager:**
+- ** Input Manager:** 
 - **Configuration:** Externalized game settings via header config.
 - **Cross-Platform:** CMake build system supporting Windows and Linux.
 
 ## TODO
-- [ ] **Scene Manager** (State Machine for Menu/Gameplay switching)
-- [ ] Input Abstraction Layer
+- [x] Scene Manager (State Machine for Menu/Gameplay switching)
+- [x] Input Manager
 - [ ] Config Manager
 - [ ] Resource/Asset Manager
 - [ ] Audio Mixer

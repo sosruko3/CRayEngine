@@ -19,7 +19,7 @@ typedef enum {
     ACTION_COUNT
 } GameAction;
 
-void Input_Init(void);
+void Input_Init(const char* configPath);
 
 bool Input_IsPressed(GameAction action);
 

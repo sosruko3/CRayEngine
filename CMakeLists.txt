@@ -43,3 +43,4 @@ target_link_libraries(${PROJECT_NAME} raylib m)
 
 # --- Assets ---
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/src/game/config/settings.cfg DESTINATION ${CMAKE_BINARY_DIR}/assets/config)

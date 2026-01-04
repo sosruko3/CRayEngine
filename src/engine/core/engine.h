@@ -2,7 +2,7 @@
 #define ENGINE_H
 
 
-void Engine_Init(int width, int height, const char* title);
+void Engine_Init(int width, int height, const char* title, const char* configFileName);
 
 void Engine_Run(void);
 

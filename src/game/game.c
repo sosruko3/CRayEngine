@@ -4,7 +4,7 @@
 #include "engine/core/config.h"
 #include "engine/core/ui_helper.h"
 #include "raylib.h"
-#include "game_config.h"
+#include "../game_config.h"
 #include "engine/core/scene_manager.h"
 #include "engine/core/game_types.h"
 #include <stdio.h> // For sprintf

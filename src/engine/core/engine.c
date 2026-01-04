@@ -8,13 +8,15 @@
 #include "scene_manager.h"
 
 
-void Engine_Init(int width, int height, const char* title) {
+void Engine_Init(int width, int height, const char* title, const char* configFileName) {
     Logger_Init();
     Log(LOG_LVL_INFO,"Engine Initializing...");
     Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",width,height);
     InitWindow(width, height, title);
     SetTargetFPS(TARGET_FRAMERATE);
-    Input_Init();
+    
+    const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);
+    Input_Init(configPath);
 
     if (!IsWindowReady()) {
         Log(LOG_LVL_ERROR,"CRITICAL: Raylib failed to create window. ");

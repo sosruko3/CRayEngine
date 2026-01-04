@@ -1,5 +1,5 @@
 #include "snake.h"
-#include "../game_config.h"
+#include "../../game_config.h"
 #include "engine/core/config.h"
 #include "engine/core/input.h"
 #include "raylib.h"
