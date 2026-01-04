@@ -1,5 +1,4 @@
 #include "scene_manager.h"
-#include "scene.h"
 #include "logger.h"
 #include "stddef.h" // for NULL
 

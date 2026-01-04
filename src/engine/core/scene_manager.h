@@ -3,6 +3,14 @@
 
 #include "game_types.h"
 
+// Define scene.
+typedef struct {
+    void (*Init)(void);
+    void (*Update)(void);
+    void (*Draw)(void);
+    void (*Unload)(void);
+} Scene;
+
 // Start
 void SceneManager_Init(void);
 

@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "engine/core/scene_manager.h"
 #include "engine/core/game_types.h"
+#include "engine/core/input.h"
 #include <stdio.h> // for sprintf
 #include "engine/core/ui_helper.h"
 #include "game_config.h"
@@ -15,7 +16,7 @@ void GameOver_Init(void) {
 }
 
 void GameOver_Update(void) {
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (Input_IsPressed(ACTION_CONFIRM)) {
         SceneManager_ChangeScene(GAME_STATE_MENU);
     }
 }

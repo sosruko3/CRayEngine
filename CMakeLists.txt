@@ -21,6 +21,7 @@ set(SOURCES
     src/engine/core/ui_helper.c
     src/engine/core/logger.c
     src/engine/core/scene_manager.c
+    src/engine/core/input.c
 
     # Game
     src/game/game.c

@@ -1,6 +1,7 @@
 #include "snake.h"
 #include "../game_config.h"
 #include "engine/core/config.h"
+#include "engine/core/input.h"
 #include "raylib.h"
 
 typedef struct Snake
@@ -33,13 +34,13 @@ void InitSnake(int startX, int startY)
 void UpdateSnake(void)
 {
     // Handling Input
-    if (IsKeyPressed(KEY_UP) && snake.lastMoveDirection.y == 0)
+    if (Input_IsPressed(ACTION_UP) && snake.lastMoveDirection.y == 0)
     snake.direction = (Vector2) {0, -1};
-    if (IsKeyPressed(KEY_DOWN) && snake.lastMoveDirection.y == 0)
+    if (Input_IsPressed(ACTION_DOWN) && snake.lastMoveDirection.y == 0)
     snake.direction = (Vector2) {0, 1};
-    if (IsKeyPressed(KEY_LEFT) && snake.lastMoveDirection.x == 0)
+    if (Input_IsPressed(ACTION_LEFT) && snake.lastMoveDirection.x == 0)
     snake.direction = (Vector2) {-1, 0};
-    if (IsKeyPressed(KEY_RIGHT) && snake.lastMoveDirection.x == 0)
+    if (Input_IsPressed(ACTION_RIGHT) && snake.lastMoveDirection.x == 0)
     snake.direction = (Vector2) {1, 0};
 
     // Move Timer

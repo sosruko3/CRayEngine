@@ -1,10 +1,11 @@
 #include "menu.h"
 #include "raylib.h"
-#include "../engine/core/scene_manager.h" // For switch scene
+#include "engine/core/scene_manager.h" // For switch scene
 #include "engine/core/game_types.h" // Needed for STATES
-#include "../engine/core/logger.h"
-#include "../engine/core/ui_helper.h"
-#include "../engine/core/config.h"
+#include "engine/core/logger.h"
+#include "engine/core/ui_helper.h"
+#include "engine/core/input.h"
+#include "engine/core/config.h"
 #include "game_config.h"
 
 void Menu_Init(void) {
@@ -13,7 +14,7 @@ void Menu_Init(void) {
 
 void Menu_Update(void) {
     // Future lobby part, if i plan on doing
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (Input_IsPressed(ACTION_CONFIRM)) {
         SceneManager_ChangeScene(GAME_STATE_PLAYING);
     }
 }
