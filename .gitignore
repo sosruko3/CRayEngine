@@ -11,6 +11,7 @@ cmake-build-*/
 .DS_Store
 Thumbs.db
 .AppleDouble/
+valgrind.log
 
 # C/C++ artifacts
 *.o
@@ -32,3 +33,5 @@ compile_commands.json
 
 # Clang tools
 .clangd
+logs/
+*.log

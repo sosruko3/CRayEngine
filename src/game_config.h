@@ -3,6 +3,7 @@
 
 #define SCORE_PER_FOOD 10
 
+#define SETTING_CFG_PATH "src/game/config/settings.cfg"
 #define GAME_TITLE "SNAKE GAME"
 #define MENU_TITLE_TEXT "Snake Game"
 #define MENU_START_TEXT "Press ENTER to START"
@@ -20,4 +21,5 @@
 #define FONT_SIZE_SUBTITLE 40
 #define FONT_SIZE_SCORE 80
 
+#define CONFIG_FILENAME "assets/config/settings.cfg"
 #endif //game_config.h
