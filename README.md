@@ -19,10 +19,13 @@ This project is currently on very early development. Plan is to create a custom 
 - [ ] Config Manager
 - [ ] Resource/Asset Manager
 - [ ] Audio Mixer
-- [ ] Memory Management
 - [ ] Entity System
 - [ ] Collision System
 - [ ] UI
+- [ ] Integrate RayGUI library for GUI
+- [ ] Integrate an Physics Engine(Chipmunk2D)
+- [ ] Achievement system
+- [ ] Shader System???
 
 ## Building
 

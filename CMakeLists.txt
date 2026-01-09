@@ -22,7 +22,8 @@ set(SOURCES
     src/engine/core/logger.c
     src/engine/core/scene_manager.c
     src/engine/core/input.c
-
+    src/engine/core/entity_manager.c
+    
     # Game
     src/game/game.c
     src/game/entities/snake.c

@@ -78,6 +78,7 @@ void Input_LoadConfig(const char* filename) {
             char* actionName = strtok(line," =\n\r\t");
             char* keyName    = strtok(NULL," =\n\r\t");
 
+            // safety check
             if (!actionName || !keyName) continue;
 
             GameAction action = GetActionFromStr(actionName);
@@ -93,7 +94,7 @@ void Input_LoadConfig(const char* filename) {
 }
 
 void Input_Init(const char* configPath) {
-    // Default bindings -- Load from file later
+    // Default bindings --
 
     // Movement
     keyBindings[ACTION_UP]    = KEY_W;
@@ -110,7 +111,6 @@ void Input_Init(const char* configPath) {
     keyBindings[ACTION_PRIMARY]   = KEY_SPACE;
     keyBindings[ACTION_SECONDARY] = KEY_LEFT_SHIFT;
 
-    // do not forget
     Input_LoadConfig(configPath);
 }
 

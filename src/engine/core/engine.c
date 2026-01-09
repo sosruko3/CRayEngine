@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "input.h"
 #include "scene_manager.h"
+#include "entity_manager.h"
 
 
 void Engine_Init(int width, int height, const char* title, const char* configFileName) {
@@ -23,6 +24,8 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
         Logger_Shutdown();
         exit(1);
     }
+
+    EntityManager_Init();
 
     SceneManager_Init();
 
@@ -45,6 +48,7 @@ void Engine_Run() {
 void Engine_Shutdown(void) {
     Log(LOG_LVL_INFO,"Shutting down Raylib...");
     SceneManager_Shutdown();
+    EntityManager_Shutdown();
     CloseWindow();
 
     // Add failsafes later on.

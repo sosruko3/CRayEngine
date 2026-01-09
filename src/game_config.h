@@ -21,5 +21,5 @@
 #define FONT_SIZE_SUBTITLE 40
 #define FONT_SIZE_SCORE 80
 
-#define CONFIG_FILENAME "assets/config/settings.cfg"gi
+#define CONFIG_FILENAME "assets/config/settings.cfg"
 #endif //game_config.h
