@@ -6,9 +6,11 @@
 #include "raylib.h"
 #include "../game_config.h"
 #include "engine/core/scene_manager.h"
-#include "engine/core/game_types.h"
+#include "engine/core/scene_types.h"
 #include "engine/core/entity_manager.h"
 #include "engine/core/logger.h"
+#include "entity_types.h"
+#include "game_systems.h"
 #include <stdio.h> // For sprintf
 
 // Global variables
@@ -24,39 +26,19 @@ void Game_Init(void) {
     ResetGameplay();
 }
 
+
+
 void Game_Update(void) {
 
     float dt = GetFrameTime();
-
-// PRESS 'Z' TO SPAWN THE HORDE
-if (IsKeyPressed(KEY_Z)) {
-    for (int i = 0; i < 1000; i++) {
-        // 1. Random Position
-        int x = GetRandomValue(0, SCREEN_WIDTH);
-        int y = GetRandomValue(0, SCREEN_HEIGHT);
-        
-        Entity e = EntityManager_Create(1, (Vector2){x, y});
-        
-        // 2. Random Speed & Color
-        EntityData* data = EntityManager_Get(e);
-        if (data) {
-            data->velocity.x = GetRandomValue(-200, 200); // Fast random movement
-            data->velocity.y = GetRandomValue(-200, 200);
-            
-            // Random Color
-            data->color = (Color){ 
-                GetRandomValue(50, 255), 
-                GetRandomValue(50, 255), 
-                GetRandomValue(50, 255), 
-                255 
-            };
-            data->radius = 3.0f; // Tiny particles
-        }
-    }
-    Log(LOG_LVL_INFO,"Spawned 1000 entities!\n");
-}
-    EntityManager_Update(dt);
     
+    System_HandleDebugInput();
+
+    System_UpdateLogic(dt);
+    EntityManager_Update(dt);
+
+
+
     // Snake logic
     UpdateSnake();
     UpdateFood();
@@ -88,6 +70,7 @@ void Game_Draw(void)
     DrawSnake();
     DrawFood();
     
+    System_DrawEntities();
 
     // For ScoreHUD
     char scoreText[20];
@@ -101,11 +84,13 @@ void Game_Shutdown(void) {
 
 
 static void ResetGameplay(void) {
+    EntityManager_Reset();
     InitSnake(GRID_WIDTH/2,GRID_HEIGHT/2);
     InitFood();
     finalScore = 0;
 
-    Entity player = EntityManager_Create(0,(Vector2){100,200});
+    Entity player = EntityManager_Create(TYPE_PLAYER,(Vector2){100,200});
+    // UPDATE HERE,
 
     EntityData* pData = EntityManager_Get(player);
     if (pData) {
@@ -114,3 +99,5 @@ static void ResetGameplay(void) {
         pData->velocity = (Vector2){50,0};
     }
 }
+
+

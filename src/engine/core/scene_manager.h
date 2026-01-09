@@ -1,7 +1,7 @@
 #ifndef SCENE_MANAGER_H
 #define SCENE_MANAGER_H
 
-#include "game_types.h"
+#include "scene_types.h"
 
 // Define scene.
 typedef struct {

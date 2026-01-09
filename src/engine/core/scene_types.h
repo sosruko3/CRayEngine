@@ -1,5 +1,5 @@
-#ifndef GAME_TYPES_H
-#define GAME_TYPES_H
+#ifndef SCENE_TYPES_H
+#define SCENE_TYPES_H
 
 typedef enum {
     GAME_STATE_MENU,
@@ -7,4 +7,4 @@ typedef enum {
     GAME_STATE_GAMEOVER
 } GameState;
 
-#endif // game_types.h
+#endif // SCENE_TYPES_H

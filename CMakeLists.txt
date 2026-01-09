@@ -29,6 +29,7 @@ set(SOURCES
     src/game/entities/snake.c
     src/game/entities/food.c
     src/game/game_scenes.c
+    src/game/game_systems.c
     src/game/menu.c
     src/game/game_over.c
 )

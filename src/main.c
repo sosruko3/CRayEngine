@@ -1,7 +1,7 @@
 #include "engine/core/engine.h"
 #include "engine/core/config.h"
 #include "game_config.h"
-#include "engine/core/game_types.h"
+#include "engine/core/scene_types.h"
 #include "engine/core/scene_manager.h"
 #include "game/game.h"
 

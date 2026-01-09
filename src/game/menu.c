@@ -1,7 +1,7 @@
 #include "menu.h"
 #include "raylib.h"
 #include "engine/core/scene_manager.h" // For switch scene
-#include "engine/core/game_types.h" // Needed for STATES
+#include "engine/core/scene_types.h" // Needed for STATES
 #include "engine/core/logger.h"
 #include "engine/core/ui_helper.h"
 #include "engine/core/input.h"

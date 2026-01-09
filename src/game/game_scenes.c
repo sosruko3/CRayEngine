@@ -1,5 +1,5 @@
 #include "game_over.h"
-#include "engine/core/game_types.h"
+#include "engine/core/scene_types.h"
 #include "engine/core/scene_manager.h"
 #include "game.h"
 #include "menu.h"
