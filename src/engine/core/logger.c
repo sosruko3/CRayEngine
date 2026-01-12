@@ -51,7 +51,6 @@ void Logger_Init(void) {
     if (!DirectoryExists(logDir)) {
         MakeDirectory(logDir);
     }
-
     // Build the full filename
     const char* filePath = TextFormat("%s/game.log",logDir);
 
@@ -70,7 +69,6 @@ void Logger_Init(void) {
 
         // For raylib's logs. There are safety warnings here.
         SetTraceLogCallback(RaylibLogHook);
-
     }
 } 
 void Logger_Shutdown(void) {

@@ -4,20 +4,18 @@
 #include "engine/core/input.h"
 #include "raylib.h"
 
-typedef struct Snake
-{
+typedef struct Snake {
     Vector2 body[MAX_SNAKE_LENGTH];
     int length;
     Vector2 direction;
     Vector2 lastMoveDirection;
     float moveTimer;
     float interval;
-} Snake;
+}Snake;
 
 static Snake snake = {0};
 
-void InitSnake(int startX, int startY)
-{
+void InitSnake(int startX, int startY) {
     snake.length = SNAKE_INITIAL_LENGTH;
     snake.direction = (Vector2){1, 0};
     snake.moveTimer = 0.0f;
@@ -25,14 +23,12 @@ void InitSnake(int startX, int startY)
     snake.interval = SNAKE_SPEED_START;
 
     // Initialize body segments
-    for (int i = 0; i < snake.length; i++)
-    {
+    for (int i = 0; i < snake.length; i++) {
         snake.body[i] = (Vector2){ (float)(startX - i), (float)startY };
     }
 }
 
-void UpdateSnake(void)
-{
+void UpdateSnake(void) {
     // Handling Input
     if (Input_IsPressed(ACTION_UP) && snake.lastMoveDirection.y == 0)
     snake.direction = (Vector2) {0, -1};
@@ -45,13 +41,11 @@ void UpdateSnake(void)
 
     // Move Timer
     snake.moveTimer += GetFrameTime();
-    if (snake.moveTimer >= snake.interval)
-    {
+    if (snake.moveTimer >= snake.interval) {
         snake.moveTimer = 0.0f;
 
         // Moving the body
-        for (int i = snake.length -1 ; i > 0 ;i--)
-        {
+        for (int i = snake.length -1 ; i > 0 ;i--) {
             snake.body[i] = snake.body[i-1];
         }
         // Move head
@@ -62,10 +56,8 @@ void UpdateSnake(void)
     }
 }
 
-void DrawSnake(void)
-{
-    for ( int i = 0;i < snake.length; i++)
-    {
+void DrawSnake(void) {
+    for ( int i = 0;i < snake.length; i++) {
         Color color = (i == 0) ? DARKGREEN : GREEN;
         DrawRectangle(
             (int)snake.body[i].x * CELL_SIZE,
@@ -77,15 +69,12 @@ void DrawSnake(void)
     }
 }
 
-Vector2 GetSnakeHeadPosition(void)
-{
+Vector2 GetSnakeHeadPosition(void) {
     return snake.body[0];
 }
 
-void GrowSnake(void)
-{
-    if (snake.length < MAX_SNAKE_LENGTH)
-    {
+void GrowSnake(void) {
+    if (snake.length < MAX_SNAKE_LENGTH) {
         snake.body[snake.length] = snake.body[snake.length-1];
         snake.length++;
         if (snake.interval > SNAKE_SPEED_MIN)
@@ -93,8 +82,7 @@ void GrowSnake(void)
     }
 }
 
-bool CheckSnakeCollision(int gridWidth, int gridHeight)
-{
+bool CheckSnakeCollision(int gridWidth, int gridHeight) {
     Vector2 head = snake.body[0];
 
     // Check Wall Collision
@@ -102,8 +90,7 @@ bool CheckSnakeCollision(int gridWidth, int gridHeight)
         return true;
 
     // Check Self Collision
-    for (int i = 1; i < snake.length;i++)
-    {
+    for (int i = 1; i < snake.length;i++) {
         if (head.x == snake.body[i].x && head.y == snake.body[i].y)
         return true;
     }

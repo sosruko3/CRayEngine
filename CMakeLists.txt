@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(CRayEngine VERSION 0.002)
+project(CRayEngine VERSION 0.013)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -23,6 +23,8 @@ set(SOURCES
     src/engine/core/scene_manager.c
     src/engine/core/input.c
     src/engine/core/entity_manager.c
+    src/engine/physics/physics_system.c
+    src/engine/physics/spatial_hash.c
     
     # Game
     src/game/game.c
