@@ -33,6 +33,7 @@ This project is currently on very early development. Plan is to create a custom 
 * **CMake** (3.10+)
 * **C Compiler** (GCC, Clang, or MSVC)
 * **Raylib** (Must be installed or linked)
+* **Node.js and NPM** (Required for free-tex-packer-cli)
 
 ### Instructions
 1. Clone the repository:
