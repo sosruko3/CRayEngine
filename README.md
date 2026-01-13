@@ -19,7 +19,7 @@ This project is currently on very early development. Plan is to create a custom 
 - [x] Config Manager
 - [x] Entity System
 - [x] Collision System
-- [ ] Resource/Asset Manager
+- [x] Resource/Asset Manager
 - [ ] Audio Mixer
 - [ ] UI
 - [ ] Integrate RayGUI library for GUI
