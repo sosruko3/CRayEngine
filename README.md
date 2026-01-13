@@ -7,11 +7,32 @@ This project is currently on very early development. Plan is to create a custom 
 ![Code Size](https://img.shields.io/github/languages/code-size/sosruko3/CRayEngine)
 
 ## Features (Current)
-- **Log System:** Thread-safe logging with file history, rotation, and multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
-- **Scene Manager:**
-- **Input Manager:** 
-- **Configuration:** Externalized game settings via header config.
-- **Cross-Platform:** CMake build system supporting Windows and Linux.
+- **Core Engine:** 
+  - Written in **C11**, prioritizing performance and simplicity.
+  - **Gen-Index Entity System:** Uses a Data-Oriented pooling with generational indices (Handles) for safe compliance and cache-friendly access.
+  - **Component Support:** Hybrid architecture supporting dedicated component arrays (like Animation components) parallel to the main entity store.
+  - **Scene Management:** Finite State Machine (FSM) for handling Game, Menu, and Pause states seamlessly.
+  - **Event/Logging System:** Thread-safe logging with multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
+
+- **Animation System:**
+  - Frame-based sprite animation built on top of the texture atlas.
+  - Support for looping, one-shot, and variable playback speeds.
+  - Automatic state flipping (flipX) based on velocity.
+
+- **Physics Engine:**
+  - **Spatial Hash Grid:** Broad-phase collision detection optimized for high entity counts.
+  - **Sleep Optimization:** Entities automatically "sleep" when idle to reduce CPU usage, with intelligent "wake-up" logic on collision.
+  - **Sub-stepping:** Physics simulation runs multiple steps per frame for stability at high velocities.
+  - **Collision Layers:** Bit-mask filtering (Layers & Masks) to control which entities interact (e.g., Player vs Enemy, but not Enemy vs Enemy).
+- **Automated Asset Pipeline:**
+  - **Custom Asset Packer:** Node.js-based tool integrated directly into the build process.
+  - **Automatic Generation:** Detects changes in `assets/raw_textures/` and rebuilds the texture atlas (`atlas.png`) and coordinate headers (`atlas_data.h`) automatically.
+  - **CMake Integration:** Just run `cmake --build` and assets are handled for you.
+
+- **Build System:**
+  - Uses **CMake** for robust cross-platform support (Linux/Windows).
+  - **Dependency Management:** Automatically fetches and builds **Raylib 5.5** from source using `FetchContent`.
+
 
 ## TODO
 - [x] Scene Manager (State Machine for Menu/Gameplay switching)
