@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include "logger.h"
 #include <string.h>
+#include "atlas_data.h"
+#include "config.h"
+#include "animation.h"
 
 EntityData entityStore[MAX_ENTITIES];
 
@@ -15,11 +18,14 @@ void EntityManager_Init(void) {
     EntityManager_Reset();
 }
 void EntityManager_Reset(void) {
-    // Clean the memory
+    // Clean the memory , change this to something else later.
     memset(entityStore,0,sizeof(entityStore));
     activeCount = 0;
     freeCount = MAX_ENTITIES;
 
+    for(int i = 0; i < MAX_ENTITIES; i++) {
+        comp_anim[i] = (AnimComponent){0};
+    }
     // fill the freelist
     for (uint32_t i =0 ;i< MAX_ENTITIES;i++) {
         freeList[i] = (MAX_ENTITIES -1)-i;
@@ -46,7 +52,15 @@ Entity EntityManager_Create(int type,Vector2 pos) {
         .velocity = {0,0},
         .rotation = 0.0f,
         .size = {32.0f,32.0f},
-        .color = RED
+        .spriteID = SPR_missing,
+        .color = WHITE
+    };
+
+    comp_anim[index] = (AnimComponent) {
+        .timer = 0.0f,
+        .currentAnimID = 0, // Usually your IDLE animation
+        .finished = 0,
+        .flipX = 0
     };
     activeCount++;
 

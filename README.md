@@ -8,19 +8,19 @@ This project is currently on very early development. Plan is to create a custom 
 
 ## Features (Current)
 - **Log System:** Thread-safe logging with file history, rotation, and multiple verbosity levels (`INFO`, `WARNING`, `ERROR`).
-- ** Scene Manager:**
-- ** Input Manager:** 
+- **Scene Manager:**
+- **Input Manager:** 
 - **Configuration:** Externalized game settings via header config.
 - **Cross-Platform:** CMake build system supporting Windows and Linux.
 
 ## TODO
 - [x] Scene Manager (State Machine for Menu/Gameplay switching)
 - [x] Input Manager
-- [ ] Config Manager
+- [x] Config Manager
+- [x] Entity System
+- [x] Collision System
 - [ ] Resource/Asset Manager
 - [ ] Audio Mixer
-- [ ] Entity System
-- [ ] Collision System
 - [ ] UI
 - [ ] Integrate RayGUI library for GUI
 - [ ] Integrate an Physics Engine(Chipmunk2D)

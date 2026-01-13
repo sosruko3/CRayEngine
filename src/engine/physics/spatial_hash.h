@@ -12,7 +12,7 @@
 #define SPATIAL_HASH_SIZE 4096
 
 // Total memory pool for nodes.
-// Number is big in case entites touch multiple of them. In theory this can withstand 5k entity.
+// Number is big in case entites touch multiple of them. In theory this amount can withstand 10k entity.
 #define SPATIAL_MAX_NODES 40000
 
 typedef struct SpatialNode {

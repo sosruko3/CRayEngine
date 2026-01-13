@@ -3,11 +3,8 @@
 #include <stdio.h>
 #include <stdarg.h> // For "..." arguments
 #include <time.h> // For timestamps
-#include <sys/stat.h> // Needed for mkdir (Linux/Mac)
 
-#if defined(_WIN32)
-    #include <direct.h> // Needed for _mkdir (Windows)
-#endif
+// Rewrite some of the code for android compability later on!!!
 
 void RaylibLogHook(int logLevel, const char *text, va_list args) {
 // Map Raylib's levels to engine's levels.
@@ -29,17 +26,10 @@ void RaylibLogHook(int logLevel, const char *text, va_list args) {
     // Send it to the engine
     Log(myLevel, "[RAYLIB] %s",buffer);
 }
-
 static FILE* logFile = NULL;
 
 // Helper function to create a directory
-void MakeDirectory(const char* dir) {
-    #if defined(_WIN32)
-        _mkdir(dir); // Windows style
-    #else 
-        mkdir(dir, 0777); // Linux/Mac style (0777 = read/write permissions)
-    #endif
-}
+// Deleted MakeDirectory function, instead using raylib's MakeDirectory
 
 void Logger_Init(void) {
     // Get file directory

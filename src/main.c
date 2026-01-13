@@ -7,7 +7,6 @@
 
 int main(void) {
     Engine_Init(SCREEN_WIDTH,SCREEN_HEIGHT,GAME_TITLE, CONFIG_FILENAME);
-
     SceneManager_ChangeScene(GAME_STATE_MENU);
 
     Engine_Run();

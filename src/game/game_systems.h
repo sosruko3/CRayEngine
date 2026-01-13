@@ -6,5 +6,6 @@ void System_HandleDebugInput(void);
 void System_DrawEntities(void);
 void SystemTestSpawn(void);
 int GetActiveEntityCount(void);
+void SpawnPlayer(void);
 
 #endif

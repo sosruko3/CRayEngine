@@ -4,6 +4,7 @@
 #include "raymath.h" // Raylib's math
 #include <math.h> // for sqrtf
 #include "../core/logger.h"
+#include "config.h"
 
 #define SUB_STEPS 4
 #define SLEEP_EPSILON 2.0f
@@ -39,12 +40,14 @@ void PhysicsSystem_Update(float dt) {
     // 2. Broad phase (Build the hash) This parts runs once for optimization. Build 1x/Solve 4x solution.
     for(uint32_t i = 0;i < MAX_ENTITIES;i++) {
         EntityData* e = &entityStore[i];
-        
         if (!(e->flags & FLAG_ACTIVE)) continue;
+
         // Sleep check, optimization.
         float speedSq = Vector2LengthSqr(e->velocity);
-        bool isSleeping = (speedSq < sleepSq);
-        if (e->flags & FLAG_ALWAYS_AWAKE) isSleeping = false;
+        bool isSleeping = (speedSq < sleepSq && !(e->flags & FLAG_ALWAYS_AWAKE));
+        if (isSleeping) e->flags |= FLAG_SLEEPING;
+        else e->flags &= ~FLAG_SLEEPING;
+
         // move the entity
         if(!isSleeping) {
             e->position.x += e->velocity.x * dt; // changed subDt to dt for optimization
@@ -60,27 +63,25 @@ void PhysicsSystem_Update(float dt) {
         for (uint32_t i = 0;i < MAX_ENTITIES;i++) {
             EntityData* e = &entityStore[i];
             
-            if (!(e->flags & FLAG_ACTIVE)) continue;
-            
-            float speedSq = Vector2LengthSqr(e->velocity);
-            bool isSleeping = (speedSq < sleepSq);
-            if (!(e->flags & FLAG_ALWAYS_AWAKE) && isSleeping) continue;
-
+            if (!(e->flags & (FLAG_ACTIVE | FLAG_SLEEPING))) continue;
+        
             // calculate it
             int count = SpatialHash_Query(
                 (int)e->position.x, (int)e->position.y,
                 (int)e->size.x,     (int)e->size.y,
                 neighbours,         32);
-
                 // check against potential neighbours
             for (int k = 0; k < count;k++) {
                 uint32_t otherID = neighbours[k]; 
                 // self check
-                if (otherID <= i) continue; // check this again
+                if (otherID == i) continue; // check this again
                     
                 EntityData* other = &entityStore[otherID];
-
                 if (!(other->flags & FLAG_ACTIVE)) continue;
+
+                bool other_isSleeping = (other->flags & FLAG_SLEEPING);
+                if (otherID < i && !other_isSleeping) continue;
+
                 if (!(ShouldCollide(e,other))) continue;
                     
                 // circle collision check
@@ -105,6 +106,31 @@ void PhysicsSystem_Update(float dt) {
                     Vector2 separation = Vector2Scale(normal,pushFactor);
                     e->position = Vector2Add(e->position,separation);
                     other->position = Vector2Subtract(other->position,separation);
+
+                    if(other_isSleeping) {
+                        other->flags &= ~FLAG_SLEEPING;
+                    }
+
+                    // --- IMPULSE RESOLUTION (Bounce) --- THIS IS TEMPORARY -----
+                    // Relative velocity
+                    if (!((e->flags | other->flags) & FLAG_BOUNCY)) continue;
+                    Vector2 rv = Vector2Subtract(e->velocity, other->velocity);
+                    float velAlongNormal = Vector2DotProduct(rv, normal);
+ 
+                    // Do not resolve if velocities are separating
+                    if (velAlongNormal > 0) continue;
+ 
+                    // Calculate restitution (bounciness) - could be property of entity later
+                    float eRes = 0.5f;
+ 
+                    // Calculate impulse scalar
+                    float j = -(1.0f + eRes) * velAlongNormal;
+                    j /= 2.0f; // 1/massA + 1/massB (Assuming mass = 1 for both)
+ 
+                    // Apply impulse
+                    Vector2 impulse = Vector2Scale(normal, j);
+                    e->velocity = Vector2Add(e->velocity, impulse);
+                    other->velocity = Vector2Subtract(other->velocity, impulse);
                 }
             }
         }

@@ -30,8 +30,15 @@ compile_commands.json
 # Editor
 *.swp
 *.swo
+*.kate-swp
+.*.kate-swp
 
 # Clang tools
 .clangd
 logs/
 *.log
+
+# Asset Packer / Node.js
+node_modules/
+tools/node_modules/
+tools/package-lock.json

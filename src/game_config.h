@@ -4,7 +4,7 @@
 #define SCORE_PER_FOOD 10
 
 #define SETTING_CFG_PATH "src/game/config/settings.cfg"
-#define GAME_TITLE "SNAKE GAME"
+#define GAME_TITLE "CRayEngine"
 #define MENU_TITLE_TEXT "Snake Game"
 #define MENU_START_TEXT "Press ENTER to START"
 #define MENU_TO_QUIT    "Press ESC to Quit"

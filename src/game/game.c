@@ -13,6 +13,8 @@
 #include "game_systems.h"
 #include <stdio.h> // For sprintf
 #include "engine/physics/physics_system.h"
+#include "engine/core/asset_manager.h"
+#include "engine/core/animation.h"
 
 // Global variables
 int finalScore = 0;
@@ -23,6 +25,7 @@ static double physicsTime = 0.0; // FOR DEBUG
  static void ResetGameplay(void);
 
 void Game_Init(void) {
+    Asset_Init();
     EntityManager_Reset();
     PhysicsSystem_Init();
     finalScore = 0;
@@ -39,9 +42,11 @@ void Game_Update(void) {
     double endTime = GetTime(); // FOR DEBUG
     physicsTime = (endTime - starttime) * 1000.0; // FOR DEBUG
 
+    AnimationSystem_Update(dt);
+
     // Snake logic
-    UpdateSnake();
-    UpdateFood();
+    //UpdateSnake();
+    //UpdateFood();
     Vector2 head = GetSnakeHeadPosition();
     Vector2 foodPos = GetFoodPosition();
 
@@ -59,8 +64,8 @@ void Game_Draw(void)
 {
     ClearBackground(DARKGRAY);
     DrawFPS(10, 10); // FOR DEBUG
-    DrawSnake();
-    DrawFood();
+    //DrawSnake();
+    //DrawFood();
     System_DrawEntities();
     int activeCount = GetActiveEntityCount(); // FOR DEBUG
     DrawText(TextFormat("Physics time: %.2f ms | Entities: %d",physicsTime, activeCount),20,20,20,RED); // FOR DEBUG
@@ -78,15 +83,7 @@ static void ResetGameplay(void) {
     InitFood();
     finalScore = 0;
     // this is for test, change location later on
-    Entity player = EntityManager_Create(TYPE_PLAYER,(Vector2){100,200});
-    EntityData* pData = EntityManager_Get(player);
-    if (pData) {
-        pData->color = GREEN;
-        pData->size = (Vector2){40,40};
-        pData->flags |= FLAG_ACTIVE | FLAG_VISIBLE;
-        pData->flags |= SET_LAYER(L_PLAYER);
-        pData->flags |= SET_MASK(L_ENEMY | L_BULLET);
-    }
+    SpawnPlayer();
 }
 
 

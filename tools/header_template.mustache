@@ -1,0 +1,17 @@
+#ifndef GENERATED_ATLAS_H
+#define GENERATED_ATLAS_H
+#include "raylib.h"
+
+typedef enum {
+{{#rects}}
+    SPR_{{name}},
+{{/rects}}
+    SPR_COUNT
+} SpriteID;
+
+static const Rectangle atlas_rects[] = {
+{{#rects}}
+    { {{frame.x}}, {{frame.y}}, {{frame.w}}, {{frame.h}} }, // {{name}}
+{{/rects}}
+};
+#endif

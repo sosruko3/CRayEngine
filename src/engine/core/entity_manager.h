@@ -3,9 +3,7 @@
 
 #include "entity.h"
 #include <stddef.h>
-
-#define MAX_ENTITIES 10000
-
+#include "config.h"
 extern EntityData entityStore[MAX_ENTITIES];
 
 void EntityManager_Init(void);

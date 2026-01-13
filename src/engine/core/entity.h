@@ -11,13 +11,15 @@ typedef struct {
 } Entity;
 
 // bitmasks (flags)
-// --- These control the engine state for the entity (Bits 0-7)
-#define FLAG_ACTIVE       (1 << 0) // 1 = 0001( Is this slot in use)
-#define FLAG_VISIBLE      (1 << 1) // 2 = 0010 ( Should Render draw it)
-#define FLAG_SOLID        (1 << 2) // 4 == 0100 ( Should phyics check collisions)
-#define FLAG_DAMAGED      (1 << 3) // 8 = 1000 // CHANGE THIS LATER ON, CAN BE CONSIDERED BAD CODE!!!!
-#define FLAG_ALWAYS_AWAKE (1 << 4) // 16 = 10000 (No sleep for physics)
-
+// --- These control the engine state for the entity (Bits 0-15)
+#define FLAG_ACTIVE        (1 << 0) // (Is this slot in use)
+#define FLAG_VISIBLE       (1 << 1) // (Should Render draw it)
+#define FLAG_SOLID         (1 << 2) // NOTE:Will change this later on,useless since we use layers and masks for collision.
+#define FLAG_DAMAGED       (1 << 3) // Will change this to something else, do not use.
+#define FLAG_ALWAYS_AWAKE  (1 << 4) // (No sleeping for physics)
+#define FLAG_SLEEPING      (1 << 5) // (Physics are on sleep)
+#define FLAG_BOUNCY        (1 << 6) // This entity transfers velocity/bounces
+#define FLAG_ANIMATED      (1 << 7) // Is using Animations
 
 // Collision Tools (Generic)
 // Engine provides the "math", not the "names"
@@ -37,16 +39,17 @@ typedef struct {
     Vector2 velocity;
     Vector2 size;
     // 4 byte
-    Color color;
+    Color color; // can change this to "tint" , think later
     float rotation;
     float restitution; // For bounciness, planning to implement later
     uint32_t generation;
-    uint32_t flags; // replaces "isActive"
+    uint32_t flags; // replaces "isActive" etc.
     // 2 byte
-    uint16_t textureID; // currently not used.
+    uint16_t spriteID; // Replaced textureID(was not used) with spriteID.
     uint16_t type;
     // optCache
     uint8_t _optCache[16];
 } EntityData;
 // _optCache is to make the struct 64byte, it is not used.
+
 #endif

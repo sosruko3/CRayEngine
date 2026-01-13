@@ -13,7 +13,8 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
     Logger_Init();
     Log(LOG_LVL_INFO,"Engine Initializing...");
     Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",width,height);
-    InitWindow(width, height, title);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
+    InitWindow(SCREEN_WIDTH,SCREEN_HEIGHT, title); //
     SetTargetFPS(TARGET_FRAMERATE);
     
     const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);

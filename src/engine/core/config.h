@@ -5,6 +5,8 @@
 #define SCREEN_WIDTH  1920
 #define SCREEN_HEIGHT 1080
 #define CELL_SIZE     40
+#define atlasDir      "src/game/atlas/atlas.png"
+#define MAX_ENTITIES 5000
 
 #define TARGET_FRAMERATE 60
 

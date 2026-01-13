@@ -7,9 +7,14 @@
 #include "engine/core/input.h"
 #include "engine/core/config.h"
 #include  "engine/core/entity.h" // for layer/mask macros
+#include "engine/core/asset_manager.h"
+#include "atlas_data.h"
+#include "game_animation.h"
+
 
 #define PLAYER_SPEED 200.0f
 #define PARTICLE_COUNT 1000
+#define SCALE_FACTOR 4.0f
 
 void System_UpdateLogic(float dt) {
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
@@ -31,7 +36,6 @@ void System_UpdateLogic(float dt) {
                 if (Input_IsDown(ACTION_RIGHT)) e->velocity.x = speed;
                 break;
             }
-
             case TYPE_PARTICLE:
                 // Bounce Logic
                 //if (e->position.x < 0 || e->position.x > SCREEN_WIDTH) e->velocity.x *= -1;
@@ -53,30 +57,45 @@ void System_HandleDebugInput(void) {
             int x = GetRandomValue(0, SCREEN_WIDTH);
             int y = GetRandomValue(0, SCREEN_HEIGHT);
             
-            Entity e = EntityManager_Create(TYPE_PARTICLE, (Vector2){x, y});
+            Entity e = EntityManager_Create(TYPE_ENEMY, (Vector2){x, y});
             EntityData* data = EntityManager_Get(e);
             if (data) {
                 data->velocity.x = GetRandomValue(-200, 200); // Fast random movement
                 data->velocity.y = GetRandomValue(-200, 200);
-                data->color = (Color){ 
-                    GetRandomValue(50, 255), 
-                    GetRandomValue(50, 255), 
-                    GetRandomValue(50, 255), 
-                    255 
-                };
-                data->size = (Vector2) {10,10};
+                data->color = WHITE;
+                data->size = (Vector2) {16*SCALE_FACTOR,16*SCALE_FACTOR};
                 data->flags |= FLAG_ACTIVE | FLAG_VISIBLE;
-                data->flags |= SET_LAYER(L_PARTICLE);
-                data->flags |= SET_MASK(L_PLAYER);
+                data->flags |= SET_LAYER(L_ENEMY);
+                data->flags |= SET_MASK(L_PLAYER | L_ENEMY);
+                data->spriteID = SPR_cactus;
+                AnimationSystem_Set(e.id,ANIM_CACTUS_IDLE);
             }
         }
         Log(LOG_LVL_INFO,"Spawned %d entities!\n",PARTICLE_COUNT);
     }
 }
 void System_DrawEntities(void) {
+    Texture2D atlas = Asset_getTexture();
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-        if (entityStore[i].flags & FLAG_ACTIVE) {
-            DrawCircleV(entityStore[i].position, entityStore[i].size.x/2, entityStore[i].color);
+        if ((entityStore[i].flags & FLAG_ACTIVE) && (entityStore[i].flags & FLAG_VISIBLE)) {
+            Rectangle srcRect = Asset_getRect(entityStore[i].spriteID);
+            // Flip logic
+            if (comp_anim[i].flipX) srcRect.width *= -1.0f;
+
+            Rectangle destRect = {
+                (int)entityStore[i].position.x,
+                (int)entityStore[i].position.y,
+                (int)entityStore[i].size.x,
+                (int)entityStore[i].size.y
+            };
+            DrawTexturePro(
+                atlas,
+                srcRect,
+                destRect,
+                (Vector2){0,0},
+                entityStore[i].rotation,
+                entityStore[i].color
+            );
         }
     }
 }
@@ -85,12 +104,13 @@ void SystemTestSpawn(void) {
         Entity e = EntityManager_Create(TYPE_ENEMY,(Vector2) {400,400});
         EntityData* e_data = EntityManager_Get(e);
         if (e_data) {
-            e_data->velocity = (Vector2){20,20};
+            e_data->spriteID   = SPR_enemy_idle; // Default sprite
+            e_data->velocity   = (Vector2){20,20};
             e_data->color      = RAYWHITE;
-            e_data->size       = (Vector2){40,40};
-            e_data-> flags    |= FLAG_ACTIVE | FLAG_VISIBLE; // Active and visible
+            e_data->size       = (Vector2){24*SCALE_FACTOR,24*SCALE_FACTOR};
+            e_data-> flags    |= FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID; // Active and visible
             e_data-> flags    |= SET_LAYER(L_ENEMY); //  = I am an enemy
-            e_data-> flags    |= SET_MASK(L_PLAYER | L_BULLET); // = Hit players and bullets
+            e_data-> flags    |= SET_MASK(L_PLAYER | L_BULLET | L_ENEMY); // = Hit players and bullets
         }
         Log(LOG_LVL_INFO,"Spawned Test Entity");
     }
@@ -104,4 +124,18 @@ int GetActiveEntityCount(void) {
         }
     }
     return count;
+}
+
+void SpawnPlayer(void) {
+    Entity player = EntityManager_Create(TYPE_PLAYER,(Vector2){100,200});
+    EntityData* pData = EntityManager_Get(player);
+    if (pData) {
+        pData->spriteID = SPR_player_idle0;
+        pData->size = (Vector2){24*SCALE_FACTOR,24*SCALE_FACTOR};
+        pData->velocity = (Vector2) {60,60};
+        pData->flags |= FLAG_ACTIVE | FLAG_VISIBLE | FLAG_BOUNCY | FLAG_ANIMATED;
+        pData->flags |= SET_LAYER(L_ENEMY);
+        pData->flags |= SET_MASK(L_ENEMY | L_BULLET);
+        AnimationSystem_Set(player.id,ANIM_PLAYER_IDLE);
+    }
 }

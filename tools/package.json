@@ -1,0 +1,6 @@
+{
+  "name": "engine-tools",
+  "dependencies": {
+    "free-tex-packer-cli": "^0.3.0"
+  }
+}
