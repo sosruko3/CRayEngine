@@ -35,7 +35,7 @@ void EntityManager_Reset(void) {
 
 Entity EntityManager_Create(int type,Vector2 pos) {
     if (!freeCount) {
-        Log(LOG_LVL_ERROR,"Entity Manager is full!");
+        //Log(LOG_LVL_ERROR,"Entity Manager is full!"); This prints 1000 log after Z button presssed(func for spawning 100 entity)
         return (Entity){ .id = 0xFFFFFFFF };
     }
 

@@ -32,7 +32,7 @@ static SpatialNode* PopNode() {
     }
     return &nodePool[nodePoolIndex++];
 }
-// api implementation
+// API implementation
 void SpatialHash_Clear(void) {
     // clear the bucket heads
     for (int i = 0;i < SPATIAL_HASH_SIZE;i++) {

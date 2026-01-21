@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
-project(CRayEngine VERSION 0.02)
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "In-source builds are not allowed. Please run 'cmake -B build' and 'cmake --build build'.")
+endif()
+
+project(CRayEngine VERSION 0.4)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -46,7 +50,7 @@ add_custom_command(
 
     COMMAND ${CMAKE_COMMAND} -E rename "${GENERATED_DIR}/atlas.h" "${GENERATED_DIR}/atlas_data.h"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${GENERATED_DIR}/atlas.png" "${CMAKE_BINARY_DIR}/atlas.png"
-    DEPENDS ${RAW_PNGS} "${TEMPLATE_FILE}" "${PACKER_SCRIPT}"
+    DEPENDS ${RAW_PNGS} "${TEMPLATE_FILE}" "${PACKER_SCRIPT}" "${RAW_ASSETS_DIR}"
     COMMENT "Packing textures into atlas..."
     VERBATIM
 )
@@ -74,7 +78,9 @@ set(SOURCES
     src/engine/core/input.c
     src/engine/core/entity_manager.c
     src/engine/core/asset_manager.c
+    src/engine/core/cre_renderer.c
     src/engine/core/animation.c
+    src/engine/core/cre_camera.c
     src/engine/physics/physics_system.c
     src/engine/physics/spatial_hash.c
     

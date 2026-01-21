@@ -84,7 +84,7 @@ void PhysicsSystem_Update(float dt) {
 
                 if (!(ShouldCollide(e,other))) continue;
                     
-                // circle collision check
+                // circle collision check, this part is dirty! Clean it later on
                 Vector2 diff = Vector2Subtract(e->position,other->position);
                 float distSq = Vector2LengthSqr(diff);
                 float radiusA = e->size.x * 0.5f;
@@ -111,7 +111,7 @@ void PhysicsSystem_Update(float dt) {
                         other->flags &= ~FLAG_SLEEPING;
                     }
 
-                    // --- IMPULSE RESOLUTION (Bounce) --- THIS IS TEMPORARY -----
+                    // --- IMPULSE RESOLUTION (Bounce) --- THIS IS TEMPORARY ----- Dirty code!
                     // Relative velocity
                     if (!((e->flags | other->flags) & FLAG_BOUNCY)) continue;
                     Vector2 rv = Vector2Subtract(e->velocity, other->velocity);

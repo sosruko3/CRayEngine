@@ -2,7 +2,6 @@
 #define SPATIAL_HASH_H
 
 #include <stdint.h> // for uint32_t
-// Spatial hash of this engine will be using algorithm from Chipmunk2D
 
 // 128 pixel is a standart bucket size
 #define SPATIAL_GRID_SIZE 128

@@ -6,19 +6,22 @@ AnimComponent comp_anim[MAX_ENTITIES];
 
 void AnimationSystem_Update(float dt) {
     if (dt >0.05f) dt = 0.05f;
+
     for (int i = 0;i < MAX_ENTITIES;i++) {
         EntityData*e = &entityStore[i];
 
         if(!(e->flags & (FLAG_ACTIVE | FLAG_ANIMATED))) continue;
         
         AnimComponent* state = &comp_anim[i];
-        if (e->velocity.x > 0.1f) {
-            state->flipX = 0; // Face Right
-        } else if (e->velocity.x < -0.1f) {
-            state->flipX = 1; // Face Left
-        }
-        const AnimDef* def = &ANIMATIONS[state->currentAnimID];
+        // Horizontal Flipping (Velocity based)
+        if (e->velocity.x > 0.1f) state->flipX = 0; // Face Right
+        else if (e->velocity.x < -0.1f) state->flipX = 1; // Face Left
 
+        // Vertical flip
+        // if (e->velocity.y > 0.1f)        state->flipY = 0;
+        // else if (e-> velocity.y < -0.1f) state->flipY = true;
+
+        const AnimDef* def = &ANIMATIONS[state->currentAnimID];
         state->timer += dt;
 
         int currentFrame = (int)(state->timer * def->speed);

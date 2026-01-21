@@ -1,6 +1,7 @@
 # Build directories
 build/
 cmake-build-*/
+build-win/
 
 # IDE
 .vscode/
@@ -26,6 +27,13 @@ valgrind.log
 # CMake
 CMakeUserPresets.json
 compile_commands.json
+_deps
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CMakeFiles/
 
 # Editor
 *.swp

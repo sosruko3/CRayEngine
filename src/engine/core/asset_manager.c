@@ -5,8 +5,9 @@
 
 static Texture2D atlasTexture;
 void Asset_Init(void) {
-    atlasTexture = LoadTexture(atlasDir);
-    SetTextureFilter(atlasTexture,TEXTURE_FILTER_POINT);
+    if (FileExists(atlasDir)) atlasTexture = LoadTexture(atlasDir);
+    else if (FileExists("atlas.png")) atlasTexture = LoadTexture("atlas.png");
+
     if (!atlasTexture.id) Log(LOG_LVL_ERROR,"ASSETS: Failed to load atlas.png!");
     else Log(LOG_LVL_INFO,"ASSETS: Atlas loaded successfully.");
 }

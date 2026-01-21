@@ -8,6 +8,7 @@
 #include "scene_manager.h"
 #include "entity_manager.h"
 #include "../physics/physics_system.h"
+#include "cre_renderer.h"
 
 void Engine_Init(int width, int height, const char* title, const char* configFileName) {
     Logger_Init();
@@ -24,6 +25,7 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
         Logger_Shutdown();
         exit(1);
     }
+    creRenderer_Init(1080);
     EntityManager_Init();
     PhysicsSystem_Init();
     SceneManager_Init();
@@ -33,10 +35,10 @@ void Engine_Run() {
     Log(LOG_LVL_INFO,"Entering main loop");
     while (!WindowShouldClose()) {
         SceneManager_Update();
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
+
+        creRenderer_BeginFrame();
         SceneManager_Draw();
-        EndDrawing();
+        creRenderer_EndFrame();
     }
     Log(LOG_LVL_INFO,"Main loop exited. (Window closed)");
 }

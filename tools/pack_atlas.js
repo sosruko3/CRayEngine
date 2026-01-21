@@ -39,13 +39,15 @@ console.log(`Packing ${images.length} images from ${inputDir} to ${outputDir}...
 
 const packerOptions = {
     textureName: "atlas",
-    width: 2048,
-    height: 2048,
+    width: 4096,
+    height: 4096,
     fixedSize: false,
     padding: 2,
     allowRotation: false,
     detectIdentical: true,
     allowTrim: true,
+    powerOfTwo: true,
+    fixedSize: true,
     packer: "MaxRectsBin",
     exporter: {
         template: templateFile,

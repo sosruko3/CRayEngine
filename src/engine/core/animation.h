@@ -18,6 +18,7 @@ typedef struct {
     uint16_t currentAnimID;
     uint8_t finished;
     uint8_t flipX;
+    uint8_t flipY;
 } AnimComponent;
 
 void AnimationSystem_Update(float dt);

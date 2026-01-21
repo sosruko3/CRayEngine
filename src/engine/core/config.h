@@ -8,7 +8,7 @@
 #define atlasDir      "src/game/atlas/atlas.png"
 #define MAX_ENTITIES 5000
 
-#define TARGET_FRAMERATE 60
+#define TARGET_FRAMERATE 120 // FOR DEBUG.Changed this but also will add 120hz support completely
 
 // These calculate automatically based on the values above
 #define GRID_WIDTH    (SCREEN_WIDTH / CELL_SIZE)
