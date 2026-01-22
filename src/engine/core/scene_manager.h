@@ -1,18 +1,12 @@
 #ifndef SCENE_MANAGER_H
 #define SCENE_MANAGER_H
 
-#include "scene_types.h"
+#include "scenes.h"
 
-// Define scene.
-typedef struct {
-    void (*Init)(void);
-    void (*Update)(void);
-    void (*Draw)(void);
-    void (*Unload)(void);
-} Scene;
+typedef Scene (*SceneFactory)(int stateID);
 
 // Start
-void SceneManager_Init(void);
+void SceneManager_Init(SceneFactory factory);
 
 // Main loop calls these
 void SceneManager_Update(void);
@@ -22,6 +16,7 @@ void SceneManager_Draw(void);
 void SceneManager_Shutdown(void);
 
 // Switch scenes
-void SceneManager_ChangeScene(GameState nextState);
+void SceneManager_ChangeScene(int nextState);
 
+int SceneManager_GetActiveState(void);
 #endif

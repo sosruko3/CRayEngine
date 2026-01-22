@@ -33,7 +33,6 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
     EntityManager_Init();
     Asset_Init();
     PhysicsSystem_Init();
-    SceneManager_Init();
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
 void Engine_Run() {

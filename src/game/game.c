@@ -6,7 +6,7 @@
 #include "raylib.h"
 #include "../game_config.h"
 #include "engine/core/scene_manager.h"
-#include "engine/core/scene_types.h"
+#include "game_scenes.h"
 #include "engine/core/entity_manager.h"
 #include "engine/core/logger.h"
 #include "entity_types.h"
@@ -16,6 +16,7 @@
 #include "engine/core/asset_manager.h"
 #include "engine/core/animation.h"
 #include "engine/core/cre_renderer.h"
+#include "engine/core/viewport.h"
 
 // Global variables
 int finalScore = 0;
@@ -57,7 +58,7 @@ void Game_Update(void) {
     }
          
     // Check Game over Collision
-    if (CheckSnakeCollision(GRID_WIDTH,GRID_HEIGHT)) SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
+    if (CheckSnakeCollision(GRID_WIDTH,GRID_HEIGHT))    SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
 }
 void Game_Draw(void) {
     //DrawSnake();
@@ -67,7 +68,8 @@ void Game_Draw(void) {
     // For ScoreHUD
     char scoreText[20];
     sprintf(scoreText,"Score: %d", finalScore);
-    float uiPadding = creRenderer_GetVirtualWidth() * 0.02f;
+    ViewportSize v = Viewport_Get();
+    float uiPadding =  v.width * 0.02f;
     DrawText(scoreText, uiPadding, 20, 30, RAYWHITE);
     
     DrawFPS(10, 10); // FOR DEBUG

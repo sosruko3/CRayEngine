@@ -3,6 +3,8 @@
 
 // Change these values to change resolution
 #define GAME_VIRTUAL_HEIGHT 1080.0f
+#define MIN_ZOOM 0.01f
+#define MAX_ZOOM 100.0f
 #define SCREEN_WIDTH  1920
 #define SCREEN_HEIGHT 1080
 #define CELL_SIZE     40

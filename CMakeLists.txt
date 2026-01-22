@@ -81,6 +81,7 @@ set(SOURCES
     src/engine/core/cre_renderer.c
     src/engine/core/animation.c
     src/engine/core/cre_camera.c
+    src/engine/core/cre_camera_utils.c
     src/engine/core/viewport.c
     src/engine/physics/physics_system.c
     src/engine/physics/spatial_hash.c

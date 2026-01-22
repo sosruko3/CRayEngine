@@ -1,25 +1,25 @@
+#include "game_scenes.h"
 #include "game_over.h"
-#include "engine/core/scene_types.h"
-#include "engine/core/scene_manager.h"
 #include "game.h"
+#include "engine/core/logger.h"
 #include "menu.h"
 
-Scene Game_GetScene(GameState State) {
+Scene Game_GetScene(int stateID) {
     Scene scene = { 0 };
 
-    switch (State) {
-        case GAME_STATE_PLAYING:
-        scene.Init = Game_Init;
-        scene.Update = Game_Update;
-        scene.Draw = Game_Draw;
-        scene.Unload = Game_Shutdown;
-        break;
-
+    switch (stateID) {
         case GAME_STATE_MENU:
         scene.Init = Menu_Init;
         scene.Update = Menu_Update;
         scene.Draw = Menu_Draw;
         scene.Unload = Menu_Unload;
+        break;
+
+        case GAME_STATE_PLAYING:
+        scene.Init = Game_Init;
+        scene.Update = Game_Update;
+        scene.Draw = Game_Draw;
+        scene.Unload = Game_Shutdown;
         break;
 
         case GAME_STATE_GAMEOVER:
@@ -30,6 +30,7 @@ Scene Game_GetScene(GameState State) {
         break;
 
         default:
+        Log(LOG_LVL_WARNING,"Game Scene failed to load.\n");
         break;
 
     }

@@ -1,46 +1,64 @@
 #include "scene_manager.h"
 #include "logger.h"
 #include "stddef.h" // for NULL
-
-#include "../../game/game_scenes.h"
+#include "stdbool.h"
 
 // Internal state
-static Scene currentScene = { 0 };
-static GameState activeState = -1; // -1 = No state
+typedef struct {
+    Scene        currentScene;
+    int          activeState;
+    int          nextState;
+    bool         isSwitchPending;
+    SceneFactory factory;
+} SceneManagerContext;
 
-void SceneManager_Init(void) {
+static SceneManagerContext ctx = {
+    .activeState     = -1,
+    .nextState       = -1,
+    .isSwitchPending = false,
+    .factory = NULL
+};
+// Public API
+void SceneManager_Init(SceneFactory factory) {
+    ctx.factory = factory;
+    ctx.activeState = -1;
+    ctx.isSwitchPending = false;
     Log(LOG_LVL_INFO,"Scene Manager Initialized.");
 }
 
 void SceneManager_Update(void) {
-    if (currentScene.Update) {
-            currentScene.Update();
+    if (ctx.isSwitchPending) {
+        if (ctx.currentScene.Unload)  ctx.currentScene.Unload();
+        
+        if (ctx.factory) {
+            ctx.currentScene = ctx.factory(ctx.nextState);
+        }
+        ctx.activeState = ctx.nextState;
+        if (ctx.currentScene.Init) ctx.currentScene.Init();
+        ctx.isSwitchPending = false;
+    }
+    if (ctx.currentScene.Update) {
+        ctx.currentScene.Update();
     }
 }
 void SceneManager_Draw(void) {
-    if (currentScene.Draw) {
-        currentScene.Draw();
+    if (ctx.currentScene.Draw) {
+        ctx.currentScene.Draw();
     }
 }
 
 void SceneManager_Shutdown(void) {
-    if (currentScene.Unload) {
-        currentScene.Unload();
+    if (ctx.currentScene.Unload) {
+        ctx.currentScene.Unload();
     }
 }
 
-void SceneManager_ChangeScene(GameState nextState) {
-    Log(LOG_LVL_INFO, "Changing Scene...");
+void SceneManager_ChangeScene(int nextState) {
+    ctx.nextState = nextState;
+    ctx.isSwitchPending = true;
+    Log(LOG_LVL_INFO, "Scene changing queued for next frame...");
+}
 
-    // Unload the old scene
-    if (currentScene.Unload) {
-        currentScene.Unload();
-    }
-
-    currentScene = Game_GetScene(nextState);
-    activeState = nextState;
-
-    if (currentScene.Init) {
-        currentScene.Init();
-    }
+int SceneManager_GetActiveState(void) {
+    return ctx.activeState;
 }

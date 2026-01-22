@@ -1,7 +1,7 @@
 #include "game_over.h"
 #include "raylib.h"
 #include "engine/core/scene_manager.h"
-#include "engine/core/scene_types.h"
+#include "game_scenes.h"
 #include "engine/core/input.h"
 #include <stdio.h> // for sprintf
 #include "engine/core/ui_helper.h"
