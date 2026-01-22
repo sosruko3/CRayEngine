@@ -80,7 +80,7 @@ void System_HandleDebugInput(void) {
 void System_DrawEntities(void) {
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
         EntityData* e = &entityStore[i];
-        if ((entityStore[i].flags & FLAG_ACTIVE) && (entityStore[i].flags & FLAG_VISIBLE)) {
+        if ((entityStore[i].flags & (FLAG_ACTIVE | FLAG_VISIBLE))) {
             creRenderer_DrawSprite(
                 e->spriteID,
                 e->position,

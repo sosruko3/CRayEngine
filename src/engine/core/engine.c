@@ -9,15 +9,19 @@
 #include "entity_manager.h"
 #include "../physics/physics_system.h"
 #include "cre_renderer.h"
+#include "asset_manager.h"
+#include "viewport.h"
 
 void Engine_Init(int width, int height, const char* title, const char* configFileName) {
     Logger_Init();
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
+    InitWindow(width,height, title);
+    SetTargetFPS(TARGET_FRAMERATE);
+    Viewport_Init(GetScreenWidth(),GetScreenHeight(),GAME_VIRTUAL_HEIGHT);
+    ViewportSize v = Viewport_Get();
     Log(LOG_LVL_INFO,"Engine Initializing...");
     Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",width,height);
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
-    InitWindow(SCREEN_WIDTH,SCREEN_HEIGHT, title); //
-    SetTargetFPS(TARGET_FRAMERATE);
-    
+
     const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);
     Input_Init(configPath);
     if (!IsWindowReady()) {
@@ -25,8 +29,9 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
         Logger_Shutdown();
         exit(1);
     }
-    creRenderer_Init(1080);
+    creRenderer_Init((int)v.width,(int)v.height);
     EntityManager_Init();
+    Asset_Init();
     PhysicsSystem_Init();
     SceneManager_Init();
     Log(LOG_LVL_INFO,"Windows created successfully.");
@@ -34,6 +39,12 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
 void Engine_Run() {
     Log(LOG_LVL_INFO,"Entering main loop");
     while (!WindowShouldClose()) {
+        
+        if (Viewport_ShouldResize()) {
+            ViewportSize v = Viewport_Get();
+            creRenderer_Init((int)v.width,(int)v.height);
+            Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",v.width,v.height);
+        }
         SceneManager_Update();
 
         creRenderer_BeginFrame();

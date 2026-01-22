@@ -26,9 +26,7 @@ static double physicsTime = 0.0; // FOR DEBUG
  static void ResetGameplay(void);
 
 void Game_Init(void) {
-    Asset_Init();
     EntityManager_Reset();
-    PhysicsSystem_Init();
     finalScore = 0;
     ResetGameplay();
 }
@@ -74,7 +72,7 @@ void Game_Draw(void) {
     
     DrawFPS(10, 10); // FOR DEBUG
     int activeCount = GetActiveEntityCount(); // FOR DEBUG
-    DrawText(TextFormat("Physics time: %.04f ms | Entities: %d",physicsTime, activeCount),20,20,20,RED); // FOR DEBUG
+    DrawText(TextFormat("Physics time: %.02f ms | Entities: %d",physicsTime, activeCount),20,20,20,RED); // FOR DEBUG
 }
 void Game_Shutdown(void) {
     // Cleanup if needed

@@ -14,7 +14,7 @@
  * ───────────────────────────────────────────────────────────────────────────── */
 
 /* Lifecycle */
-void creRenderer_Init(int virtualHeight);
+void creRenderer_Init(int virtualWidth,int virtualHeight);
 void creRenderer_Shutdown(void);
 
 /* Frame control */
