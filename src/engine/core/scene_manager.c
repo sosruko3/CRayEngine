@@ -14,7 +14,6 @@ typedef struct {
 
 static SceneManagerContext ctx = {
     .activeState     = -1,
-    .nextState       = -1,
     .isSwitchPending = false,
     .factory = NULL
 };

@@ -12,15 +12,15 @@
 #include "asset_manager.h"
 #include "viewport.h"
 
-void Engine_Init(int width, int height, const char* title, const char* configFileName) {
+void Engine_Init(const char* title, const char* configFileName) {
     Logger_Init();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
-    InitWindow(width,height, title);
-    SetTargetFPS(TARGET_FRAMERATE);
-    Viewport_Init(GetScreenWidth(),GetScreenHeight(),GAME_VIRTUAL_HEIGHT);
+    Viewport_Init(SCREEN_WIDTH,SCREEN_HEIGHT);
     ViewportSize v = Viewport_Get();
+    InitWindow(v.width,v.height,title);
+    SetTargetFPS(TARGET_FRAMERATE);
     Log(LOG_LVL_INFO,"Engine Initializing...");
-    Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",width,height);
+    Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",v.width,v.height);
 
     const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);
     Input_Init(configPath);
@@ -38,10 +38,10 @@ void Engine_Init(int width, int height, const char* title, const char* configFil
 void Engine_Run() {
     Log(LOG_LVL_INFO,"Entering main loop");
     while (!WindowShouldClose()) {
-        
-        if (Viewport_ShouldResize()) {
+        Viewport_Update();
+        if (Viewport_wasResized) {
             ViewportSize v = Viewport_Get();
-            creRenderer_Init((int)v.width,(int)v.height);
+            creRenderer_RecreateCanvas((int)v.width,(int)v.height);
             Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",v.width,v.height);
         }
         SceneManager_Update();

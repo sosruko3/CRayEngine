@@ -1,22 +1,13 @@
 #ifndef SPATIAL_HASH_H
 #define SPATIAL_HASH_H
 
-#include <stdint.h> // for uint32_t
-
-// 128 pixel is a standart bucket size
-#define SPATIAL_GRID_SIZE 128
-
-// Size of the hash table (number of buckets)
-// 1009 is a prime number, which helps spread the data evenly. NOTE: Changed 1009 to 4096 for optimization.
-#define SPATIAL_HASH_SIZE 4096
-
-// Total memory pool for nodes.
-// Number is big in case entites touch multiple of them. In theory this amount can withstand 10k entity.
-#define SPATIAL_MAX_NODES 40000
+#include <stdint.h> // for uint32_t etc.
 
 typedef struct SpatialNode {
-    uint32_t entityID; // matches e.id
     struct SpatialNode* next; // next node
+    uint32_t entityID; // matches e.id
+    int16_t gridX;
+    int16_t gridY;
 } SpatialNode;
 
 // Reset the hash at the start of every frame

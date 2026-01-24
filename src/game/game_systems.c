@@ -11,11 +11,17 @@
 #include "engine/core/asset_manager.h"
 #include "atlas_data.h"
 #include "game_animation.h"
+#include "engine/core/viewport.h"
+#include "engine/physics/spatial_hash.h"
+#include "engine/core/cre_camera.h"
+#include "engine/core/cre_camera_utils.h"
 
-
-#define PLAYER_SPEED 200.0f
+#define SLEEP_RADIUS      3000.0f 
+#define SLEEP_RADIUS_SQR  (SLEEP_RADIUS * SLEEP_RADIUS)
+#define PLAYER_SPEED 500.0f
 #define PARTICLE_COUNT 1000
 #define SCALE_FACTOR 4.0f
+static uint32_t s_cameraTargetID = MAX_ENTITIES + 1;
 
 // DO NOT FORGET REMOVING GetScreenWidth()s later on.
 
@@ -24,8 +30,9 @@ void System_UpdateLogic(float dt) {
         // not using get func here is important!
         EntityData* e = &entityStore[i];
         if (!(e->flags & FLAG_ACTIVE)) continue;
-        bool isOutofBounds = (e->position.x < -100 || e->position.x > GetScreenWidth() + 100 ||
-        e->position.y < -100 || e->position.y > GetScreenHeight() + 100);
+        ViewportSize v = Viewport_Get();
+        bool isOutofBounds = (e->position.x < -100 || e->position.x > v.width + 100 ||
+                            e->position.y < -100 || e->position.y > v.height + 100);
 
         switch (e->type) {
             case TYPE_PLAYER: {
@@ -40,9 +47,6 @@ void System_UpdateLogic(float dt) {
                 break;
             }
             case TYPE_PARTICLE: {
-                // Bounce Logic
-                //if (e->position.x < 0 || e->position.x > SCREEN_WIDTH) e->velocity.x *= -1;
-                //if (e->position.y < 0 || e->position.y > SCREEN_HEIGHT) e->velocity.y *= -1;
                 if (isOutofBounds) {
                     Entity self = {.id = i, .generation = e->generation};
                         EntityManager_Destroy(self);
@@ -54,18 +58,18 @@ void System_UpdateLogic(float dt) {
     }
 }
 void System_HandleDebugInput(void) {
-    if (IsKeyPressed(KEY_Z)) {
+    if (IsKeyDown(KEY_Z)) {
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             // 1. Random Position
-            int x = GetRandomValue(0, GetScreenWidth()*4); // FOR DEBUG
-            int y = GetRandomValue(0, GetScreenHeight()*4);
+            int x = GetRandomValue((-2)*GetScreenWidth(), GetScreenWidth()*2); // FOR DEBUG
+            int y = GetRandomValue((-2)*GetScreenHeight(), GetScreenHeight()*2); // Change GetScreenWidth,height to viewport's things later
             
             Entity e = EntityManager_Create(TYPE_ENEMY, (Vector2){x, y});
             EntityData* data = EntityManager_Get(e);
             if (data) {
                 data->velocity.x = GetRandomValue(-200, 200); // Fast random movement
                 data->velocity.y = GetRandomValue(-200, 200);
-                data->color = WHITE;
+                data->color = RED;
                 data->size = (Vector2) {16*SCALE_FACTOR,16*SCALE_FACTOR};
                 data->flags |= FLAG_ACTIVE | FLAG_VISIBLE;
                 data->flags |= SET_LAYER(L_ENEMY);
@@ -78,31 +82,44 @@ void System_HandleDebugInput(void) {
     }
 }
 void System_DrawEntities(void) {
-    for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-        EntityData* e = &entityStore[i];
-        if ((entityStore[i].flags & (FLAG_ACTIVE | FLAG_VISIBLE))) {
+    Rectangle cullRect = creCamera_GetCullBounds();
+    static uint32_t visibleEntities[MAX_VISIBLE_ENTITIES];
+    int visibleCount = SpatialHash_Query(
+        (int)cullRect.x, 
+        (int)cullRect.y, 
+        (int)cullRect.width, 
+        (int)cullRect.height, 
+        visibleEntities, 
+        MAX_VISIBLE_ENTITIES
+    );
+    for (uint32_t i = 0; i < visibleCount; i++) {
+        uint32_t id = visibleEntities[i];
+        EntityData* e = &entityStore[id];
+
+        // Double checking
+        if ((e->flags & (FLAG_ACTIVE | FLAG_VISIBLE)) == (FLAG_ACTIVE | FLAG_VISIBLE)) {
             creRenderer_DrawSprite(
                 e->spriteID,
                 e->position,
+                e->size,
                 (Vector2){0.5f,0.5f}, // Central Pivot
                 e->rotation,
-                1.0f, // Letting 1080p canvas handle it
-                comp_anim[i].flipX,
-                comp_anim[i].flipY,
+                comp_anim[id].flipX,
+                comp_anim[id].flipY,
                 e->color
             );
         }
     }
 }
 void SystemTestSpawn(void) {
-    if (Input_IsPressed(ACTION_SECONDARY)) {
+    if (IsKeyPressed(KEY_X)) {
         Entity e = EntityManager_Create(TYPE_ENEMY,(Vector2) {400,400});
         EntityData* e_data = EntityManager_Get(e);
         if (e_data) {
             e_data->spriteID   = SPR_enemy_idle; // Default sprite
             e_data->velocity   = (Vector2){20,20};
             e_data->color      = RAYWHITE;
-            e_data->size       = (Vector2){24*SCALE_FACTOR,24*SCALE_FACTOR};
+            e_data->size       = (Vector2){16*SCALE_FACTOR,16*SCALE_FACTOR};
             e_data-> flags    |= FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID; // Active and visible
             e_data-> flags    |= SET_LAYER(L_ENEMY); //  = I am an enemy
             e_data-> flags    |= SET_MASK(L_PLAYER | L_BULLET | L_ENEMY); // = Hit players and bullets
@@ -126,11 +143,115 @@ void SpawnPlayer(void) {
     EntityData* pData = EntityManager_Get(player);
     if (pData) {
         pData->spriteID = SPR_player_idle0;
-        pData->size = (Vector2){24*SCALE_FACTOR,24*SCALE_FACTOR};
+        pData->size = (Vector2){16*SCALE_FACTOR,16*SCALE_FACTOR};
         pData->velocity = (Vector2) {150,150};
         pData->flags |= FLAG_ACTIVE | FLAG_VISIBLE | FLAG_BOUNCY | FLAG_ANIMATED;
         pData->flags |= SET_LAYER(L_ENEMY);
         pData->flags |= SET_MASK(L_ENEMY | L_BULLET);
         AnimationSystem_Set(player.id,ANIM_PLAYER_IDLE);
+        System_SetCameraTarget(player.id); // Hardcoded camera to follow player. !!!!!
     }
 }
+
+void System_SetCameraTarget(uint32_t entityID) {
+    s_cameraTargetID = entityID;
+
+    if (s_cameraTargetID < MAX_ENTITIES) {
+        creCamera_CenterOn(entityStore[s_cameraTargetID].position);
+    }
+}
+
+void System_UpdateCamera(void) {
+    if (s_cameraTargetID >= MAX_ENTITIES) return;
+
+    EntityData* target = &entityStore[s_cameraTargetID];
+
+    if (target->flags & FLAG_ACTIVE) {
+        creCamera_CenterOn(target->position);
+    }
+}
+
+void System_UpdateSleepState(void) {
+    // 1. Get Player Position (The Anchor)
+    if (s_cameraTargetID >= MAX_ENTITIES) return;
+    Vector2 playerPos = entityStore[s_cameraTargetID].position;
+
+    for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
+        EntityData* e = &entityStore[i];
+        
+        // Only check active, non-player entities
+        if (!(e->flags & FLAG_ACTIVE) || (e->type == TYPE_PLAYER)) continue;
+
+        // 2. Distance Check
+        float dx = e->position.x - playerPos.x;
+        float dy = e->position.y - playerPos.y;
+        float distSqr = (dx*dx) + (dy*dy);
+
+        // 3. Set the Flag
+        if (distSqr > SLEEP_RADIUS_SQR) {
+            e->flags |= FLAG_CULLED; // Set bit
+        } else {
+            e->flags &= ~FLAG_CULLED; // Clear bit
+        }
+    }
+}
+void System_ChangeZoom(void) {
+    if (Input_IsDown(ACTION_PRIMARY)) {
+        creCamera_SetZoom(creCamera_GetZoom()*1.01);
+    }
+    else if (Input_IsDown(ACTION_SECONDARY)) {
+        creCamera_SetZoom(creCamera_GetZoom()* 0.99);
+    }
+}
+// For today.
+//void System_DrawDebug(void) {
+//    if (IsKeyDown(KEY_F1)) {
+//        // 1. Get Camera Center (The "Eye" of the player)
+//        // We use this to draw the reference rings
+//        Camera2D cam = creCamera_GetInternal();
+//        Vector2 center = cam.target; 
+//        
+//        // 2. Draw the "Logic Zones"
+//        // Red Ring = The Wall (Where entities stop thinking)
+//        // Match this to your SLEEP_RADIUS/WAKE_DISTANCE (e.g., 3000)
+//        DrawCircleLines((int)center.x, (int)center.y, 3000, RED);
+//        
+//        // Green Box = The Screen (Where entities get drawn)
+//        // 1920x1080 centered on player
+//        DrawRectangleLines(
+//            (int)(center.x - 960), 
+//            (int)(center.y - 540), 
+//            1920, 1080, GREEN
+//        );
+//        
+//        // 3. Draw the "God View" of 40k Entities
+//        for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
+//            EntityData* e = &entityStore[i];
+//            
+//            // Skip dead/empty slots
+//            if (!(e->flags & FLAG_ACTIVE)) continue;
+//            
+//            Color debugColor = WHITE;
+//            
+//            // HIERARCHY OF STATES
+//            if (e->flags & FLAG_CULLED) {
+//                // RED: "I am too far away. CPU is ignoring me."
+//                debugColor = RED; 
+//            } 
+//            else if (e->flags & FLAG_SLEEPING) {
+//                // YELLOW: "I am close, but standing still. Physics is skipping me."
+//                debugColor = YELLOW;
+//            } 
+//            else {
+//                // GREEN: "I am active and moving. CPU is calculating my physics."
+//                debugColor = GREEN;
+//            }
+//            
+//            // Draw a generic "pixel" for the entity
+//            DrawPixel((int)e->position.x, (int)e->position.y, debugColor);
+//        }
+//        
+//        DrawText("DEBUG MODE: Red=Culled, Yellow=Sleep, Green=Active", 
+//            (int)(center.x - 900), (int)(center.y - 500), 20, WHITE);
+//    }
+//}

@@ -16,10 +16,11 @@ typedef struct {
 #define FLAG_VISIBLE       (1 << 1) // (Should Render draw it)
 #define FLAG_SOLID         (1 << 2) // NOTE:Will change this later on,useless since we use layers and masks for collision.
 #define FLAG_DAMAGED       (1 << 3) // Will change this to something else, do not use.
-#define FLAG_ALWAYS_AWAKE  (1 << 4) // (No sleeping for physics)
-#define FLAG_SLEEPING      (1 << 5) // (Physics are on sleep)
+#define FLAG_ALWAYS_AWAKE  (1 << 4) // (No sleeping for Collisions)
+#define FLAG_SLEEPING      (1 << 5) // (Collision are on sleeping)
 #define FLAG_BOUNCY        (1 << 6) // This entity transfers velocity/bounces
 #define FLAG_ANIMATED      (1 << 7) // Is using Animations
+#define FLAG_CULLED        (1 << 8) // Do not process my physics
 
 // Collision Tools (Generic)
 // Engine provides the "math", not the "names"

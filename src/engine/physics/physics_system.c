@@ -40,7 +40,7 @@ void PhysicsSystem_Update(float dt) {
     // 2. Broad phase (Build the hash) This parts runs once for optimization. Build 1x/Solve 4x solution.
     for(uint32_t i = 0;i < MAX_ENTITIES;i++) {
         EntityData* e = &entityStore[i];
-        if (!(e->flags & FLAG_ACTIVE)) continue;
+        if (!(e->flags & FLAG_ACTIVE) || (e->flags & FLAG_CULLED)) continue;
 
         // Sleep check, optimization.
         float speedSq = Vector2LengthSqr(e->velocity);
@@ -63,7 +63,7 @@ void PhysicsSystem_Update(float dt) {
         for (uint32_t i = 0;i < MAX_ENTITIES;i++) {
             EntityData* e = &entityStore[i];
             
-            if (!(e->flags & (FLAG_ACTIVE | FLAG_SLEEPING))) continue;
+            if (!(e->flags & (FLAG_ACTIVE | FLAG_SLEEPING)) || e->flags & FLAG_CULLED) continue;
         
             // calculate it
             int count = SpatialHash_Query(

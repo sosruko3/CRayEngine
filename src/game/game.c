@@ -17,6 +17,7 @@
 #include "engine/core/animation.h"
 #include "engine/core/cre_renderer.h"
 #include "engine/core/viewport.h"
+#include "engine/core/cre_camera.h"
 
 // Global variables
 int finalScore = 0;
@@ -33,6 +34,7 @@ void Game_Init(void) {
 }
 void Game_Update(void) {
     float dt = GetFrameTime();
+    System_UpdateSleepState();
     System_HandleDebugInput();
     SystemTestSpawn();
     System_UpdateLogic(dt);
@@ -43,6 +45,8 @@ void Game_Update(void) {
     physicsTime = (endTime - startTime) * 1000.0; // FOR DEBUG
 
     AnimationSystem_Update(dt);
+    System_UpdateCamera();
+    System_ChangeZoom();
 
     // Snake logic
     //UpdateSnake();
@@ -63,7 +67,11 @@ void Game_Update(void) {
 void Game_Draw(void) {
     //DrawSnake();
     //DrawFood();
+    ClearBackground(DARKGREEN);
+    BeginMode2D(creCamera_GetInternal());
     System_DrawEntities();
+    //System_DrawDebug(); // uncomment this tomorrow.
+    EndMode2D(); // After this is UI etc.
 
     // For ScoreHUD
     char scoreText[20];

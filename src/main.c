@@ -6,13 +6,10 @@
 #include "game/game.h"
 
 int main(void) {
-    Engine_Init(SCREEN_WIDTH,SCREEN_HEIGHT,GAME_TITLE, CONFIG_FILENAME);
+    Engine_Init(GAME_TITLE,dirCONFIG);
     SceneManager_Init(Game_GetScene);
     SceneManager_ChangeScene(GAME_STATE_MENU);
-
     Engine_Run();
-
     Engine_Shutdown();
-    
     return 0;
 }

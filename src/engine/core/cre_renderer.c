@@ -23,7 +23,7 @@ static creRenderer_State state = {0};
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal Helpers
  * ───────────────────────────────────────────────────────────────────────────── */
-static void RecreateCanvas(int virtualWidth, int virtualHeight) {
+void creRenderer_RecreateCanvas(int virtualWidth, int virtualHeight) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
     }
@@ -36,8 +36,8 @@ static void RecreateCanvas(int virtualWidth, int virtualHeight) {
  * Lifecycle
  * ───────────────────────────────────────────────────────────────────────────── */
 void creRenderer_Init(int virtualWidth,int virtualHeight) {
-    state.filterMode      = TEXTURE_FILTER_BILINEAR;
-    RecreateCanvas(virtualWidth,virtualHeight);
+    state.filterMode      = TEXTURE_FILTER_POINT; // FOR PIXEL ARTS.
+    creRenderer_RecreateCanvas(virtualWidth,virtualHeight);
     Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth, state.virtualHeight);
 }
 
@@ -74,9 +74,9 @@ void creRenderer_EndFrame(void) {
     /* Upscale virtual canvas to physical window (no global flip) */
     Rectangle srcRect = {
         0.0f,
-        (float)state.canvas.texture.height,
+        0.0f,
         (float)state.canvas.texture.width,
-        -(float)state.canvas.texture.height  /* Flip Y: sample from bottom-up */
+        -(float)state.canvas.texture.height  /* reads "downwards" */
     };
     
     Rectangle destRect = {
@@ -104,14 +104,12 @@ void creRenderer_EndWorldMode(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Consolidated Sprite Draw
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_DrawSprite(uint32_t spriteID, Vector2 position, Vector2 pivot,
-                            float rotation, float scale, bool flipX, bool flipY, Color tint) {
+void creRenderer_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size ,Vector2 pivot,
+                            float rotation, bool flipX, bool flipY, Color tint) {
     Rectangle srcRect = Asset_getRect((int)spriteID);
     
-    /* Base Y-flip for RenderTexture correction (OpenGL Y-up) */
-    /* Then apply user flip on top */
     float srcW = flipX ? -srcRect.width  : srcRect.width;
-    float srcH = flipY ?  srcRect.height : -srcRect.height;  /* Inverted: default flips for RT */
+    float srcH = flipY ? -srcRect.height : srcRect.height;  /* Inverted: default flips for RT */
     
     Rectangle src = {
         srcRect.x,
@@ -120,20 +118,17 @@ void creRenderer_DrawSprite(uint32_t spriteID, Vector2 position, Vector2 pivot,
         srcH
     };
     
-    float destW = fabsf(srcRect.width)  * scale;
-    float destH = fabsf(srcRect.height) * scale;
-    
     Rectangle dest = {
         position.x,
         position.y,
-        destW,
-        destH
+        size.x,
+        size.y
     };
     
     /* Pivot: normalized (0-1) -> pixel offset */
     Vector2 origin = {
-        destW * pivot.x,
-        destH * pivot.y
+        size.x * pivot.x,
+        size.y * pivot.y
     };
     
     DrawTexturePro(state.cachedAtlas, src, dest, origin, rotation, tint);

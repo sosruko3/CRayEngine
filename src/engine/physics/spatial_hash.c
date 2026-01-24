@@ -1,7 +1,15 @@
 #include "spatial_hash.h"
 #include <stdlib.h> //for abs()
 #include <stddef.h> //for NULL
-#include "../core/logger.h"
+#include "engine/core/logger.h"
+#include "engine/core/config.h"
+#include <assert.h>
+
+#define WORLD_TO_GRID(val) ((val) >> SPATIAL_GRID_SHIFT) // Bit-shifting macro
+
+// This will prevent the game from even compiling if the math is wrong
+static_assert((1 << SPATIAL_GRID_SHIFT) == SPATIAL_GRID_SIZE, 
+              "SPATIAL_GRID_SHIFT must match log2 of SPATIAL_GRID_SIZE!");
 
 // Actual buckets (Arrays of pointers)
 static SpatialNode* buckets[SPATIAL_HASH_SIZE];
@@ -43,10 +51,10 @@ void SpatialHash_Clear(void) {
 void SpatialHash_Add(uint32_t entityID,int x,int y,int width,int height) {
     // Calculate grid coordinates
     // floor the values to handle negative coordinates properly if needed
-    int minX = x/SPATIAL_GRID_SIZE;
-    int minY = y/SPATIAL_GRID_SIZE;
-    int maxX = (x + width) / SPATIAL_GRID_SIZE;
-    int maxY = (y + height) / SPATIAL_GRID_SIZE;
+    int minX = WORLD_TO_GRID(x);
+    int minY = WORLD_TO_GRID(y);
+    int maxX = WORLD_TO_GRID(x + width);
+    int maxY = WORLD_TO_GRID(y + height);
 
     // loop through every cell this entity touches (up to 4 cells with corners)
     for (int cy = minY;cy <= maxY;cy++) {
@@ -60,6 +68,8 @@ void SpatialHash_Add(uint32_t entityID,int x,int y,int width,int height) {
 
             // store data
             newNode->entityID = entityID;
+            newNode->gridX    = (int16_t)cx;
+            newNode->gridY    = (int16_t)cy;
 
             // link into list
             newNode->next = buckets[bucketIndex];
@@ -70,10 +80,10 @@ void SpatialHash_Add(uint32_t entityID,int x,int y,int width,int height) {
 int SpatialHash_Query(int x,int y,int width,int height, uint32_t* results,int maxResults) {
     int count = 0;
 
-    int minX = x / SPATIAL_GRID_SIZE;
-    int minY = y / SPATIAL_GRID_SIZE;
-    int maxX = (x + width) / SPATIAL_GRID_SIZE;
-    int maxY = (y + height) / SPATIAL_GRID_SIZE;
+    int minX = WORLD_TO_GRID(x);
+    int minY = WORLD_TO_GRID(y);
+    int maxX = WORLD_TO_GRID(x + width);
+    int maxY = WORLD_TO_GRID(y + height);
 
     for (int cy= minY;cy <= maxY;cy++) {
         for (int cx = minX;cx <= maxX;cx++) {
@@ -81,11 +91,13 @@ int SpatialHash_Query(int x,int y,int width,int height, uint32_t* results,int ma
             SpatialNode* current = buckets[bucketIndex];
 
             while (current != NULL) {
-                if (count < maxResults) {
-                    results[count++] = current->entityID;
-                }
-                else {
-                    return count; // result buffer is full
+                if (current->gridX == cx && current->gridY == cy) {
+                    if (count < maxResults) {
+                        results[count++] = current->entityID;
+                    }
+                    else {
+                        return count; // result buffer is full
+                    }
                 }
                 current = current->next;
             }
