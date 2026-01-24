@@ -69,8 +69,8 @@ void System_HandleDebugInput(void) {
             if (data) {
                 data->velocity.x = GetRandomValue(-200, 200); // Fast random movement
                 data->velocity.y = GetRandomValue(-200, 200);
-                data->color = RED;
-                data->size = (Vector2) {16*SCALE_FACTOR,16*SCALE_FACTOR};
+                data->color = WHITE;
+                data->size = (Vector2) {32*SCALE_FACTOR,32*SCALE_FACTOR};
                 data->flags |= FLAG_ACTIVE | FLAG_VISIBLE;
                 data->flags |= SET_LAYER(L_ENEMY);
                 data->flags |= SET_MASK(L_PLAYER | L_ENEMY);
@@ -203,7 +203,7 @@ void System_ChangeZoom(void) {
         creCamera_SetZoom(creCamera_GetZoom()* 0.99);
     }
 }
-// For today.
+// For next update
 //void System_DrawDebug(void) {
 //    if (IsKeyDown(KEY_F1)) {
 //        // 1. Get Camera Center (The "Eye" of the player)

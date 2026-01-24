@@ -39,7 +39,7 @@ void Engine_Run() {
     Log(LOG_LVL_INFO,"Entering main loop");
     while (!WindowShouldClose()) {
         Viewport_Update();
-        if (Viewport_wasResized) {
+        if (Viewport_wasResized()) {
             ViewportSize v = Viewport_Get();
             creRenderer_RecreateCanvas((int)v.width,(int)v.height);
             Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",v.width,v.height);

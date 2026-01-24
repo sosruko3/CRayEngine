@@ -15,13 +15,13 @@ typedef enum {
 } SpriteID;
 
 static const Rectangle atlas_rects[] = {
-    { 2, 2, 192, 256 }, // character_zombie_run0
-    { 2, 262, 192, 256 }, // character_zombie_run1
-    { 2, 522, 192, 256 }, // character_zombie_run2
-    { 2, 782, 124, 123 }, // player_idle0
-    { 2, 909, 64, 64 }, // fish_blue
-    { 2, 977, 24, 24 }, // enemy_idle
-    { 2, 1005, 16, 16 }, // cactus
-    { 2, 1025, 16, 16 }, // missing
+    { 4, 4, 192, 256 }, // character_zombie_run0
+    { 4, 268, 192, 256 }, // character_zombie_run1
+    { 4, 532, 192, 256 }, // character_zombie_run2
+    { 4, 796, 124, 123 }, // player_idle0
+    { 4, 927, 64, 64 }, // fish_blue
+    { 4, 999, 24, 24 }, // enemy_idle
+    { 4, 1031, 16, 16 }, // cactus
+    { 4, 1055, 16, 16 }, // missing
 };
 #endif

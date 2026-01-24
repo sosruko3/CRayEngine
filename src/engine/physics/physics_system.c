@@ -11,6 +11,7 @@
 // configuration
 // 0.5 = Smooth push, 1.0 is hard snap.
 #define SEPARATION_FORCE 0.5f
+#define MAX_NEIGHBOURS 128
 
 static inline bool ShouldCollide(EntityData* a, EntityData* b) {
     // get the data first
@@ -23,7 +24,55 @@ static inline bool ShouldCollide(EntityData* a, EntityData* b) {
     if (maskB & layerA) return true; // does b want to hit a
     return false;
 }
-void PhysicsSystem_Init(void) {
+static bool ResolveCircleCollision(EntityData*a, EntityData* b) {
+    Vector2 diff = Vector2Subtract(a->position,b->position);
+    float distSq = Vector2LengthSqr(diff);
+    float radiusA = a->size.x * 0.5f;
+    float radiusB = b->size.x * 0.5f;
+    float combinedRadius = radiusA + radiusB;
+    float combinedRadiusSq = combinedRadius * combinedRadius;
+                    
+    // check if circles overlap 
+    if (distSq >= combinedRadiusSq || distSq <= 0.0001f) return false;
+        // Collision detected
+        float dist = sqrtf(distSq);
+        float overlap = combinedRadius - dist;             
+        // calculate push direction (normal)
+        Vector2 normal = Vector2Scale(diff,1.0f/dist);
+        
+        // move both entites apart
+        float pushFactor = (overlap * SEPARATION_FORCE) / SUB_STEPS;
+        Vector2 separation = Vector2Scale(normal,pushFactor);
+        a->position = Vector2Add(a->position,separation);
+        b->position = Vector2Subtract(b->position,separation);
+
+        // --- IMPULSE RESOLUTION (Bounce) --- THIS IS TEMPORARY ----- Dirty code!
+        // Relative velocity
+        if (((a->flags | b->flags) & FLAG_BOUNCY)) {
+
+            Vector2 rv = Vector2Subtract(a->velocity, b->velocity);
+            float velAlongNormal = Vector2DotProduct(rv, normal);
+            
+            // Do not resolve if velocities are separating
+            if (velAlongNormal > 0) return true;
+            
+            // Calculate restitution (bounciness) - could be property of entity later
+            float eRes = 0.5f;
+            // Calculate impulse scalar
+            float j = -(1.0f + eRes) * velAlongNormal;
+            j /= 2.0f; // 1/massA + 1/massB (Assuming mass = 1 for both
+
+            // Apply impulse
+            Vector2 impulse = Vector2Scale(normal, j);
+            a->velocity = Vector2Add(a->velocity, impulse);
+            b->velocity = Vector2Subtract(b->velocity, impulse);
+        }
+        a->flags &= ~FLAG_SLEEPING;
+        b->flags &= ~FLAG_SLEEPING;
+        
+        return true;
+}
+    void PhysicsSystem_Init(void) {
     SpatialHash_Clear();
     // add conditions for logs
     Log(LOG_LVL_INFO,"Physics System Initialized.");
@@ -58,19 +107,22 @@ void PhysicsSystem_Update(float dt) {
     // SUB-STEP LOOP
     for(uint32_t step = 0; step < SUB_STEPS;step++) {
         // 3. Narrow phase (the solver loop)
-        uint32_t neighbours[32];
+        uint32_t neighbours[MAX_NEIGHBOURS];
         
         for (uint32_t i = 0;i < MAX_ENTITIES;i++) {
             EntityData* e = &entityStore[i];
             
-            if (!(e->flags & (FLAG_ACTIVE | FLAG_SLEEPING)) || e->flags & FLAG_CULLED) continue;
+            if (!(e->flags & (FLAG_ACTIVE)) || e->flags & FLAG_CULLED) continue;
+            if (e->flags & FLAG_SLEEPING) continue;
         
             // calculate it
             int count = SpatialHash_Query(
                 (int)e->position.x, (int)e->position.y,
                 (int)e->size.x,     (int)e->size.y,
-                neighbours,         32);
-                // check against potential neighbours
+                neighbours,         MAX_NEIGHBOURS
+            );
+
+            // check against potential neighbours
             for (int k = 0; k < count;k++) {
                 uint32_t otherID = neighbours[k]; 
                 // self check
@@ -79,59 +131,12 @@ void PhysicsSystem_Update(float dt) {
                 EntityData* other = &entityStore[otherID];
                 if (!(other->flags & FLAG_ACTIVE)) continue;
 
-                bool other_isSleeping = (other->flags & FLAG_SLEEPING);
-                if (otherID < i && !other_isSleeping) continue;
+                bool other_isAwake = !(other->flags & FLAG_SLEEPING);
+                if (otherID < i && other_isAwake) continue;
 
                 if (!(ShouldCollide(e,other))) continue;
-                    
-                // circle collision check, this part is dirty! Clean it later on
-                Vector2 diff = Vector2Subtract(e->position,other->position);
-                float distSq = Vector2LengthSqr(diff);
-                float radiusA = e->size.x * 0.5f;
-                float radiusB = other->size.x * 0.5f;
-                float combinedRadius = radiusA + radiusB;
-                float combinedRadiusSq = combinedRadius * combinedRadius;
-                    
-                // check if circles overlap 
-                if (distSq < combinedRadiusSq && distSq >  0.0001f) {
-                    // Collision detected
-                    float dist = sqrtf(distSq);
-                    float overlap = combinedRadius - dist;
-                        
-                    // calculate push direction (normal)
-                    Vector2 normal = Vector2Scale(diff,1.0f/dist);
-                    
-                    // move both entites apart
-                    float pushFactor = (overlap * SEPARATION_FORCE) / SUB_STEPS;
-                    Vector2 separation = Vector2Scale(normal,pushFactor);
-                    e->position = Vector2Add(e->position,separation);
-                    other->position = Vector2Subtract(other->position,separation);
 
-                    if(other_isSleeping) {
-                        other->flags &= ~FLAG_SLEEPING;
-                    }
-
-                    // --- IMPULSE RESOLUTION (Bounce) --- THIS IS TEMPORARY ----- Dirty code!
-                    // Relative velocity
-                    if (!((e->flags | other->flags) & FLAG_BOUNCY)) continue;
-                    Vector2 rv = Vector2Subtract(e->velocity, other->velocity);
-                    float velAlongNormal = Vector2DotProduct(rv, normal);
- 
-                    // Do not resolve if velocities are separating
-                    if (velAlongNormal > 0) continue;
- 
-                    // Calculate restitution (bounciness) - could be property of entity later
-                    float eRes = 0.5f;
- 
-                    // Calculate impulse scalar
-                    float j = -(1.0f + eRes) * velAlongNormal;
-                    j /= 2.0f; // 1/massA + 1/massB (Assuming mass = 1 for both)
- 
-                    // Apply impulse
-                    Vector2 impulse = Vector2Scale(normal, j);
-                    e->velocity = Vector2Add(e->velocity, impulse);
-                    other->velocity = Vector2Subtract(other->velocity, impulse);
-                }
+                ResolveCircleCollision(e,other);
             }
         }
     }     

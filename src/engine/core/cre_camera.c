@@ -68,7 +68,7 @@ float creCamera_GetRotation(void) {
 
 Camera2D creCamera_GetInternal(void) {
     // Check for resize events
-    if (Viewport_wasResized) {
+    if (Viewport_wasResized()) {
         creCamera_UpdateViewportCache();
         Log(LOG_LVL_DEBUG,"Window Resized - Camera Cache Updated");
     }

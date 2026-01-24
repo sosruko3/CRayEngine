@@ -8,6 +8,8 @@
 static ViewportSize virtualView = {0};
 static int resizeTimer = 0;
 static bool s_didResizeThisFrame = false;
+static int s_lastLoggedW = 0;
+static int s_lastLoggedH = 0;
 
 static void CalculateInternal(int w,int h) {
     virtualView.height = GAME_VIRTUAL_HEIGHT;
@@ -29,12 +31,19 @@ void Viewport_Update(void) {
         resizeTimer--;
 
         if (resizeTimer == 0) {
-            CalculateInternal(GetScreenWidth(),GetScreenHeight());
-            s_didResizeThisFrame = true;
-            Log(LOG_LVL_DEBUG, "Viewport Resized [Debounced]");
+            int currentW = GetScreenWidth();
+            int currentH = GetScreenHeight();
+            if (currentW != s_lastLoggedW || currentH != s_lastLoggedH) {
+                s_lastLoggedW = currentW;
+                s_lastLoggedH = currentH;
+
+                CalculateInternal(GetScreenWidth(),GetScreenHeight());
+                s_didResizeThisFrame = true;
+                Log(LOG_LVL_DEBUG, "Viewport Resized [Debounced]");
+            }
         }
     }
 }
-bool Viewport_ShouldResize(void) {
+bool Viewport_wasResized(void) {
     return s_didResizeThisFrame;
 }
