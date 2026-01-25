@@ -2,6 +2,7 @@
 #define CRE_CAMERA_UTILS_H
 
 #include "raylib.h"
+#include "viewport.h"
 // Will refactor these parts later on.
 
 /**
@@ -38,7 +39,7 @@ void creCamera_ApplyShake(float intensity);
  * @param screenPos Position in screen/pixel coordinates
  * @return Position in world coordinates
  */
-Vector2 creCamera_ScreenToWorld(Vector2 screenPos);
+Vector2 creCamera_ScreenToWorld(Vector2 screenPos,ViewportSize vp);
 
 /**
  * Convert a world position to screen coordinates.
@@ -47,7 +48,7 @@ Vector2 creCamera_ScreenToWorld(Vector2 screenPos);
  * @param worldPos Position in world coordinates
  * @return Position in screen/pixel coordinates
  */
-Vector2 creCamera_WorldToScreen(Vector2 worldPos);
+Vector2 creCamera_WorldToScreen(Vector2 worldPos,ViewportSize vp);
 
 
 // Center to the target

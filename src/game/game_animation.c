@@ -7,4 +7,5 @@ const AnimDef ANIMATIONS[ANIM_COUNT] = {
     [ANIM_ENEMY_IDLE]  = {SPR_player_idle0 ,3 ,6.0f ,true},
     [ANIM_CACTUS_IDLE] = {SPR_cactus       ,1,1.0f ,false},
     [ANIM_ZOMBIE_RUN] = {SPR_character_zombie_run0,3,6.0f,true},
+    [ANIM_SOLDIER_IDLE] = {SPR_soldier,1,1.0f,false},
 };

@@ -43,13 +43,13 @@ void creCamera_ApplyShake(float intensity) {
     creCamera_SetPosition(shakenPos);
 }
 
-Vector2 creCamera_ScreenToWorld(Vector2 screenPos) {
-    Camera2D cam = creCamera_GetInternal();
+Vector2 creCamera_ScreenToWorld(Vector2 screenPos,ViewportSize vp) {
+    Camera2D cam = creCamera_GetInternal(vp);
     return GetScreenToWorld2D(screenPos, cam);
 }
 
-Vector2 creCamera_WorldToScreen(Vector2 worldPos) {
-    Camera2D cam = creCamera_GetInternal();
+Vector2 creCamera_WorldToScreen(Vector2 worldPos,ViewportSize vp) {
+    Camera2D cam = creCamera_GetInternal(vp);
     return GetWorldToScreen2D(worldPos, cam);
 }
 

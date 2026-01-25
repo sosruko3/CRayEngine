@@ -9,6 +9,7 @@ typedef enum {
     ANIM_ENEMY_IDLE,
     ANIM_CACTUS_IDLE,
     ANIM_ZOMBIE_RUN,
+    ANIM_SOLDIER_IDLE,
     ANIM_COUNT
 } AnimID;
 

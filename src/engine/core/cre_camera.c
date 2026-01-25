@@ -24,19 +24,18 @@ static struct {
 // Helper functions
 // ============================================================================
 
-void creCamera_UpdateViewportCache(void) {
-    ViewportSize vp = Viewport_Get();
+void creCamera_UpdateViewportCache(ViewportSize vp) {
     s_internal.baseDiagonal = sqrtf((vp.width * vp.width) + (vp.height * vp.height));
 }
 // ============================================================================
 // Core Camera Functions
 // ============================================================================
 
-void creCamera_Init(void) {
+void creCamera_Init(ViewportSize vp) {
     s_camera.position = (Vector2){0.0f, 0.0f};
     s_camera.zoom = 1.0f;
     s_camera.rotation = 0.0f;
-    creCamera_UpdateViewportCache();
+    creCamera_UpdateViewportCache(vp);
 }
 
 void creCamera_SetPosition(Vector2 position) {
@@ -66,22 +65,15 @@ float creCamera_GetRotation(void) {
     return s_camera.rotation;
 }
 
-Camera2D creCamera_GetInternal(void) {
-    // Check for resize events
-    if (Viewport_wasResized()) {
-        creCamera_UpdateViewportCache();
-        Log(LOG_LVL_DEBUG,"Window Resized - Camera Cache Updated");
-    }
+Camera2D creCamera_GetInternal(ViewportSize vp) {
     // Get current viewport dimensions for proper centering
-    ViewportSize viewport = Viewport_Get();
-    
     Camera2D cam = {0};
     
     // Offset is the screen center - ensures camera target is always centered
     // regardless of window size or aspect ratio
     cam.offset = (Vector2){
-        (float)(viewport.width  * 0.5f),
-        (float)(viewport.height * 0.5f)
+        (float)(vp.width  * 0.5f),
+        (float)(vp.height * 0.5f)
     };
     
     // Target is the world position the camera is looking at
@@ -94,13 +86,11 @@ Camera2D creCamera_GetInternal(void) {
     return cam;
 }
 
-Rectangle creCamera_GetViewBounds(void) {
-    ViewportSize viewport = Viewport_Get();
-    
+Rectangle creCamera_GetViewBounds(ViewportSize vp) {
     // Calculate the visible area in world space
     // Account for zoom: higher zoom = smaller visible area
-    float viewWidth = viewport.width / s_camera.zoom;
-    float viewHeight = viewport.height / s_camera.zoom;
+    float viewWidth = vp.width / s_camera.zoom;
+    float viewHeight = vp.height / s_camera.zoom;
     
     // The view bounds are centered on the camera position
     Rectangle bounds = {
@@ -126,8 +116,8 @@ Rectangle creCamera_GetViewBounds(void) {
     return bounds;
 }
 
-Rectangle creCamera_GetCullBounds(void) {
-    Rectangle view = creCamera_GetViewBounds();
+Rectangle creCamera_GetCullBounds(ViewportSize vp) {
+    Rectangle view = creCamera_GetViewBounds(vp);
 
     return (Rectangle){
     .x = view.x - CAMERA_CULL_MARGIN,

@@ -20,7 +20,7 @@ typedef struct {
 #define FLAG_SLEEPING      (1 << 5) // (Collision are on sleeping)
 #define FLAG_BOUNCY        (1 << 6) // This entity transfers velocity/bounces
 #define FLAG_ANIMATED      (1 << 7) // Is using Animations
-#define FLAG_CULLED        (1 << 8) // Do not process my physics
+#define FLAG_CULLED        (1 << 8) // Do not process my physics. Something is wrong here, why is culled counts as physics!!!
 
 // Collision Tools (Generic)
 // Engine provides the "math", not the "names"
@@ -42,7 +42,7 @@ typedef struct {
     // 4 byte
     Color color; // can change this to "tint" , think later
     float rotation;
-    float restitution; // For bounciness, planning to implement later
+    float restitution; // Remove this later on.
     uint32_t generation;
     uint32_t flags; // replaces "isActive" etc.
     // 2 byte

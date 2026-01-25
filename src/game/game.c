@@ -68,8 +68,8 @@ void Game_Draw(void) {
     //DrawSnake();
     //DrawFood();
     ClearBackground(DARKGREEN);
-    BeginMode2D(creCamera_GetInternal());
-    System_DrawEntities();
+    BeginMode2D(creCamera_GetInternal(Viewport_Get()));
+    System_DrawEntities(creCamera_GetCullBounds(Viewport_Get()));
     //System_DrawDebug(); // uncomment this tomorrow.
     EndMode2D(); // After this is UI etc.
 

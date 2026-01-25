@@ -2,6 +2,7 @@
 #define CRE_CAMERA_H
 
 #include "raylib.h"
+#include "viewport.h" // REMOVE THIS AFTER IMPLEMENTING SERVICE LOCATOR
 
 /**
  * CRE_Camera - The "Stupid" Core Camera
@@ -16,11 +17,13 @@ typedef struct {
     float   rotation;   // Rotation in degrees
 } CRE_Camera;
 
+void creCamera_UpdateViewportCache(ViewportSize vp);
+
 /**
  * Initialize the camera system with default values.
  * Call this once during engine initialization.
  */
-void creCamera_Init(void);
+void creCamera_Init(ViewportSize vp);
 
 /**
  * Set the camera's world position directly.
@@ -59,15 +62,15 @@ float creCamera_GetRotation(void);
  * The offset is automatically calculated from Viewport_Get() to ensure
  * the camera target is always centered regardless of window size.
  */
-Camera2D creCamera_GetInternal(void);
+Camera2D creCamera_GetInternal(ViewportSize vp);
 
 /**
  * Get the visible area in world space for frustum culling.
  * @return Rectangle representing the camera's view bounds in world coordinates
  */
-Rectangle creCamera_GetViewBounds(void);
+Rectangle creCamera_GetViewBounds(ViewportSize vp);
 
 
 // For Frustum Culling
-Rectangle creCamera_GetCullBounds(void);
+Rectangle creCamera_GetCullBounds(ViewportSize vp);
 #endif

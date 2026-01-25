@@ -2,10 +2,11 @@
 #define GAME_SYSTEMS_H
 
 #include <stdint.h>
+#include "raylib.h"
 
 void System_UpdateLogic(float dt);
 void System_HandleDebugInput(void);
-void System_DrawEntities(void);
+void System_DrawEntities(Rectangle cullRect);
 void SystemTestSpawn(void);
 int GetActiveEntityCount(void);
 void SpawnPlayer(void);

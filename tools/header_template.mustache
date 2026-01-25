@@ -2,6 +2,7 @@
 #define GENERATED_ATLAS_H
 #include "raylib.h"
 
+// 1. The Symbolic IDs
 typedef enum {
 {{#rects}}
     SPR_{{name}},
@@ -9,9 +10,15 @@ typedef enum {
     SPR_COUNT
 } SpriteID;
 
+// 2. The Data
 static const Rectangle atlas_rects[] = {
 {{#rects}}
     { {{frame.x}}, {{frame.y}}, {{frame.w}}, {{frame.h}} }, // {{name}}
 {{/rects}}
 };
+
+// 3. Automated Helper Macro
+// This allows you to define an animation by just providing the prefix and frame count
+#define GET_FRAME(prefix, frame) SPR_##prefix##frame
+
 #endif

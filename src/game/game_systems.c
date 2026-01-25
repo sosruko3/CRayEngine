@@ -81,8 +81,7 @@ void System_HandleDebugInput(void) {
         Log(LOG_LVL_INFO,"Spawned %d entities!\n",PARTICLE_COUNT);
     }
 }
-void System_DrawEntities(void) {
-    Rectangle cullRect = creCamera_GetCullBounds();
+void System_DrawEntities(Rectangle cullRect) {
     static uint32_t visibleEntities[MAX_VISIBLE_ENTITIES];
     int visibleCount = SpatialHash_Query(
         (int)cullRect.x, 
@@ -148,7 +147,7 @@ void SpawnPlayer(void) {
         pData->flags |= FLAG_ACTIVE | FLAG_VISIBLE | FLAG_BOUNCY | FLAG_ANIMATED;
         pData->flags |= SET_LAYER(L_ENEMY);
         pData->flags |= SET_MASK(L_ENEMY | L_BULLET);
-        AnimationSystem_Set(player.id,ANIM_PLAYER_IDLE);
+        AnimationSystem_Set(player.id,ANIM_SOLDIER_IDLE);
         System_SetCameraTarget(player.id); // Hardcoded camera to follow player. !!!!!
     }
 }

@@ -11,6 +11,7 @@
 #include "cre_renderer.h"
 #include "asset_manager.h"
 #include "viewport.h"
+#include "cre_camera.h"
 
 void Engine_Init(const char* title, const char* configFileName) {
     Logger_Init();
@@ -33,6 +34,8 @@ void Engine_Init(const char* title, const char* configFileName) {
     EntityManager_Init();
     Asset_Init();
     PhysicsSystem_Init();
+    creCamera_Init(Viewport_Get());
+    
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
 void Engine_Run() {
@@ -40,9 +43,10 @@ void Engine_Run() {
     while (!WindowShouldClose()) {
         Viewport_Update();
         if (Viewport_wasResized()) {
-            ViewportSize v = Viewport_Get();
-            creRenderer_RecreateCanvas((int)v.width,(int)v.height);
-            Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",v.width,v.height);
+            ViewportSize vp = Viewport_Get();
+            creCamera_UpdateViewportCache(vp);
+            creRenderer_RecreateCanvas((int)vp.width,(int)vp.height);
+            Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",vp.width,vp.height);
         }
         SceneManager_Update();
 
