@@ -8,55 +8,28 @@ project(CRayEngine VERSION 0.6)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# 1. Check if Node/NPM is installed
-find_program(NODE_EXECUTABLE node)
-find_program(NPM_EXECUTABLE npm)
-if(NOT NODE_EXECUTABLE OR NOT NPM_EXECUTABLE)
-    message(FATAL_ERROR "Node.js and npm are required for the asset pipeline. Please install them.")
-endif()
+# This finds the actual path to 'python3' on Linux/Mac or 'python' on Windows
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-# 2. Install free-tex-packer dependencies
-set(TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools")
-set(PACKER_SCRIPT "${TOOLS_DIR}/pack_atlas.js")
-
-if(NOT EXISTS "${TOOLS_DIR}/node_modules")
-    message(STATUS "Installing Asset Packer tools...")
-    execute_process(
-        COMMAND ${NPM_EXECUTABLE} install
-        WORKING_DIRECTORY ${TOOLS_DIR}
-        RESULT_VARIABLE npm_result
-    )
-    if(NOT npm_result EQUAL 0)
-        message(FATAL_ERROR "Failed to install npm packages.")
-    endif()
-endif()
-
-# 3. Define the Packer Command
-set(RAW_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets/raw_textures")
-set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/game/atlas")
-set(TEMPLATE_FILE "${TOOLS_DIR}/header_template.mustache")
+# --- Asset Pipeline (Python - build_assets.py v2.3) ---
+set(ASSET_SCRIPT "${CMAKE_SOURCE_DIR}/tools/build_assets.py")
+set(RAW_TEXTURES_DIR "${CMAKE_SOURCE_DIR}/assets/raw_textures")
+set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
 # Collect all PNGs so CMake knows when to re-run
-file(GLOB_RECURSE RAW_PNGS CONFIGURE_DEPENDS "${RAW_ASSETS_DIR}/*.png")
+file(GLOB_RECURSE RAW_PNGS CONFIGURE_DEPENDS "${RAW_TEXTURES_DIR}/*.png")
 
 add_custom_command(
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${GENERATED_DIR}"
-    OUTPUT "${GENERATED_DIR}/atlas.png" "${GENERATED_DIR}/atlas_data.h"
-
-    COMMAND ${NODE_EXECUTABLE} "${PACKER_SCRIPT}" 
-            "${RAW_ASSETS_DIR}" 
-            "${GENERATED_DIR}" 
-            "${TEMPLATE_FILE}"
-
-    COMMAND ${CMAKE_COMMAND} -E rename "${GENERATED_DIR}/atlas.h" "${GENERATED_DIR}/atlas_data.h"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${GENERATED_DIR}/atlas.png" "${CMAKE_BINARY_DIR}/atlas.png"
-    DEPENDS ${RAW_PNGS} "${TEMPLATE_FILE}" "${PACKER_SCRIPT}" "${RAW_ASSETS_DIR}"
-    COMMENT "Packing textures into atlas..."
+    OUTPUT "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.c" "${GEN_DIR}/atlas.png"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${GEN_DIR}"
+    COMMAND ${Python3_EXECUTABLE} "${ASSET_SCRIPT}" --input "${RAW_TEXTURES_DIR}" --output "${GEN_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${GEN_DIR}/atlas.png" "${CMAKE_BINARY_DIR}/atlas.png"
+    DEPENDS "${ASSET_SCRIPT}" ${RAW_PNGS}
+    COMMENT "[ASSET PIPELINE] Packing texture atlas..."
     VERBATIM
 )
 
-# 4. Create a Target so your game depends on it
-add_custom_target(GenerateAtlas DEPENDS "${GENERATED_DIR}/atlas_data.h")
+add_custom_target(GenerateAtlas DEPENDS "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.c" "${GEN_DIR}/atlas.png")
 
 # --- Fetch Raylib ---
 include(FetchContent)
@@ -69,6 +42,9 @@ FetchContent_MakeAvailable(raylib)
 # --- Sources ---
 set(SOURCES
     src/main.c
+
+    # Generated Atlas
+    "${GEN_DIR}/atlas_data.c"
 
     # Core Engine
     src/engine/core/engine.c
@@ -104,7 +80,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
 
 # --- Include Directories ---
-target_include_directories(${PROJECT_NAME} PRIVATE src include "${GENERATED_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE src include "${GEN_DIR}")
 
 # --- Linking ---
 target_link_libraries(${PROJECT_NAME} raylib m)

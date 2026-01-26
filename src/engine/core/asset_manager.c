@@ -20,9 +20,9 @@ Texture2D Asset_getTexture(void) {
     return atlasTexture;
 }
 Rectangle Asset_getRect(int spriteID) {
-    if (spriteID < 0 || spriteID >= SPR_COUNT) {
+    if (spriteID < 0 || spriteID >= SPRITE_COUNT) {
         Log(LOG_LVL_WARNING,"ASSETS: Missing sprite ID %d,using Fallback.",spriteID);
-        return atlas_rects[SPR_missing];
+        return atlas_rects[SPR_MISSING];
     }
     return atlas_rects[spriteID];
 

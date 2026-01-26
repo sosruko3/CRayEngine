@@ -23,9 +23,6 @@ void EntityManager_Reset(void) {
     activeCount = 0;
     freeCount = MAX_ENTITIES;
 
-    for(int i = 0; i < MAX_ENTITIES; i++) {
-        comp_anim[i] = (AnimComponent){0};
-    }
     // fill the freelist
     for (uint32_t i =0 ;i< MAX_ENTITIES;i++) {
         freeList[i] = (MAX_ENTITIES -1)-i;
@@ -54,13 +51,6 @@ Entity EntityManager_Create(int type,Vector2 pos) {
         .size = {32.0f,32.0f},
         .spriteID = SPR_missing,
         .color = WHITE
-    };
-
-    comp_anim[index] = (AnimComponent) {
-        .timer = 0.0f,
-        .currentAnimID = 0, // Usually your IDLE animation
-        .finished = 0,
-        .flipX = 0
     };
     activeCount++;
 

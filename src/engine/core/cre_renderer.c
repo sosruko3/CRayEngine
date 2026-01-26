@@ -57,9 +57,6 @@ void creRenderer_BeginFrame(void) {
     /* Cache atlas once per frame */
     state.cachedAtlas = Asset_getTexture();
     
-    /* Debounced resize handling (Extend strategy) */
-    //SyncInternalResolution();
-    
     BeginDrawing();
     ClearBackground(BLACK);
     

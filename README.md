@@ -53,8 +53,8 @@ This project is currently on very early development. Plan is to create a custom 
 ### Prerequisites
 * **CMake** (3.10+)
 * **C Compiler** (GCC, Clang, or MSVC)
-* **Raylib** (Must be installed or linked)
-* **Node.js and NPM** (Required for free-tex-packer-cli)
+* **Raylib**
+* **Python3** (Required for Automated textureAtlas script)
 
 ### Instructions
 1. Clone the repository:
