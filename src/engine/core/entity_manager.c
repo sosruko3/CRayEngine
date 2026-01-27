@@ -49,7 +49,7 @@ Entity EntityManager_Create(int type,Vector2 pos) {
         .velocity = {0,0},
         .rotation = 0.0f,
         .size = {32.0f,32.0f},
-        .spriteID = SPR_missing,
+        .spriteID = SPR_MISSING,
         .color = WHITE
     };
     activeCount++;

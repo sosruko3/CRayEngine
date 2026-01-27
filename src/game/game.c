@@ -43,7 +43,7 @@ void Game_Update(void) {
     PhysicsSystem_Update(dt);
     double endTime = GetTime(); // FOR DEBUG
     physicsTime = (endTime - startTime) * 1000.0; // FOR DEBUG
-
+    
     AnimationSystem_Update(dt);
     System_UpdateCamera();
     System_ChangeZoom();
