@@ -7,7 +7,7 @@
 #include "engine/core/input.h"
 #include "engine/core/config.h"
 #include "engine/core/cre_renderer.h"
-#include  "engine/core/entity.h" // for layer/mask macros
+#include "engine/core/entity_registry.h"
 #include "engine/core/asset_manager.h"
 #include "atlas_data.h"
 #include "game_animation.h"

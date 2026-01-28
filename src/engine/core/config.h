@@ -13,8 +13,8 @@
 #define SPATIAL_MAX_NODES 20000
 
 #define atlasDir      "src/game/atlas/atlas.png"
-#define MAX_ENTITIES 5000
-#define MAX_VISIBLE_ENTITIES 3000
+#define MAX_ENTITIES 16384
+#define MAX_VISIBLE_ENTITIES 4096
 
 // Will remove these soon.
 #define GRID_WIDTH    (SCREEN_WIDTH / CELL_SIZE)
