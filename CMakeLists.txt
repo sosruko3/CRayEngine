@@ -3,7 +3,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please run 'cmake -B build' and 'cmake --build build'.")
 endif()
 
-project(CRayEngine VERSION 0.6)
+project(CRayEngine VERSION 0.7)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -55,7 +55,7 @@ set(SOURCES
     src/engine/core/entity_manager.c
     src/engine/core/asset_manager.c
     src/engine/core/cre_renderer.c
-    src/engine/core/animation.c
+    src/engine/core/animationSystem.c
     src/engine/core/cre_camera.c
     src/engine/core/cre_camera_utils.c
     src/engine/core/viewport.c

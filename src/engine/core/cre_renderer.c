@@ -53,7 +53,6 @@ void creRenderer_Shutdown(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Frame Control
  * ───────────────────────────────────────────────────────────────────────────── */
-// clean this function, it is dirty
 void creRenderer_BeginFrame(void) {
     /* Cache atlas once per frame */
     state.cachedAtlas = Asset_getTexture();
