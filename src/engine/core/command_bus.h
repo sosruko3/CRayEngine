@@ -6,6 +6,10 @@
 #include <assert.h>
 #include <stdalign.h>
 
+// Animation Command Flags
+#define ANIM_FLAG_FORCE_RESET  (1 << 0) // Bit 0: 1 = Force restart
+#define ANIM_FLAG_LOOP_OVERRIDE (1 << 1) // Bit 1: 1 = Force loop (example)
+
 // ============================================================================
 // Configuration
 // ============================================================================
