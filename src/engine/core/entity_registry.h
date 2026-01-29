@@ -43,16 +43,18 @@ typedef struct {
 // ============================================================================
 // These bits indicate which components an entity possesses.
 
-#define COMP_NONE        (0ULL)
-#define COMP_POSITION    (1ULL << 0)
-#define COMP_VELOCITY    (1ULL << 1)
-#define COMP_SIZE        (1ULL << 2)
-#define COMP_ROTATION    (1ULL << 3)
-#define COMP_SPRITE      (1ULL << 4)
-#define COMP_COLOR       (1ULL << 5)
-#define COMP_ANIMATION   (1ULL << 6)
-#define COMP_COLLISION   (1ULL << 7)
-#define COMP_PHYSICS     (1ULL << 8)
+#define COMP_NONE             (0ULL)
+#define COMP_POSITION         (1ULL << 0)
+#define COMP_VELOCITY         (1ULL << 1)
+#define COMP_SIZE             (1ULL << 2)
+#define COMP_ROTATION         (1ULL << 3)
+#define COMP_SPRITE           (1ULL << 4)
+#define COMP_COLOR            (1ULL << 5)
+#define COMP_ANIMATION        (1ULL << 6)
+#define COMP_PHYSICS          (1ULL << 8)
+#define COMP_COLLISION        (1ULL << 7)
+#define COMP_COLLISION_Circle (1ULL << 9)
+#define COMP_COLLISION_AABB   (1ULL << 10)
 // Reserve bits 9-31 for future component types
 // Bits 32-63 available for game-specific components
 
@@ -70,11 +72,10 @@ typedef struct {
 #define FLAG_SOLID         (1ULL << 2)  ///< Participates in collision response
 #define FLAG_ALWAYS_AWAKE  (1ULL << 3)  ///< Never enters sleep state
 #define FLAG_SLEEPING      (1ULL << 4)  ///< Currently sleeping (skip physics)
-#define FLAG_BOUNCY        (1ULL << 5)  ///< Transfers velocity on collision
-#define FLAG_ANIMATED      (1ULL << 6)  ///< Uses animation system
-#define FLAG_CULLED        (1ULL << 7)  ///< Outside camera view, skip rendering
-#define FLAG_PERSISTENT    (1ULL << 8)  ///< Survives scene transitions
-// Bits 9-15 reserved for future engine flags
+#define FLAG_ANIMATED      (1ULL << 5)  ///< Uses animation system
+#define FLAG_CULLED        (1ULL << 6)  ///< Outside camera view, skip rendering
+#define FLAG_PERSISTENT    (1ULL << 7)  ///< Survives scene transitions
+// Bits 8-15 reserved for future engine flags
 
 // --- Collision Layer/Mask (64-bit version) ---
 #define LAYER_SHIFT 16ULL
@@ -113,7 +114,9 @@ typedef struct {
 
     alignas(64) uint64_t component_masks[MAX_ENTITIES]; ///< Component presence bits
     alignas(64) uint64_t state_flags[MAX_ENTITIES];     ///< Behavioral flags + collision data
-
+    
+    alignas(64) float inv_mass[MAX_ENTITIES];           ///< Physics Mass
+    alignas(64) float gravity_scale[MAX_ENTITIES];      ///< Gravity Scales
     alignas(64) float size_w[MAX_ENTITIES];             ///< Size width
     alignas(64) float size_h[MAX_ENTITIES];             ///< Size height
     alignas(64) float rotation[MAX_ENTITIES];           ///< Rotation in degrees

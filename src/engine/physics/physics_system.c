@@ -5,6 +5,7 @@
 #include <math.h> // for sqrtf
 #include "../core/logger.h"
 #include "config.h"
+#include "physics_defs.h"
 
 #define SUB_STEPS 4
 #define SLEEP_EPSILON 2.0f
@@ -12,6 +13,15 @@
 // 0.5 = Smooth push, 1.0 is hard snap.
 #define SEPARATION_FORCE 0.5f
 #define MAX_NEIGHBOURS 128
+
+// Material Storage
+static PhysMaterial s_materials[16] = {
+    [MAT_DEFAULT] = { .density = 1.0f, .friction = 0.5f, .restitution = 0.0f },
+    [MAT_STATIC]  = { .density = 0.0f, .friction = 0.5f, .restitution = 0.0f },
+    [MAT_BOUNCY]  = { .density = 1.0f, .friction = 0.5f, .restitution = 0.9f },
+    [MAT_ICE]     = { .density = 1.0f, .friction = 0.05f, .restitution = 0.0f },
+    // Remaining slots default to 0 automatically
+};
 
 static inline bool ShouldCollide(EntityData* a, EntityData* b) {
     // get the data first
@@ -72,8 +82,8 @@ static bool ResolveCircleCollision(EntityData*a, EntityData* b) {
         
         return true;
 }
-    void PhysicsSystem_Init(void) {
-    SpatialHash_Clear();
+void PhysicsSystem_Init(void) {
+    SpatialHash_ClearAll();
     // add conditions for logs
     Log(LOG_LVL_INFO,"Physics System Initialized.");
 }
@@ -83,8 +93,8 @@ void PhysicsSystem_Update(float dt) {
     if (dt > 0.05f) dt = 0.05f;
     float sleepSq = SLEEP_EPSILON * SLEEP_EPSILON;
 
-    // Doing clear func once, for optimization.
-    SpatialHash_Clear();
+    // Clear dynamic layer each frame (static layer persists)
+    SpatialHash_ClearDynamic();
 
     // 2. Broad phase (Build the hash) This parts runs once for optimization. Build 1x/Solve 4x solution.
     for(uint32_t i = 0;i < MAX_ENTITIES;i++) {
@@ -102,7 +112,10 @@ void PhysicsSystem_Update(float dt) {
             e->position.x += e->velocity.x * dt; // changed subDt to dt for optimization
             e->position.y += e->velocity.y * dt;
         }
-        SpatialHash_Add(i ,(int)e->position.x ,(int)e->position.y ,(int)e->size.x ,(int)e->size.y );
+        // Add dynamic entities only (inv_mass > 0); static entities handled separately
+        if (e->inv_mass > 0.0f) {
+            SpatialHash_AddDynamic(i ,(int)e->position.x ,(int)e->position.y ,(int)e->size.x ,(int)e->size.y );
+        }
     }
     // SUB-STEP LOOP
     for(uint32_t step = 0; step < SUB_STEPS;step++) {

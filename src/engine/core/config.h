@@ -10,10 +10,10 @@
 #define SPATIAL_GRID_SHIFT 7 // 2^7 = 128
 #define SPATIAL_HASH_SIZE 4096 // Size of the hash table (number of buckets)
 // Total memory pool for nodes.Number is big in case entites touch multiple of them. In theory this amount can withstand 10k entity.
-#define SPATIAL_MAX_NODES 20000
+#define SPATIAL_MAX_NODES 80000
 
 #define atlasDir      "src/game/atlas/atlas.png"
-#define MAX_ENTITIES 16384
+#define MAX_ENTITIES 8192
 #define MAX_VISIBLE_ENTITIES 4096
 
 // Will remove these soon.

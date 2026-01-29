@@ -8,6 +8,7 @@ assets_test/
 .vscode/
 .idea/
 *.code-workspace
+.github/
 
 # OS
 .DS_Store
@@ -46,8 +47,3 @@ CMakeFiles/
 .clangd
 logs/
 *.log
-
-# Asset Packer / Node.js
-node_modules/
-tools/node_modules/
-tools/package-lock.json
