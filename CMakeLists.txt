@@ -54,7 +54,8 @@ set(SOURCES
     src/engine/core/input.c
     src/engine/core/entity_manager.c
     src/engine/core/asset_manager.c
-    src/engine/core/cre_renderer.c
+    src/engine/core/cre_RendererCore.c
+    src/engine/core/cre_RenderSystem.c
     src/engine/core/animationSystem.c
     src/engine/core/cre_camera.c
     src/engine/core/cre_camera_utils.c
@@ -67,14 +68,28 @@ set(SOURCES
     src/game/entities/snake.c
     src/game/entities/food.c
     src/game/game_scenes.c
-    src/game/game_systems.c
+    src/game/controlSystem.c
+    src/game/debugSystem.c
     src/game/menu.c
     src/game/game_over.c
-    src/game/game_animation.c
 )
 
 # --- Executable ---
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+# --- Link Time Optimization (LTO) ---
+# This allows inlining functions across different .c files
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT result OUTPUT output)
+    
+    if(result)
+        message(STATUS "IPO/LTO is supported: Enabling")
+        set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(WARNING "IPO/LTO is not supported: ${output}")
+    endif()
+endif()
 
 # --- Dependencies ---
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
@@ -85,6 +100,27 @@ target_include_directories(${PROJECT_NAME} PRIVATE src include "${GEN_DIR}")
 # --- Linking ---
 target_link_libraries(${PROJECT_NAME} raylib m)
 
+
+
 # --- Assets ---
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR} PATTERN "raw_textures" EXCLUDE) 
 file(COPY ${CMAKE_SOURCE_DIR}/src/game/config/settings.cfg DESTINATION ${CMAKE_BINARY_DIR}/assets/config)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "Build Type is Release: Enabling Aggressive Optimizations")
+    
+    if(MSVC)
+        # Visual Studio Flags
+        # /Ox = Full Optimization
+        # /arch:AVX2 = Enable SIMD vectorization (Crucial for SoA)
+        # /fp:fast = Faster floating point math (less precise, usually fine for games)
+        target_compile_options(${PROJECT_NAME} PRIVATE /Ox /arch:AVX2 /fp:fast)
+    else()
+        # GCC / Clang Flags
+        # -O3 = Maximum Optimization
+        # -march=native = Use your specific CPU's instruction set (AVX/AVX2)
+        # -ffast-math = trade IEEE precision for speed
+        # -funroll-loops = Helps with the physics "for" loops
+        target_compile_options(${PROJECT_NAME} PRIVATE -O3 -march=native -ffast-math -funroll-loops)
+    endif()
+endif()

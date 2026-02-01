@@ -1,9 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 
-void Game_Init(void);
-void Game_Update(void);
-void Game_Draw(void);
-void Game_Shutdown(void);
+// Forward declaration
+typedef struct EntityRegistry EntityRegistry;
+typedef struct CommandBus CommandBus;
 
-#endif // GAME_H
+void Game_Init(EntityRegistry* reg, CommandBus* bus);
+void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt);
+void Game_Draw(EntityRegistry* reg, CommandBus* bus);
+void Game_Shutdown(EntityRegistry* reg, CommandBus* bus);
+
+#endif

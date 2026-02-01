@@ -8,20 +8,22 @@
 #include "scene_manager.h"
 #include "entity_manager.h"
 #include "../physics/physics_system.h"
-#include "cre_renderer.h"
+#include "cre_RendererCore.h"
 #include "asset_manager.h"
 #include "viewport.h"
 #include "cre_camera.h"
 
-void Engine_Init(const char* title, const char* configFileName) {
+
+void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const char* configFileName) {
     Logger_Init();
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
     Viewport_Init(SCREEN_WIDTH,SCREEN_HEIGHT);
     ViewportSize v = Viewport_Get();
     InitWindow(v.width,v.height,title);
     SetTargetFPS(TARGET_FRAMERATE);
     Log(LOG_LVL_INFO,"Engine Initializing...");
-    Log(LOG_LVL_DEBUG,"Target Resolution: %dx%d",v.width,v.height);
+    Log(LOG_LVL_DEBUG,"Target Resolution: %.0fx%.0f",v.width,v.height);
 
     const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);
     Input_Init(configPath);
@@ -30,36 +32,38 @@ void Engine_Init(const char* title, const char* configFileName) {
         Logger_Shutdown();
         exit(1);
     }
-    creRenderer_Init((int)v.width,(int)v.height);
-    EntityManager_Init();
+    cre_RendererCore_Init((int)v.width,(int)v.height);
+
+    EntityManager_Init(reg);
     Asset_Init();
     PhysicsSystem_Init();
+
     creCamera_Init(Viewport_Get());
-    
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
-void Engine_Run() {
+void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {
     Log(LOG_LVL_INFO,"Entering main loop");
+    
     while (!WindowShouldClose()) {
         Viewport_Update();
         if (Viewport_wasResized()) {
             ViewportSize vp = Viewport_Get();
             creCamera_UpdateViewportCache(vp);
-            creRenderer_RecreateCanvas((int)vp.width,(int)vp.height);
+            cre_RendererCore_RecreateCanvas((int)vp.width,(int)vp.height);
             Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",vp.width,vp.height);
         }
-        SceneManager_Update();
+        SceneManager_Update(reg,bus,dt);
 
-        creRenderer_BeginFrame();
-        SceneManager_Draw();
-        creRenderer_EndFrame();
+        cre_RendererCore_BeginFrame();
+        SceneManager_Draw(reg,bus);
+        cre_RendererCore_EndFrame();
     }
     Log(LOG_LVL_INFO,"Main loop exited. (Window closed)");
 }
-void Engine_Shutdown(void) {
+void Engine_Shutdown(EntityRegistry* reg, CommandBus* bus) {
     Log(LOG_LVL_INFO,"Shutting down Raylib...");
-    SceneManager_Shutdown();
-    EntityManager_Shutdown();
+    SceneManager_Shutdown(reg,bus);
+    EntityManager_Shutdown(reg);
     CloseWindow();
 
     // Add failsafes later on.

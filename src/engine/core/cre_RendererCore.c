@@ -1,4 +1,4 @@
-#include "cre_renderer.h"
+#include "cre_RendererCore.h"
 #include "asset_manager.h"
 #include "logger.h"
 #include "raylib.h"
@@ -16,14 +16,14 @@ typedef struct {
     int             virtualWidth;
     int             virtualHeight;
     int             filterMode;
-} creRenderer_State;
+} cre_RendererCore_State;
 
-static creRenderer_State state = {0};
+static cre_RendererCore_State state = {0};
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal Helpers
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_RecreateCanvas(int virtualWidth, int virtualHeight) {
+void cre_RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
     }
@@ -35,13 +35,13 @@ void creRenderer_RecreateCanvas(int virtualWidth, int virtualHeight) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Lifecycle
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_Init(int virtualWidth,int virtualHeight) {
+void cre_RendererCore_Init(int virtualWidth,int virtualHeight) {
     state.filterMode      = TEXTURE_FILTER_POINT; // FOR PIXEL ARTS.
-    creRenderer_RecreateCanvas(virtualWidth,virtualHeight);
+    cre_RendererCore_RecreateCanvas(virtualWidth,virtualHeight);
     Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth, state.virtualHeight);
 }
 
-void creRenderer_Shutdown(void) {
+void cre_RendererCore_Shutdown(void) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
         state.canvas = (RenderTexture2D){0};
@@ -53,7 +53,7 @@ void creRenderer_Shutdown(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Frame Control
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_BeginFrame(void) {
+void cre_RendererCore_BeginFrame(void) {
     /* Cache atlas once per frame */
     state.cachedAtlas = Asset_getTexture();
     
@@ -65,7 +65,7 @@ void creRenderer_BeginFrame(void) {
     ClearBackground(BLACK);
 }
 
-void creRenderer_EndFrame(void) {
+void cre_RendererCore_EndFrame(void) {
     EndTextureMode();
     
     /* Upscale virtual canvas to physical window (no global flip) */
@@ -90,18 +90,18 @@ void creRenderer_EndFrame(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Camera Interface
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_BeginWorldMode(Camera2D camera) {
+void cre_RendererCore_BeginWorldMode(Camera2D camera) {
     BeginMode2D(camera);
 }
 
-void creRenderer_EndWorldMode(void) {
+void cre_RendererCore_EndWorldMode(void) {
     EndMode2D();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Consolidated Sprite Draw
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size ,Vector2 pivot,
+void cre_RendererCore_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size ,Vector2 pivot,
                             float rotation, bool flipX, bool flipY, Color tint) {
     Rectangle srcRect = Asset_getRect((int)spriteID);
     
@@ -134,7 +134,7 @@ void creRenderer_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size ,Ve
 /* ─────────────────────────────────────────────────────────────────────────────
  * Settings
  * ───────────────────────────────────────────────────────────────────────────── */
-void creRenderer_SetFilter(int filterMode) {
+void cre_RendererCore_SetFilter(int filterMode) {
     state.filterMode = filterMode;
     if (state.canvas.id != 0) {
         SetTextureFilter(state.canvas.texture, filterMode);

@@ -3,8 +3,14 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <assert.h>
 #include <stdalign.h>
+
+// Command Flags
+#define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
+#define CMD_PHYS_FLAG_SENSOR  (1 << 1) // Bit 1: Trigger (Future proofing)
+#define CMD_PHYS_FLAG_BULLET  (1 << 2) // Bit 2: CCD/Fast Mover (Future proofing)
 
 // Animation Command Flags
 #define ANIM_FLAG_FORCE_RESET  (1 << 0) // Bit 0: 1 = Force restart
@@ -32,7 +38,11 @@ typedef enum CommandType {
     CMD_PHYS_MOVE,
     CMD_PHYS_APPLY_FORCE,
     CMD_PHYS_SET_VELOCITY,
-    
+
+    CMD_PHYS_LOAD_STATIC,
+    CMD_PHYS_DEFINE,
+    CMD_PHYS_RESET,
+    CMD_PHYS_DEBUG_DRAW,
     // Animation commands
     CMD_ANIM_PLAY,
     CMD_ANIM_STOP,
@@ -69,6 +79,13 @@ typedef struct {
 } CommandPayloadForce;
 
 typedef struct {
+    uint8_t material_id; // e.g., MAT_WOOF
+    uint8_t flags;      // e.g., true for Walls
+    uint8_t _padding[2];
+    float drag;
+} CommandPayloadPhysDef;
+
+typedef struct {
     uint16_t soundID;
     uint16_t _pad;
     float volume;
@@ -85,11 +102,12 @@ typedef struct Command {
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
     union {
-        CommandPayloadMove   move;
-        CommandPayloadAnim   anim;
-        CommandPayloadForce  force;
-        CommandPayloadAudio  audio;
-        alignas(4) uint8_t   raw[16];
+        CommandPayloadMove     move;
+        CommandPayloadAnim     anim;
+        CommandPayloadForce    force;
+        CommandPayloadAudio    audio;
+        CommandPayloadPhysDef physDef;
+        alignas(4) uint8_t     raw[16];
     };
 } Command;
 

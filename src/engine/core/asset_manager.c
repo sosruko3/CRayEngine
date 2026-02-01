@@ -1,4 +1,5 @@
 #include "asset_manager.h"
+#include "raylib.h"
 #include "logger.h"
 #include "config.h"
 #include "atlas_data.h"
@@ -11,12 +12,29 @@ static inline Rectangle SpriteMeta_ToRect(const SpriteMeta* meta) {
 }
 
 void Asset_Init(void) {
-    if (FileExists(atlasDir)) atlasTexture = LoadTexture(atlasDir);
-    else if (FileExists("atlas.png")) atlasTexture = LoadTexture("atlas.png");
-    SetTextureFilter(atlasTexture,TEXTURE_FILTER_POINT);
-
-    if (!atlasTexture.id) Log(LOG_LVL_ERROR,"ASSETS: Failed to load atlas.png!");
-    else Log(LOG_LVL_INFO,"ASSETS: Atlas loaded successfully.");
+    // Try multiple paths to find atlas.png
+    // 1. Relative to executable (build directory)
+    const char* exeDir = GetApplicationDirectory();
+    const char* atlasPath = TextFormat("%satlas.png", exeDir);
+    
+    if (FileExists(atlasPath)) {
+        atlasTexture = LoadTexture(atlasPath);
+    }
+    // 2. Current working directory
+    else if (FileExists("atlas.png")) {
+        atlasTexture = LoadTexture("atlas.png");
+    }
+    // 3. build/ subdirectory (if running from project root)
+    else if (FileExists("build/atlas.png")) {
+        atlasTexture = LoadTexture("build/atlas.png");
+    }
+    
+    if (atlasTexture.id) {
+        SetTextureFilter(atlasTexture, TEXTURE_FILTER_POINT);
+        Log(LOG_LVL_INFO, "ASSETS: Atlas loaded successfully.");
+    } else {
+        Log(LOG_LVL_ERROR, "ASSETS: Failed to load atlas.png!");
+    }
 }
 void Asset_Shutdown(void) {
     UnloadTexture(atlasTexture);

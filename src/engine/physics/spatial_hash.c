@@ -1,6 +1,7 @@
 #include "spatial_hash.h"
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include "engine/core/logger.h"
 #include "engine/core/config.h"
 #include <assert.h>
@@ -13,11 +14,50 @@
 #define SPATIAL_MAX_DYNAMIC 20000
 #define SPATIAL_NULL_IDX    UINT32_MAX
 
+// #4 Optimization: Power-of-2 bitmask for fast hashing (replaces modulo)
+#define SPATIAL_HASH_MASK   (SPATIAL_HASH_SIZE - 1)
+
+// Faster division, Bit-shifting.
 #define WORLD_TO_GRID(val) ((val) >> SPATIAL_GRID_SHIFT)
 
 // Compile-time validation
 static_assert((1 << SPATIAL_GRID_SHIFT) == SPATIAL_GRID_SIZE, 
               "SPATIAL_GRID_SHIFT must match log2 of SPATIAL_GRID_SIZE!");
+static_assert((SPATIAL_HASH_SIZE & SPATIAL_HASH_MASK) == 0,
+              "SPATIAL_HASH_SIZE must be power of 2 for bitmask optimization!");
+
+// ============================================================================
+// #1 Optimization: Timestamp-based O(1) Deduplication
+// ============================================================================
+// Instead of O(N) linear scan, use per-entity timestamp tracking.
+// Entity is duplicate if lastSeenFrame[id] == currentQueryFrame.
+
+static uint32_t lastSeenFrame[MAX_ENTITIES];  // 64KB for 16384 entities
+static uint32_t currentQueryFrame = 0;
+
+/**
+ * @brief O(1) duplicate check using timestamp comparison.
+ * @return true if already seen this query, false if first time (and marks as seen)
+ */
+static inline bool MarkSeen(uint32_t entityID) {
+    if (lastSeenFrame[entityID] == currentQueryFrame) {
+        return true;  // Duplicate
+    }
+    lastSeenFrame[entityID] = currentQueryFrame;
+    return false;  // First time
+}
+
+/**
+ * @brief Handle timestamp wraparound (every ~4 billion queries).
+ */
+static inline void AdvanceQueryFrame(void) {
+    currentQueryFrame++;
+    if (currentQueryFrame == 0) {
+        // Overflow - reset everything to avoid false positives
+        memset(lastSeenFrame, 0, sizeof(lastSeenFrame));
+        currentQueryFrame = 1;
+    }
+}
 
 // ============================================================================
 // Dual-Layer Data Structures
@@ -39,14 +79,13 @@ static uint32_t dynamicPoolIdx = 0;
 static uint32_t staticFreeHead = SPATIAL_NULL_IDX;
 
 // ============================================================================
-// Chipmunk2D's Hashing Algorithm
+// Chipmunk2D's Hashing Algorithm (Optimized with bitmask)
 // ============================================================================
 
-static int GetHashIndex(int cellX, int cellY) {
+static inline int GetHashIndex(int cellX, int cellY) {
     unsigned int h1 = (unsigned int)cellX * 73856093;
     unsigned int h2 = (unsigned int)cellY * 19349663;
-    unsigned int n = (h1 ^ h2) % SPATIAL_HASH_SIZE;
-    return (int)n;
+    return (int)((h1 ^ h2) & SPATIAL_HASH_MASK);  // Bitmask, not modulo
 }
 
 // ============================================================================
@@ -111,7 +150,7 @@ void SpatialHash_ClearAll(void) {
     // 0xFF sets all bits to 1, creating UINT32_MAX
     memset(staticBuckets,  0xFF, sizeof(staticBuckets));
     memset(dynamicBuckets, 0xFF, sizeof(dynamicBuckets));
-    
+
     // Reset pools and free-list
     staticPoolIdx  = 0;
     dynamicPoolIdx = 0;
@@ -145,14 +184,19 @@ void SpatialHash_AddStatic(uint32_t entityID, int x, int y, int width, int heigh
 }
 
 void SpatialHash_AddDynamic(uint32_t entityID, int x, int y, int width, int height) {
-    int minX = WORLD_TO_GRID(x);
-    int minY = WORLD_TO_GRID(y);
-    int maxX = WORLD_TO_GRID(x + width);
-    int maxY = WORLD_TO_GRID(y + height);
+    const int minX = WORLD_TO_GRID(x);
+    const int minY = WORLD_TO_GRID(y);
+    const int maxX = WORLD_TO_GRID(x + width);
+    const int maxY = WORLD_TO_GRID(y + height);
 
     for (int cy = minY; cy <= maxY; cy++) {
+        // #4 Optimization: Precompute y-component of hash once per row
+        const unsigned int hy = (unsigned int)cy * 19349663;
+        
         for (int cx = minX; cx <= maxX; cx++) {
-            int bucketIndex = GetHashIndex(cx, cy);
+            // Inline hash calculation (avoids function call overhead)
+            const unsigned int hx = (unsigned int)cx * 73856093;
+            const int bucketIndex = (int)((hx ^ hy) & SPATIAL_HASH_MASK);
 
             uint32_t nodeIdx = PopDynamicNode();
             if (nodeIdx == SPATIAL_NULL_IDX) return;
@@ -212,37 +256,31 @@ void SpatialHash_RemoveStatic(uint32_t entityID, int x, int y, int width, int he
 }
 
 // ============================================================================
-// Merged Query (with Deduplication)
+// Merged Query (with O(1) Timestamp Deduplication)
 // ============================================================================
 
-/**
- * @brief Check if entityID already exists in results array.
- */
-static bool IsDuplicate(const uint32_t* results, int count, uint32_t entityID) {
-    for (int i = 0; i < count; i++) {
-        if (results[i] == entityID) return true;
-    }
-    return false;
-}
-
 int SpatialHash_Query(int x, int y, int width, int height, uint32_t* results, int maxResults) {
+    // #1 Optimization: Advance query frame for O(1) deduplication
+    AdvanceQueryFrame();
+    
     int count = 0;
 
-    int minX = WORLD_TO_GRID(x);
-    int minY = WORLD_TO_GRID(y);
-    int maxX = WORLD_TO_GRID(x + width);
-    int maxY = WORLD_TO_GRID(y + height);
+    const int minX = WORLD_TO_GRID(x);
+    const int minY = WORLD_TO_GRID(y);
+    const int maxX = WORLD_TO_GRID(x + width);
+    const int maxY = WORLD_TO_GRID(y + height);
 
     for (int cy = minY; cy <= maxY; cy++) {
         for (int cx = minX; cx <= maxX; cx++) {
-            int bucketIndex = GetHashIndex(cx, cy);
+            const int bucketIndex = GetHashIndex(cx, cy);
 
             // Query static layer
             uint32_t curr = staticBuckets[bucketIndex];
             while (curr != SPATIAL_NULL_IDX) {
                 SpatialNode* node = &staticNodes[curr];
                 if (node->gridX == cx && node->gridY == cy) {
-                    if (!IsDuplicate(results, count, node->entityID)) {
+                    // #1 Optimization: O(1) duplicate check via timestamp
+                    if (!MarkSeen(node->entityID)) {
                         if (count >= maxResults) return count;
                         results[count++] = node->entityID;
                     }
@@ -255,7 +293,8 @@ int SpatialHash_Query(int x, int y, int width, int height, uint32_t* results, in
             while (curr != SPATIAL_NULL_IDX) {
                 SpatialNode* node = &dynamicNodes[curr];
                 if (node->gridX == cx && node->gridY == cy) {
-                    if (!IsDuplicate(results, count, node->entityID)) {
+                    // #1 Optimization: O(1) duplicate check via timestamp
+                    if (!MarkSeen(node->entityID)) {
                         if (count >= maxResults) return count;
                         results[count++] = node->entityID;
                     }

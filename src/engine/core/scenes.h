@@ -1,11 +1,15 @@
 #ifndef SCENES_H
 #define SCENES_H
 
+// Forward Declaration
+typedef struct EntityRegistry EntityRegistry;
+typedef struct CommandBus CommandBus;
+
 typedef struct {
-    void (*Init)(void);
-    void (*Update)(void);
-    void (*Draw)(void);
-    void (*Unload)(void);
+    void (*Init)(EntityRegistry* reg, CommandBus* bus);
+    void (*Update)(EntityRegistry* reg, CommandBus* bus,float dt);
+    void (*Draw)(EntityRegistry* reg, CommandBus* bus);
+    void (*Unload)(EntityRegistry* reg, CommandBus* bus);
 } Scene;
 
 #endif

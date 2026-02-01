@@ -9,193 +9,193 @@
 #include "logger.h"
 
 // ============================================================================
-// Static Registry (The Single Source of Truth)
-// ============================================================================
-
-static EntityRegistry s_registry;
-
-// ============================================================================
 // Core API Implementation
 // ============================================================================
 
-void EntityManager_Init(void) {
+void EntityManager_Init(EntityRegistry* reg) {
+    if (!reg) return;
+    
     // Zero everything including generations on first init
-    memset(&s_registry, 0, sizeof(s_registry));
+    memset(reg, 0, sizeof(EntityRegistry));
     
     // Build free list (stack: high indices at bottom, low at top)
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-        s_registry.free_list[i] = (MAX_ENTITIES - 1) - i;
+        reg->free_list[i] = (MAX_ENTITIES - 1) - i;
     }
     
-    s_registry.free_count = MAX_ENTITIES;
-    s_registry.active_count = 0;
-    s_registry.max_used_bound = 0;
+    reg->free_count = MAX_ENTITIES;
+    reg->active_count = 0;
+    reg->max_used_bound = 0;
     
     Log(LOG_LVL_INFO, "Entity Manager Initialized (SoA, %u slots)", MAX_ENTITIES);
 }
 
-void EntityManager_Reset(void) {
+void EntityManager_Reset(EntityRegistry* reg) {
+    if (!reg) return;
+    
     // Clear component_masks and state_flags, but NOT generations!
-    memset(s_registry.component_masks, 0, sizeof(s_registry.component_masks));
-    memset(s_registry.state_flags, 0, sizeof(s_registry.state_flags));
+    memset(reg->component_masks, 0, sizeof(reg->component_masks));
+    memset(reg->state_flags, 0, sizeof(reg->state_flags));
     
     // Clear data highways
-    memset(s_registry.pos_x, 0, sizeof(s_registry.pos_x));
-    memset(s_registry.pos_y, 0, sizeof(s_registry.pos_y));
-    memset(s_registry.vel_x, 0, sizeof(s_registry.vel_x));
-    memset(s_registry.vel_y, 0, sizeof(s_registry.vel_y));
-    memset(s_registry.size_w, 0, sizeof(s_registry.size_w));
-    memset(s_registry.size_h, 0, sizeof(s_registry.size_h));
+    memset(reg->pos_x,               0, sizeof(reg->pos_x));
+    memset(reg->pos_y,               0, sizeof(reg->pos_y));
+    memset(reg->vel_x,               0, sizeof(reg->vel_x));
+    memset(reg->vel_y,               0, sizeof(reg->vel_y));
+    memset(reg->size_w,              0, sizeof(reg->size_w));
+    memset(reg->size_h,              0, sizeof(reg->size_h));
 
-    memset(s_registry.rotation, 0, sizeof(s_registry.rotation));
-    memset(s_registry.sprite_ids, 0, sizeof(s_registry.sprite_ids));
-    memset(s_registry.colors, 0, sizeof(s_registry.colors));
-    memset(s_registry.types, 0, sizeof(s_registry.types));
+    memset(reg->inv_mass,            0, sizeof(reg->inv_mass));
+    memset(reg->drag,                0, sizeof(reg->drag));
+    memset(reg->gravity_scale,       0, sizeof(reg->gravity_scale));
+    memset(reg->material_id,         0, sizeof(reg->material_id));
 
-    memset(s_registry.anim_timers, 0, sizeof(s_registry.anim_timers));
-    memset(s_registry.anim_speeds, 0, sizeof(s_registry.anim_speeds));
-    memset(s_registry.anim_ids,    0, sizeof(s_registry.anim_ids));
-    memset(s_registry.anim_frames, 0, sizeof(s_registry.anim_frames));
-    memset(s_registry.anim_finished, 0, sizeof(s_registry.anim_finished));
-    memset(s_registry.anim_base_durations, 0, sizeof(s_registry.anim_base_durations));
+    memset(reg->rotation,            0, sizeof(reg->rotation));
+    memset(reg->sprite_ids,          0, sizeof(reg->sprite_ids));
+    memset(reg->colors,              0, sizeof(reg->colors));
+    memset(reg->types,               0, sizeof(reg->types));
+
+    memset(reg->anim_timers,         0, sizeof(reg->anim_timers));
+    memset(reg->anim_speeds,         0, sizeof(reg->anim_speeds));
+    memset(reg->anim_ids,            0, sizeof(reg->anim_ids));
+    memset(reg->anim_frames,         0, sizeof(reg->anim_frames));
+    memset(reg->anim_finished,       0, sizeof(reg->anim_finished));
+    memset(reg->anim_base_durations, 0, sizeof(reg->anim_base_durations));
 
     // Rebuild free list
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-        s_registry.free_list[i] = (MAX_ENTITIES - 1) - i;
+        reg->free_list[i] = (MAX_ENTITIES - 1) - i;
     }
     
-    s_registry.free_count = MAX_ENTITIES;
-    s_registry.active_count = 0;
-    s_registry.max_used_bound = 0;
+    reg->free_count = MAX_ENTITIES;
+    reg->active_count = 0;
+    reg->max_used_bound = 0;
     
     Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
 }
 
-Entity EntityManager_Create(int type, Vector2 pos,uint64_t initial_CompMask,uint64_t initial_flags) {
-    if (s_registry.free_count == 0) {
-        // Registry is full
+Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
+    if (!reg || reg->free_count == 0) {
+        // Registry is null or full
         return ENTITY_INVALID;
     }
     
     // Pop index from free list
-    uint32_t index = s_registry.free_list[--s_registry.free_count];
-    uint32_t gen = s_registry.generations[index];
+    uint32_t index = reg->free_list[--reg->free_count];
+    uint32_t gen = reg->generations[index];
     
     // Set up the entity in SoA arrays
-    s_registry.component_masks[index] = initial_CompMask;
-    s_registry.state_flags[index] = initial_flags | FLAG_ACTIVE;
-    s_registry.types[index] = (uint16_t)type;
+    reg->component_masks[index] = initial_CompMask;
+    reg->state_flags[index] = initial_flags | FLAG_ACTIVE;
+    reg->types[index] = (uint16_t)type;
     
     // Position
-    s_registry.pos_x[index] = pos.x;
-    s_registry.pos_y[index] = pos.y;
+    reg->pos_x[index] = pos.x;
+    reg->pos_y[index] = pos.y;
     
     // Velocity (default zero)
-    s_registry.vel_x[index] = 0.0f;
-    s_registry.vel_y[index] = 0.0f;
+    reg->vel_x[index] = 0.0f;
+    reg->vel_y[index] = 0.0f;
     
     // Size (default 32x32)
-    s_registry.size_w[index] = 32.0f;
-    s_registry.size_h[index] = 32.0f;
-    
+    reg->size_w[index] = 32.0f;
+    reg->size_h[index] = 32.0f;
+
+    // Physics specific
+    reg->inv_mass[index]      = 0.0f;
+    reg->drag[index]          = 0.0f;
+    reg->gravity_scale[index] = 0.0f;
+    reg->material_id[index]   = 0;
+
     // Rotation
-    s_registry.rotation[index] = 0.0f;
+    reg->rotation[index] = 0.0f;
     
     // Sprite and color
-    s_registry.sprite_ids[index] = 0;
-    s_registry.colors[index] = WHITE;
+    reg->sprite_ids[index] = 0;
+    reg->colors[index] = WHITE;
     // Animations
-    s_registry.anim_speeds[index] = 1.0f;
-    s_registry.anim_timers[index] = 0.0f;
-    s_registry.anim_finished[index] = false;
+    reg->anim_speeds[index] = 1.0f;
+    reg->anim_timers[index] = 0.0f;
+    reg->anim_finished[index] = false;
     
-    s_registry.active_count++;
+    reg->active_count++;
     
     // Track max used index for loop optimization
-    if (index >= s_registry.max_used_bound) {
-        s_registry.max_used_bound = index + 1;
+    if (index >= reg->max_used_bound) {
+        reg->max_used_bound = index + 1;
     }
     
     return (Entity){ .id = index, .generation = gen };
 }
 
-void EntityManager_Destroy(Entity e) {
+void EntityManager_Destroy(EntityRegistry* reg, Entity e) {
+    if (!reg) return;
+    
     // Validate handle
     if (e.id >= MAX_ENTITIES) return;
-    if (!(s_registry.state_flags[e.id] & FLAG_ACTIVE)) return;
-    if (s_registry.generations[e.id] != e.generation) return;
+    if (!(reg->state_flags[e.id] & FLAG_ACTIVE)) return;
+    if (reg->generations[e.id] != e.generation) return;
     
     // Clear the slot
-    s_registry.component_masks[e.id] = COMP_NONE;
-    s_registry.state_flags[e.id] = 0;
+    reg->component_masks[e.id] = COMP_NONE;
+    reg->state_flags[e.id] = 0;
     
     // Increment generation to invalidate stale handles
-    s_registry.generations[e.id]++;
+    reg->generations[e.id]++;
     
     // Return slot to free list
-    s_registry.free_list[s_registry.free_count++] = e.id;
-    s_registry.active_count--;
+    reg->free_list[reg->free_count++] = e.id;
+    reg->active_count--;
     
     // Note: We don't shrink max_used_bound here for simplicity.
     // A more sophisticated implementation could track this.
 }
 
-void EntityManager_Shutdown(void) {
-    memset(&s_registry, 0, sizeof(s_registry));
+void EntityManager_Shutdown(EntityRegistry* reg) {
+    if (!reg) return;
+    memset(reg, 0, sizeof(EntityRegistry));
     Log(LOG_LVL_INFO, "Entity Manager Shutdown");
-}
-
-EntityRegistry* EntityManager_GetRegistry(void) {
-    return &s_registry;
-}
-
-uint32_t EntityManager_GetActiveCount(void) {
-    return s_registry.active_count;
-}
-
-uint32_t EntityManager_GetMaxUsedBound(void) {
-    return s_registry.max_used_bound;
 }
 
 // ============================================================================
 // Legacy Compatibility Implementation
 // ============================================================================
 
-bool EntityManager_GetLegacy(Entity e, EntityData* out_data) {
-    if (!EntityManager_IsValid(e) || out_data == NULL) return false;
+bool EntityManager_GetLegacy(EntityRegistry* reg, Entity e, EntityData* out_data) {
+    if (!reg || !EntityManager_IsValid(reg, e) || out_data == NULL) return false;
     
     uint32_t id = e.id;
     
-    out_data->position = (Vector2){ s_registry.pos_x[id], s_registry.pos_y[id] };
-    out_data->velocity = (Vector2){ s_registry.vel_x[id], s_registry.vel_y[id] };
-    out_data->size = (Vector2){ s_registry.size_w[id], s_registry.size_h[id] };
-    out_data->color = s_registry.colors[id];
-    out_data->rotation = s_registry.rotation[id];
+    out_data->position = (Vector2){ reg->pos_x[id], reg->pos_y[id] };
+    out_data->velocity = (Vector2){ reg->vel_x[id], reg->vel_y[id] };
+    out_data->size = (Vector2){ reg->size_w[id], reg->size_h[id] };
+    out_data->color = reg->colors[id];
+    out_data->rotation = reg->rotation[id];
     out_data->restitution = 0.0f; // Not stored in SoA
-    out_data->generation = s_registry.generations[id];
-    out_data->flags = (uint32_t)(s_registry.state_flags[id] & 0xFFFFFFFF);
-    out_data->spriteID = s_registry.sprite_ids[id];
-    out_data->type = s_registry.types[id];
+    out_data->generation = reg->generations[id];
+    out_data->flags = (uint32_t)(reg->state_flags[id] & 0xFFFFFFFF);
+    out_data->spriteID = reg->sprite_ids[id];
+    out_data->type = reg->types[id];
     
     return true;
 }
 
-bool EntityManager_SetLegacy(Entity e, const EntityData* data) {
-    if (!EntityManager_IsValid(e) || data == NULL) return false;
+bool EntityManager_SetLegacy(EntityRegistry* reg, Entity e, const EntityData* data) {
+    if (!reg || !EntityManager_IsValid(reg, e) || data == NULL) return false;
     
     uint32_t id = e.id;
     
-    s_registry.pos_x[id] = data->position.x;
-    s_registry.pos_y[id] = data->position.y;
-    s_registry.vel_x[id] = data->velocity.x;
-    s_registry.vel_y[id] = data->velocity.y;
-    s_registry.size_w[id] = data->size.x;
-    s_registry.size_h[id] = data->size.y;
-    s_registry.colors[id] = data->color;
-    s_registry.rotation[id] = data->rotation;
-    s_registry.state_flags[id] = (s_registry.state_flags[id] & 0xFFFFFFFF00000000ULL) | data->flags;
-    s_registry.sprite_ids[id] = data->spriteID;
-    s_registry.types[id] = data->type;
+    reg->pos_x[id] = data->position.x;
+    reg->pos_y[id] = data->position.y;
+    reg->vel_x[id] = data->velocity.x;
+    reg->vel_y[id] = data->velocity.y;
+    reg->size_w[id] = data->size.x;
+    reg->size_h[id] = data->size.y;
+    reg->colors[id] = data->color;
+    reg->rotation[id] = data->rotation;
+    reg->state_flags[id] = (reg->state_flags[id] & 0xFFFFFFFF00000000ULL) | data->flags;
+    reg->sprite_ids[id] = data->spriteID;
+    reg->types[id] = data->type;
     
     return true;
 }

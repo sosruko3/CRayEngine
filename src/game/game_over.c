@@ -11,17 +11,17 @@
 
 extern int finalScore;
 
-void GameOver_Init(void) {
+void GameOver_Init(EntityRegistry* reg, CommandBus* bus) {
     // Optional for game over sound effect or anything
 }
 
-void GameOver_Update(void) {
+void GameOver_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
     if (Input_IsPressed(ACTION_CONFIRM)) {
         SceneManager_ChangeScene(GAME_STATE_MENU);
     }
 }
 
-void GameOver_Draw(void) {
+void GameOver_Draw(EntityRegistry* reg, CommandBus* bus) {
 
     ClearBackground(BLACK);
     DrawTextCentered(GAMEOVER_TITLE_TEXT,SCREEN_HEIGHT/2-50,FONT_SIZE_TITLE,RED);
@@ -35,7 +35,7 @@ void GameOver_Draw(void) {
     
 }
 
-void GameOver_Unload(void) {
+void GameOver_Unload(EntityRegistry* reg, CommandBus* bus) {
     // Nothing to clean up yet
 
 }

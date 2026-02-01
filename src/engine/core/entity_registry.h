@@ -27,7 +27,7 @@
  * 
  * The generation field ensures stale handles don't access recycled entities.
  */
-typedef struct {
+typedef struct Entity {
     uint32_t id;         ///< Index into the registry arrays
     uint32_t generation; ///< Generation counter for validation
 } Entity;
@@ -51,11 +51,10 @@ typedef struct {
 #define COMP_SPRITE           (1ULL << 4)
 #define COMP_COLOR            (1ULL << 5)
 #define COMP_ANIMATION        (1ULL << 6)
-#define COMP_PHYSICS          (1ULL << 8)
-#define COMP_COLLISION        (1ULL << 7)
-#define COMP_COLLISION_Circle (1ULL << 9)
-#define COMP_COLLISION_AABB   (1ULL << 10)
-// Reserve bits 9-31 for future component types
+#define COMP_PHYSICS          (1ULL << 7)
+#define COMP_COLLISION_Circle (1ULL << 8)
+#define COMP_COLLISION_AABB   (1ULL << 9)
+// Reserve bits 10-31 for future component types
 // Bits 32-63 available for game-specific components
 
 // ============================================================================
@@ -75,6 +74,7 @@ typedef struct {
 #define FLAG_ANIMATED      (1ULL << 5)  ///< Uses animation system
 #define FLAG_CULLED        (1ULL << 6)  ///< Outside camera view, skip rendering
 #define FLAG_PERSISTENT    (1ULL << 7)  ///< Survives scene transitions
+#define FLAG_STATIC        (1ULL << 8)  ///< Static in physics.
 // Bits 8-15 reserved for future engine flags
 
 // --- Collision Layer/Mask (64-bit version) ---
@@ -105,7 +105,7 @@ typedef struct {
  * Data is stored in "parallel" arrays - same index across all arrays
  * refers to the same entity.
  */
-typedef struct {
+typedef struct EntityRegistry {
     // --- Hotter Data, closer to the Top ---
     alignas(64) float pos_x[MAX_ENTITIES];              ///< Position X
     alignas(64) float pos_y[MAX_ENTITIES];              ///< Position Y
@@ -115,10 +115,12 @@ typedef struct {
     alignas(64) uint64_t component_masks[MAX_ENTITIES]; ///< Component presence bits
     alignas(64) uint64_t state_flags[MAX_ENTITIES];     ///< Behavioral flags + collision data
     
-    alignas(64) float inv_mass[MAX_ENTITIES];           ///< Physics Mass
-    alignas(64) float gravity_scale[MAX_ENTITIES];      ///< Gravity Scales
     alignas(64) float size_w[MAX_ENTITIES];             ///< Size width
     alignas(64) float size_h[MAX_ENTITIES];             ///< Size height
+    alignas(64) uint8_t material_id[MAX_ENTITIES]; ///< Material ID for physics.
+    alignas(64) float drag[MAX_ENTITIES];               ///< Air resistance etc. for physics.
+    alignas(64) float inv_mass[MAX_ENTITIES];           ///< Physics Mass
+    alignas(64) float gravity_scale[MAX_ENTITIES];      ///< Gravity Scales
     alignas(64) float rotation[MAX_ENTITIES];           ///< Rotation in degrees
 
     alignas(64) uint16_t sprite_ids[MAX_ENTITIES];      ///< Sprite/texture ID
