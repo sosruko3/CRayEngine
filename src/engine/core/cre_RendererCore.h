@@ -1,7 +1,8 @@
 #ifndef CRE_RENDERERCORE_H
 #define CRE_RENDERERCORE_H
 
-#include "raylib.h"
+#include "cre_types.h"
+#include "raylib.h"  // For Camera2D
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -13,9 +14,11 @@
  * Internal state encapsulated in cre_RendererCore.c.
  * ───────────────────────────────────────────────────────────────────────────── */
 
+/* Helper functions*/
+void cre_RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight);
+//void cre_RendererCore_ClearBackground(creColor color);
 /* Lifecycle */
 void cre_RendererCore_Init(int virtualWidth,int virtualHeight);
-void cre_RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight);
 void cre_RendererCore_Shutdown(void);
 
 /* Frame control */
@@ -29,8 +32,8 @@ void cre_RendererCore_EndWorldMode(void);
 /* Consolidated sprite draw
  * - pivot: normalized (0,0)=top-left, (0.5,0.5)=center, (1,1)=bottom-right
  * - flipX/flipY: handled via negative srcRect dimensions */
-void cre_RendererCore_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size, Vector2 pivot,
-                            float rotation,bool flipX, bool flipY, Color tint);
+void cre_RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
+                            float rotation,bool flipX, bool flipY, creColor tint);
 
 /* Settings */
 void cre_RendererCore_SetFilter(int filterMode);

@@ -4,10 +4,12 @@
 #include "entity_registry.h"
 #include "../physics/spatial_hash.h"
 #include "config.h"
-#include "atlas_data.h"
+#include "types_macro.h"
+#include "atlas_data.h" 
+#include <assert.h>
 
-void cre_RenderSystem_DrawEntities(EntityRegistry* reg, Rectangle cullRect) {
-    if (!reg) return;
+void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
+    assert(reg && "reg is NULL");
     
     static uint32_t visibleEntities[MAX_VISIBLE_ENTITIES];
     
@@ -26,13 +28,13 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, Rectangle cullRect) {
         // Double checking - entity must be active and visible
         uint64_t flags = reg->state_flags[id];
         if ((flags & (FLAG_ACTIVE | FLAG_VISIBLE)) == (FLAG_ACTIVE | FLAG_VISIBLE)) {
-            Vector2 position = {reg->pos_x[id], reg->pos_y[id]};
-            Vector2 size = {reg->size_w[id], reg->size_h[id]};
+            creVec2 position = {reg->pos_x[id], reg->pos_y[id]};
+            creVec2 size = {reg->size_w[id], reg->size_h[id]};
             
             // Entity position is top-left of collision box
             // DrawSprite uses center pivot, so offset to center of collision box
             position.x += size.x * 0.5f;
-            position.y += size.y * 0.5f;
+            position.y += size.y * 1.0f;
             
             // Animation flip data - check if entity has animation component
             bool flipX = false;
@@ -46,7 +48,7 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, Rectangle cullRect) {
                 reg->sprite_ids[id],
                 position,
                 size,
-                (Vector2){0.5f, 0.5f}, // Central Pivot
+                (creVec2){0.5f, 1.0f}, // From feet.
                 reg->rotation[id],
                 flipX,
                 flipY,

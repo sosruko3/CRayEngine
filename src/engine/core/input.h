@@ -15,7 +15,7 @@ typedef enum {
 
     ACTION_PRIMARY,
     ACTION_SECONDARY,
-
+    // ADD NEW ACTIONS, THESE ARE NOT ENOUGH!
     ACTION_COUNT
 } GameAction;
 

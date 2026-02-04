@@ -19,7 +19,7 @@
 #define PHYS_GRAVITY_DEF_X 0.0f       // Default gravity X (typically 0 for side-scrollers)
 #define PHYS_GRAVITY_DEF_Y 0.0f       // Default gravity Y (positive = down in screen coords)
 #define PHYS_SUB_STEPS 4              // Number of physics sub-steps per frame
-#define PHYS_SOLVER_ITERATIONS 4      // Collision solver iterations per sub-step
+#define PHYS_SOLVER_ITERATIONS 8      // Collision solver iterations per sub-step
 #define PHYS_SLEEP_EPSILON 2.0f       // Velocity threshold for sleep (squared internally)
 #define PHYS_SLOP 0.01f               // Penetration allowance before correction
 #define PHYS_CORRECTION_PERCENT 0.5f  // Position correction strength (0.0-1.0)

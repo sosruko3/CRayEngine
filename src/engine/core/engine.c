@@ -12,7 +12,7 @@
 #include "asset_manager.h"
 #include "viewport.h"
 #include "cre_camera.h"
-
+#include "command_bus.h"
 
 void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const char* configFileName) {
     Logger_Init();
@@ -34,6 +34,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
     }
     cre_RendererCore_Init((int)v.width,(int)v.height);
 
+    CommandBus_Init(bus); // Make sure this function is getting called.
     EntityManager_Init(reg);
     Asset_Init();
     PhysicsSystem_Init();

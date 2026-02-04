@@ -2,10 +2,12 @@
 #include "asset_manager.h"
 #include "logger.h"
 #include "raylib.h"
+#include "viewport.h"
+#include "types_macro.h"
+#include "cre_colors.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
-#include "viewport.h"
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal State (Encapsulated)
@@ -58,32 +60,32 @@ void cre_RendererCore_BeginFrame(void) {
     state.cachedAtlas = Asset_getTexture();
     
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(R_COL(creBLACK));
     
     /* Begin rendering to virtual canvas */
     BeginTextureMode(state.canvas);
-    ClearBackground(BLACK);
+    ClearBackground(R_COL(creBLACK));
 }
 
 void cre_RendererCore_EndFrame(void) {
     EndTextureMode();
     
     /* Upscale virtual canvas to physical window (no global flip) */
-    Rectangle srcRect = {
+    creRectangle srcRect = {
         0.0f,
         0.0f,
         (float)state.canvas.texture.width,
         -(float)state.canvas.texture.height  /* reads "downwards" */
     };
     
-    Rectangle destRect = {
+    creRectangle destRect = {
         0.0f,
         0.0f,
         (float)GetScreenWidth(),
         (float)GetScreenHeight()
     };
     
-    DrawTexturePro(state.canvas.texture, srcRect, destRect, (Vector2){0, 0}, 0.0f, WHITE);
+    DrawTexturePro(state.canvas.texture, R_REC(srcRect), R_REC(destRect), (Vector2){0, 0}, 0.0f, R_COL(creBLANK));
     EndDrawing();
 }
 
@@ -101,21 +103,21 @@ void cre_RendererCore_EndWorldMode(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Consolidated Sprite Draw
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 size ,Vector2 pivot,
-                            float rotation, bool flipX, bool flipY, Color tint) {
-    Rectangle srcRect = Asset_getRect((int)spriteID);
+void cre_RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
+                            float rotation, bool flipX, bool flipY, creColor tint) {
+    creRectangle srcRect = Asset_getRect((int)spriteID);
     
     float srcW = flipX ? -srcRect.width  : srcRect.width;
     float srcH = flipY ? -srcRect.height : srcRect.height;  /* Inverted: default flips for RT */
     
-    Rectangle src = {
+    creRectangle src = {
         srcRect.x,
         srcRect.y,
         srcW,
         srcH
     };
     
-    Rectangle dest = {
+    creRectangle dest = {
         position.x,
         position.y,
         size.x,
@@ -123,12 +125,14 @@ void cre_RendererCore_DrawSprite(uint32_t spriteID, Vector2 position,Vector2 siz
     };
     
     /* Pivot: normalized (0-1) -> pixel offset */
-    Vector2 origin = {
+    creVec2 origin = {
         size.x * pivot.x,
         size.y * pivot.y
     };
     
-    DrawTexturePro(state.cachedAtlas, src, dest, origin, rotation, tint);
+    DrawTexturePro(
+        state.cachedAtlas, R_REC(src), R_REC(dest), R_VEC(origin), rotation, 
+        R_COL(tint));
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

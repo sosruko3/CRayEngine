@@ -2,6 +2,7 @@
 #define CRE_RENDERSYSTEM_H
 
 #include "raylib.h"
+#include "cre_types.h"
 typedef struct EntityRegistry EntityRegistry;
 
 /**
@@ -11,8 +12,8 @@ typedef struct EntityRegistry EntityRegistry;
  * using cre_RendererCore_DrawSprite.
  * 
  * @param reg Pointer to the EntityRegistry
- * @param cullRect The rectangle defining the visible area (camera bounds)
+ * @param cullRect The creRectangle defining the visible area (camera bounds)
  */
-void cre_RenderSystem_DrawEntities(EntityRegistry* reg, Rectangle cullRect);
+void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect);
 
 #endif

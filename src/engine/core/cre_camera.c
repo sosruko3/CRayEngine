@@ -4,6 +4,7 @@
 #include <math.h>
 #include "config.h"
 #include "logger.h"
+#include "cre_types.h"
 
 // ============================================================================
 // Static Internal State - The "Stupid" Core
@@ -32,17 +33,17 @@ void creCamera_UpdateViewportCache(ViewportSize vp) {
 // ============================================================================
 
 void creCamera_Init(ViewportSize vp) {
-    s_camera.position = (Vector2){0.0f, 0.0f};
+    s_camera.position = (creVec2){0.0f, 0.0f};
     s_camera.zoom = 1.0f;
     s_camera.rotation = 0.0f;
     creCamera_UpdateViewportCache(vp);
 }
 
-void creCamera_SetPosition(Vector2 position) {
+void creCamera_SetPosition(creVec2 position) {
     s_camera.position = position;
 }
 
-Vector2 creCamera_GetPosition(void) {
+creVec2 creCamera_GetPosition(void) {
     return s_camera.position;
 }
 
@@ -77,7 +78,8 @@ Camera2D creCamera_GetInternal(ViewportSize vp) {
     };
     
     // Target is the world position the camera is looking at
-    cam.target = s_camera.position;
+    // Cast from creVec2 to Raylib's Vector2
+    cam.target = (Vector2){s_camera.position.x, s_camera.position.y};
     
     // Apply zoom and rotation from our state
     cam.zoom = s_camera.zoom;
@@ -86,14 +88,14 @@ Camera2D creCamera_GetInternal(ViewportSize vp) {
     return cam;
 }
 
-Rectangle creCamera_GetViewBounds(ViewportSize vp) {
+creRectangle creCamera_GetViewBounds(ViewportSize vp) {
     // Calculate the visible area in world space
     // Account for zoom: higher zoom = smaller visible area
     float viewWidth = vp.width / s_camera.zoom;
     float viewHeight = vp.height / s_camera.zoom;
     
     // The view bounds are centered on the camera position
-    Rectangle bounds = {
+    creRectangle bounds = {
         .x = s_camera.position.x - (viewWidth * 0.5f),
         .y = s_camera.position.y - (viewHeight * 0.5f),
         .width = viewWidth,
@@ -116,10 +118,10 @@ Rectangle creCamera_GetViewBounds(ViewportSize vp) {
     return bounds;
 }
 
-Rectangle creCamera_GetCullBounds(ViewportSize vp) {
-    Rectangle view = creCamera_GetViewBounds(vp);
+creRectangle creCamera_GetCullBounds(ViewportSize vp) {
+    creRectangle view = creCamera_GetViewBounds(vp);
 
-    return (Rectangle){
+    return (creRectangle){
     .x = view.x - CAMERA_CULL_MARGIN,
     .y = view.y - CAMERA_CULL_MARGIN,
     .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),

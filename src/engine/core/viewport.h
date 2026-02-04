@@ -3,7 +3,7 @@
 
 #include "stdbool.h"
 
-typedef struct {
+typedef struct ViewportSize {
     float width;
     float height;
     float aspect;

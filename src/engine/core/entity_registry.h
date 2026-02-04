@@ -12,7 +12,7 @@
 #ifndef ENTITY_REGISTERY_H
 #define ENTITY_REGISTERY_H
 
-#include "raylib.h"
+#include "cre_types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdalign.h>
@@ -124,7 +124,7 @@ typedef struct EntityRegistry {
     alignas(64) float rotation[MAX_ENTITIES];           ///< Rotation in degrees
 
     alignas(64) uint16_t sprite_ids[MAX_ENTITIES];      ///< Sprite/texture ID
-    alignas(64) Color    colors[MAX_ENTITIES];          ///< Tint color
+    alignas(64) creColor colors[MAX_ENTITIES];          ///< Tint color
 
     // Animation SoA arrays - Dynamic State (managed by AnimationSystem)
     alignas(64) float    anim_timers[MAX_ENTITIES];     ///< Time accumulator for frame advance
@@ -148,29 +148,4 @@ typedef struct EntityRegistry {
     alignas(64) uint32_t max_used_bound;                ///< Highest index ever used (optimization hint)
 } EntityRegistry;
 
-// ============================================================================
-// Legacy Compatibility Layer (for gradual migration)
-// ============================================================================
-
-/**
- * @brief Legacy EntityData struct for compatibility with existing code.
- * @deprecated Use SoA arrays directly for new code.
- * 
- * This struct can be used to read/write entity data through a unified view,
- * but direct SoA access is preferred for performance-critical paths.
- */
-typedef struct {
-    Vector2 position;
-    Vector2 velocity;
-    Vector2 size;
-    Color color;
-    float rotation;
-    float restitution;       // Kept for compatibility
-    uint32_t generation;
-    uint32_t flags;          // Note: only lower 32 bits, use state_flags for full 64
-    uint16_t spriteID;
-    uint16_t type;
-    uint8_t _optCache[16];   // Padding to 64 bytes
-} EntityData;
-
-#endif // ENTITY_REGISTERY_H
+#endif

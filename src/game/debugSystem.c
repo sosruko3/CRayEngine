@@ -13,6 +13,9 @@
  */
 #include "debugSystem.h"
 #include "raylib.h"
+#include "engine/core/cre_types.h"
+#include "engine/core/types_macro.h"
+#include "engine/core/cre_colors.h"
 #include "entity_types.h"
 #include "engine/core/entity_manager.h"
 #include "engine/core/entity_registry.h"
@@ -29,12 +32,13 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 // ============================================================================
 // Configuration Constants
 // ============================================================================
 
-#define PARTICLE_COUNT 100
+#define SPAWN_COUNT 500
 #define SCALE_FACTOR 2.0f
 
 // Visualization settings
@@ -85,15 +89,15 @@ static const char* s_modeNames[] = {
 };
 
 // Layer colors for visualization
-static const Color s_layerColors[] = {
-    { 255, 100, 100, 200 },  // L_PLAYER - Red
-    { 100, 255, 100, 200 },  // L_ENEMY - Green
-    { 100, 100, 255, 200 },  // L_BULLET - Blue
-    { 255, 255, 100, 200 },  // L_WORLD - Yellow
-    { 255, 100, 255, 200 },  // L_PICKUP - Magenta
-    { 100, 255, 255, 200 },  // L_TRIGGER - Cyan
-    { 200, 200, 200, 200 },  // Default - Gray
-    { 255, 180, 100, 200 },  // Extra - Orange
+static const creColor s_layerColors[] = {
+    creRED,  // L_PLAYER - Red
+    creGREEN,  // L_ENEMY - Green
+    creBLUE,  // L_BULLET - Blue
+    creYELLOW,  // L_WORLD - Yellow
+    creLAVENDER,  // L_PICKUP - Lavender
+    creDARKBLUE,  // L_TRIGGER - Dark Blue
+    creDARKGREY,  // Default - Gray
+    creORANGE,  // Extra - Orange
 };
 
 // ============================================================================
@@ -103,10 +107,10 @@ static const Color s_layerColors[] = {
 /**
  * @brief Interpolate between two colors.
  */
-static Color LerpColor(Color a, Color b, float t) {
+static creColor LerpColor(creColor a, creColor b, float t) {
     if (t < 0.0f) t = 0.0f;
     if (t > 1.0f) t = 1.0f;
-    return (Color){
+    return (creColor){
         (unsigned char)(a.r + (b.r - a.r) * t),
         (unsigned char)(a.g + (b.g - a.g) * t),
         (unsigned char)(a.b + (b.b - a.b) * t),
@@ -119,27 +123,27 @@ static Color LerpColor(Color a, Color b, float t) {
  * @param value Normalized value 0.0 to 1.0
  * @param alpha Alpha value
  */
-static Color GetHeatmapColor(float value, unsigned char alpha) {
+static creColor GetHeatmapColor(float value, unsigned char alpha) {
     if (value < 0.0f) value = 0.0f;
     if (value > 1.0f) value = 1.0f;
     
-    Color result;
+    creColor result;
     if (value < 0.25f) {
         // Blue to Cyan
         float t = value / 0.25f;
-        result = (Color){ 0, (unsigned char)(t * 255), 255, alpha };
+        result = (creColor){ 0, (unsigned char)(t * 255), 255, alpha };
     } else if (value < 0.5f) {
         // Cyan to Green
         float t = (value - 0.25f) / 0.25f;
-        result = (Color){ 0, 255, (unsigned char)((1.0f - t) * 255), alpha };
+        result = (creColor){ 0, 255, (unsigned char)((1.0f - t) * 255), alpha };
     } else if (value < 0.75f) {
         // Green to Yellow
         float t = (value - 0.5f) / 0.25f;
-        result = (Color){ (unsigned char)(t * 255), 255, 0, alpha };
+        result = (creColor){ (unsigned char)(t * 255), 255, 0, alpha };
     } else {
         // Yellow to Red
         float t = (value - 0.75f) / 0.25f;
-        result = (Color){ 255, (unsigned char)((1.0f - t) * 255), 0, alpha };
+        result = (creColor){ 255, (unsigned char)((1.0f - t) * 255), 0, alpha };
     }
     return result;
 }
@@ -147,7 +151,7 @@ static Color GetHeatmapColor(float value, unsigned char alpha) {
 /**
  * @brief Get velocity-based color (blue=slow, green=medium, red=fast).
  */
-static Color GetVelocityColor(float speed, unsigned char alpha) {
+static creColor GetVelocityColor(float speed, unsigned char alpha) {
     float normalized = speed / MAX_VELOCITY_DISPLAY;
     return GetHeatmapColor(normalized, alpha);
 }
@@ -185,7 +189,7 @@ void DebugSystem_Init(void) {
 }
 
 void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // -------------------------------------------------------------------------
     // Mode Toggle Controls
@@ -220,9 +224,9 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
     // -------------------------------------------------------------------------
     // Entity Spawning (Z = many, X = single)
     // -------------------------------------------------------------------------
-    if (IsKeyDown(KEY_Z)) {
+    if (IsKeyPressed(KEY_Z)) {
         ViewportSize v = Viewport_Get();
-        for (int i = 0; i < PARTICLE_COUNT; i++) {
+        for (int i = 0; i < SPAWN_COUNT; i++) {
             int x = GetRandomValue((int)((-4)*v.width), (int)(v.width*4));
             int y = GetRandomValue((int)((-4)*v.height), (int)(v.height*4));
             
@@ -230,30 +234,27 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
                                COMP_COLOR | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
             uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);
             
-            Entity e = EntityManager_Create(reg, TYPE_ENEMY, (Vector2){(float)x, (float)y}, compMask, flags);
+            Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){x, y}, compMask, flags);
             if (ENTITY_IS_VALID(e)) {
                 reg->vel_x[e.id] = (float)GetRandomValue(-20, 20);
                 reg->vel_y[e.id] = (float)GetRandomValue(-20, 20);
-                reg->colors[e.id] = WHITE;
-                reg->size_w[e.id] = 32 * SCALE_FACTOR;
-                reg->size_h[e.id] = 32 * SCALE_FACTOR;
                 Command cmd = {
                     .type = CMD_PHYS_DEFINE, 
                     .entityID = e.id, 
                     .physDef.material_id = MAT_DEFAULT,
                     .physDef.flags = 0,
-                    .physDef.drag = 1.0f 
+                    .physDef.drag = 2.0f 
                 };
                 CommandBus_Push(bus, cmd);
-                AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, false);
+                AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
             }
         }
-        Log(LOG_LVL_INFO, "Spawned %d entities!", PARTICLE_COUNT);
+        Log(LOG_LVL_INFO, "Spawned %d entities!", SPAWN_COUNT);
     }
 }
 
 void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     if (IsKeyPressed(KEY_X)) {
         uint64_t compMask = COMP_POSITION | COMP_VELOCITY | COMP_SIZE | COMP_SPRITE | 
@@ -261,14 +262,11 @@ void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
         uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID | FLAG_ALWAYS_AWAKE | 
                         SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_BULLET | L_ENEMY);
         
-        Entity e = EntityManager_Create(reg, TYPE_ENEMY, (Vector2){400, 400}, compMask, flags);
+        Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){400, 400}, compMask, flags);
         if (ENTITY_IS_VALID(e)) {
             reg->sprite_ids[e.id] = SPR_ENEMY_IDLE;
             reg->vel_x[e.id] = 20;
             reg->vel_y[e.id] = 20;
-            reg->colors[e.id] = RAYWHITE;
-            reg->size_w[e.id] = 16 * SCALE_FACTOR;
-            reg->size_h[e.id] = 16 * SCALE_FACTOR;
 
             Command cmd;
             cmd.type = CMD_PHYS_DEFINE;
@@ -283,7 +281,7 @@ void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
 }
 
 uint32_t DebugSystem_GetActiveCount(EntityRegistry* reg) {
-    if (!reg) return 0;
+    assert(reg && "reg is NULL");
     return reg->active_count;
 }
 
@@ -292,7 +290,7 @@ uint32_t DebugSystem_GetActiveCount(EntityRegistry* reg) {
  * Call this INSIDE BeginWorldMode/EndWorldMode.
  */
 void DebugSystem_RenderWorldSpace(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Skip visualization if disabled
     if (!s_debugEnabled || s_currentMode == DEBUG_MODE_OFF) {
@@ -340,7 +338,7 @@ void DebugSystem_RenderPhysicsInsight(EntityRegistry* reg) {
  * Call this AFTER EndWorldMode.
  */
 void DebugSystem_RenderScreenSpace(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Always render stats HUD if enabled
     if (s_statsHudEnabled) {
@@ -375,7 +373,7 @@ void DebugSystem_RenderScreenSpace(EntityRegistry* reg) {
 }
 
 void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Calculate frame time
     double currentTime = GetTime();
@@ -430,9 +428,9 @@ void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
     char buffer[128];
     
     // Frame timing
-    Color fpsColor = (s_avgFrameTime < 16.67) ? GREEN : (s_avgFrameTime < 33.33) ? YELLOW : RED;
+    creColor fpsColor = (s_avgFrameTime < 16.67) ? (creColor){0, 228, 48, 255}/*GREEN*/ : (s_avgFrameTime < 33.33) ? (creColor){253, 249, 0, 255}/*YELLOW*/: (creColor){230, 41, 55, 255};/*RED*/
     snprintf(buffer, sizeof(buffer), "Frame: %.2f ms (%.0f FPS)", s_avgFrameTime, 1000.0 / s_avgFrameTime);
-    DrawText(buffer, hudX + 10, rowY, 14, fpsColor);
+    DrawText(buffer, hudX + 10, rowY, 14, (Color){fpsColor.r, fpsColor.g, fpsColor.b, fpsColor.a});
     rowY += rowSpacing;
     
     // Entity counts
@@ -512,22 +510,31 @@ void DebugSystem_Draw(void) {
 // ============================================================================
 
 void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
-    // Get mouse position in screen space
-    Vector2 mouseScreen = GetMousePosition();
+    // Get mouse position in screen space (convert from Raylib)
+    Vector2 raylibMouseScreen = GetMousePosition();
+    
+    // Convert screen space (window) to virtual viewport space
+    ViewportSize vp = Viewport_Get();
+    float screenW = (float)GetScreenWidth();
+    float screenH = (float)GetScreenHeight();
+    float scaleX = (screenW > 0.0f) ? (vp.width / screenW) : 1.0f;
+    float scaleY = (screenH > 0.0f) ? (vp.height / screenH) : 1.0f;
+    creVec2 mouseScreen = {raylibMouseScreen.x * scaleX, raylibMouseScreen.y * scaleY};
     
     // Convert to world space
-    ViewportSize vp = Viewport_Get();
     Camera2D cam = creCamera_GetInternal(vp);
-    Vector2 mouseWorld = GetScreenToWorld2D(mouseScreen, cam);
+    Vector2 raylibMouseWorld = GetScreenToWorld2D((Vector2){mouseScreen.x, mouseScreen.y}, cam);
+    creVec2 mouseWorld = {raylibMouseWorld.x, raylibMouseWorld.y};
     
     const uint32_t bound = reg->max_used_bound;
     int32_t hoveredEntity = -1;
     
-    // Find entity under mouse cursor (check AABBs)
+    // Find entity under mouse cursor (check collision shapes)
     for (uint32_t i = 0; i <= bound; i++) {
         uint64_t flags = reg->state_flags[i];
+        uint64_t comps = reg->component_masks[i];
         if (!(flags & FLAG_ACTIVE)) continue;
         
         float px = reg->pos_x[i];
@@ -538,14 +545,22 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
         // Skip invalid sizes
         if (w <= 0 || h <= 0) continue;
         
-        // AABB check - try both center-origin and top-left origin
-        // Center-origin check (more common for game entities)
-        float halfW = w / 2.0f;
-        float halfH = h / 2.0f;
-        if (mouseWorld.x >= px - halfW && mouseWorld.x <= px + halfW &&
-            mouseWorld.y >= py - halfH && mouseWorld.y <= py + halfH) {
-            hoveredEntity = (int32_t)i;
-            break;
+        if (comps & COMP_COLLISION_Circle) {
+            // Circle uses center position
+            float radius = w * 0.5f;
+            float dx = mouseWorld.x - px;
+            float dy = mouseWorld.y - py;
+            if ((dx * dx + dy * dy) <= (radius * radius)) {
+                hoveredEntity = (int32_t)i;
+                break;
+            }
+        } else {
+            // AABB uses top-left position (matches physics + render)
+            if (mouseWorld.x >= px && mouseWorld.x <= px + w &&
+                mouseWorld.y >= py && mouseWorld.y <= py + h) {
+                hoveredEntity = (int32_t)i;
+                break;
+            }
         }
     }
     
@@ -680,7 +695,7 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
     
     ViewportSize v = Viewport_Get();
     Camera2D cam = creCamera_GetInternal(v);
-    Vector2 camTarget = cam.target;
+    creVec2 camTarget = {cam.target.x, cam.target.y};
     
     // Calculate visible area
     float visWidth = v.width / cam.zoom;
@@ -730,12 +745,12 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
             if (cellCounts[cy][cx] == 0) continue;
             
             float density = (float)cellCounts[cy][cx] / (float)maxCount;
-            Color cellColor = GetHeatmapColor(density, HEATMAP_CELL_ALPHA);
+            creColor cellColor = GetHeatmapColor(density, HEATMAP_CELL_ALPHA);
             
             int screenX = (int)(startX + cx * cellSize);
             int screenY = (int)(startY + cy * cellSize);
             
-            DrawRectangle(screenX, screenY, cellSize, cellSize, cellColor);
+            DrawRectangle(screenX, screenY, cellSize, cellSize, (Color){cellColor.r, cellColor.g, cellColor.b, cellColor.a});
             
             // Draw count text for high-density cells
             if (cellCounts[cy][cx] >= 5) {
@@ -747,14 +762,14 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
     }
     
     // Draw grid lines (subtle)
-    Color gridColor = (Color){100, 100, 120, 50};
+    creColor gridColor = {100, 100, 120, 50};
     for (int cx = 0; cx <= cellsX; cx++) {
         int screenX = (int)(startX + cx * cellSize);
-        DrawLine(screenX, (int)startY, screenX, (int)(startY + cellsY * cellSize), gridColor);
+        DrawLine(screenX, (int)startY, screenX, (int)(startY + cellsY * cellSize), (Color){gridColor.r, gridColor.g, gridColor.b, gridColor.a});
     }
     for (int cy = 0; cy <= cellsY; cy++) {
         int screenY = (int)(startY + cy * cellSize);
-        DrawLine((int)startX, screenY, (int)(startX + cellsX * cellSize), screenY, gridColor);
+        DrawLine((int)startX, screenY, (int)(startX + cellsX * cellSize), screenY, (Color){gridColor.r, gridColor.g, gridColor.b, gridColor.a});
     }
     
     // Cache max count for legend (drawn in screen space)
@@ -769,12 +784,12 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
     const uint32_t bound = reg->max_used_bound;
     
     // Define state colors
-    const Color colorActive   = { 50, 255, 100, 220 };   // Green - Awake
-    const Color colorSleeping = { 255, 220, 50, 200 };   // Yellow - Sleeping
-    const Color colorStatic   = { 80, 150, 255, 200 };   // Blue - Static
-    const Color colorCulled   = { 255, 80, 80, 150 };    // Red - Culled
-    const Color colorNaN      = { 255, 0, 0, 255 };      // Red - Data corruption
-    const Color colorOrphan   = { 255, 128, 0, 255 };    // Orange - Orphan entity
+    const creColor colorActive   = creGREEN;   // Green - Awake
+    const creColor colorSleeping = creYELLOW;   // Yellow - Sleeping
+    const creColor colorStatic   = creBLUE;   // Blue - Static
+    const creColor colorCulled   = creRED;    // Red - Culled
+    const creColor colorNaN      = { 255, 0, 0, 255 };      // Red - Data corruption
+    const creColor colorOrphan   = creORANGE;    // Orange - Orphan entity
     
     // Orphan boundary threshold
     const float ORPHAN_THRESHOLD = 10000.0f;
@@ -790,23 +805,24 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
         
         float px = reg->pos_x[i];
         float py = reg->pos_y[i];
+        // Pivot = {0,0}
         
         // =========================================================================
         // DATA CORRUPTION DETECTION: NaN / Inf check
         // =========================================================================
         if (isnan(px) || isnan(py) || isinf(px) || isinf(py)) {
             // Draw massive red box at camera center to alert developer
-            Vector2 camPos = cam.target;
+            creVec2 camPos = {cam.target.x, cam.target.y};
             int boxSize = 100;
             DrawRectangle((int)(camPos.x - boxSize/2), (int)(camPos.y - boxSize/2), 
                          boxSize, boxSize, (Color){255, 0, 0, 100});
             DrawRectangleLines((int)(camPos.x - boxSize/2), (int)(camPos.y - boxSize/2), 
-                              boxSize, boxSize, colorNaN);
+                              boxSize, boxSize, R_COL(colorNaN));
             
             // Draw error text
             char nanStr[64];
             snprintf(nanStr, sizeof(nanStr), "NaN ERROR [ID:%u]", i);
-            DrawText(nanStr, (int)(camPos.x - 60), (int)(camPos.y - 10), 16, colorNaN);
+            DrawText(nanStr, (int)(camPos.x - 60), (int)(camPos.y - 10), 16, R_COL(colorNaN));
             continue;  // Skip further processing for corrupted entity
         }
         
@@ -816,7 +832,7 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
         if (px < -ORPHAN_THRESHOLD || px > ORPHAN_THRESHOLD || 
             py < -ORPHAN_THRESHOLD || py > ORPHAN_THRESHOLD) {
             // Calculate direction to orphan from camera
-            Vector2 camPos = cam.target;
+            creVec2 camPos = {cam.target.x, cam.target.y};
             float dx = px - camPos.x;
             float dy = py - camPos.y;
             float dist = sqrtf(dx * dx + dy * dy);
@@ -831,19 +847,19 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
                 float edgeY = camPos.y + ny * (vp.height / cam.zoom / 2.5f);
                 
                 // Draw indicator arrow
-                DrawCircle((int)edgeX, (int)edgeY, 8, colorOrphan);
+                DrawCircle((int)edgeX, (int)edgeY, 8, R_COL(colorOrphan));
                 DrawLine((int)edgeX, (int)edgeY, 
-                        (int)(edgeX + nx * 20), (int)(edgeY + ny * 20), colorOrphan);
+                        (int)(edgeX + nx * 20), (int)(edgeY + ny * 20), R_COL(colorOrphan));
                 
                 // Draw orphan label
                 char orphanStr[64];
                 snprintf(orphanStr, sizeof(orphanStr), "ORPHAN [ID:%u] @%.0f,%.0f", i, px, py);
-                DrawText(orphanStr, (int)(edgeX - 50), (int)(edgeY - 25), 10, colorOrphan);
+                DrawText(orphanStr, (int)(edgeX - 50), (int)(edgeY - 25), 10, R_COL(colorOrphan));
             }
             continue;  // Don't draw normal overlay for orphans (they're off-screen anyway)
         }
         
-        Color dotColor;
+        creColor dotColor;
         int radius = ENTITY_DOT_RADIUS;
         
         if (flags & FLAG_CULLED) {
@@ -858,7 +874,7 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
             dotColor = colorActive;
         }
         
-        DrawCircle((int)px, (int)py, (float)radius, dotColor);
+        DrawCircle((int)px, (int)py, (float)radius, R_COL(dotColor));
         
         // Draw direction indicator for awake entities
         if (!(flags & (FLAG_SLEEPING | FLAG_STATIC | FLAG_CULLED))) {
@@ -919,10 +935,10 @@ static void RenderVelocityField(EntityRegistry* reg) {
         float endY = py + ny * displayLen;
         
         // Color based on speed
-        Color vecColor = GetVelocityColor(speed, 200);
+        creColor vecColor = GetVelocityColor(speed, 200);
         
         // Draw velocity vector
-        DrawLineEx((Vector2){px, py}, (Vector2){endX, endY}, 2.0f, vecColor);
+        DrawLineEx((Vector2){px, py}, (Vector2){endX, endY}, 2.0f, (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a});
         
         // Draw arrowhead
         float arrowSize = 4.0f;
@@ -932,14 +948,14 @@ static void RenderVelocityField(EntityRegistry* reg) {
             (Vector2){endX, endY},
             (Vector2){endX - nx * arrowSize * 2 + perpX, endY - ny * arrowSize * 2 + perpY},
             (Vector2){endX - nx * arrowSize * 2 - perpX, endY - ny * arrowSize * 2 - perpY},
-            vecColor
+            (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a}
         );
         
         // Draw speed text for fast entities
         if (speed > 50.0f) {
             char speedStr[16];
             snprintf(speedStr, sizeof(speedStr), "%.0f", speed);
-            DrawText(speedStr, (int)px + 5, (int)py - 15, 10, vecColor);
+            DrawText(speedStr, (int)px + 5, (int)py - 15, 10, (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a});
         }
     }
     
@@ -982,10 +998,10 @@ static void RenderContactPressure(EntityRegistry* reg) {
         
         // Size and color based on pressure
         float radius = 4.0f + normalized * 12.0f;
-        Color pressureColor = GetHeatmapColor(normalized, 180);
+        creColor pressureColor = GetHeatmapColor(normalized, 180);
         
         // Draw pressure ring
-        DrawCircleLines((int)px, (int)py, radius, pressureColor);
+        DrawCircleLines((int)px, (int)py, radius, (Color){pressureColor.r, pressureColor.g, pressureColor.b, pressureColor.a});
         DrawCircle((int)px, (int)py, radius * 0.5f, (Color){pressureColor.r, pressureColor.g, pressureColor.b, 100});
         
         // Count high pressure entities
@@ -1040,13 +1056,13 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
         
         if (layerIndex < 8) layerCounts[layerIndex]++;
         
-        Color layerColor = s_layerColors[layerIndex % 8];
+        creColor layerColor = s_layerColors[layerIndex % 8];
         
         // Draw entity bounds with layer color
-        DrawRectangleLines((int)(px - 1), (int)(py - 1), (int)w + 2, (int)h + 2, layerColor);
+        DrawRectangleLines((int)(px - 1), (int)(py - 1), (int)w + 2, (int)h + 2, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
         
         // Draw small layer indicator
-        DrawCircle((int)px, (int)py, 3, layerColor);
+        DrawCircle((int)px, (int)py, 3, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
     }
     
     // Cache layer counts for legend (drawn in screen space)
@@ -1071,8 +1087,8 @@ static void RenderLegendSpatialHash(void) {
     // Gradient bar
     for (int i = 0; i < 100; i++) {
         float t = i / 99.0f;
-        Color c = GetHeatmapColor(t, 255);
-        DrawRectangle(legendX + i, legendY + 25, 1, 15, c);
+        creColor c = GetHeatmapColor(t, 255);
+        DrawRectangle(legendX + i, legendY + 25, 1, 15, (Color){c.r, c.g, c.b, c.a});
     }
     DrawText("Empty", legendX, legendY + 45, 10, (Color){100, 200, 255, 255});
     DrawText("Dense", legendX + 65, legendY + 45, 10, (Color){255, 100, 100, 255});
@@ -1092,12 +1108,12 @@ static void RenderLegendEntityState(void) {
     
     // State colors legend
     const char* stateNames[] = {"Normal", "Hurt", "Attacking", "Dead"};
-    Color stateColors[] = {GREEN, ORANGE, RED, (Color){100, 100, 100, 255}};
+    creColor stateColors[] = {{0, 228, 48, 255}, {255, 161, 0, 255}, {230, 41, 55, 255}, {100, 100, 100, 255}};
     
     for (int i = 0; i < 4; i++) {
         int rowY = legendY + 22 + i * 18;
-        DrawCircle(legendX + 8, rowY + 6, 6, stateColors[i]);
-        DrawText(stateNames[i], legendX + 22, rowY, 12, stateColors[i]);
+        DrawCircle(legendX + 8, rowY + 6, 6, (Color){stateColors[i].r, stateColors[i].g, stateColors[i].b, stateColors[i].a});
+        DrawText(stateNames[i], legendX + 22, rowY, 12, (Color){stateColors[i].r, stateColors[i].g, stateColors[i].b, stateColors[i].a});
     }
 }
 
@@ -1112,8 +1128,8 @@ static void RenderLegendVelocity(void) {
     // Speed gradient
     for (int i = 0; i < 100; i++) {
         float t = i / 99.0f;
-        Color c = GetHeatmapColor(t, 255);
-        DrawRectangle(legendX + i, legendY + 25, 1, 12, c);
+        creColor c = GetHeatmapColor(t, 255);
+        DrawRectangle(legendX + i, legendY + 25, 1, 12, (Color){c.r, c.g, c.b, c.a});
     }
     DrawText("Slow", legendX, legendY + 40, 10, (Color){100, 200, 255, 255});
     DrawText("Fast", legendX + 70, legendY + 40, 10, (Color){255, 100, 100, 255});
@@ -1138,9 +1154,9 @@ static void RenderLegendPressure(void) {
     // Pressure scale circles
     for (int i = 0; i < 5; i++) {
         float t = i / 4.0f;
-        Color c = GetHeatmapColor(t, 255);
+        creColor c = GetHeatmapColor(t, 255);
         float r = 4.0f + t * 12.0f;
-        DrawCircle(legendX + 20 + i * 28, legendY + 35, r * 0.5f, c);
+        DrawCircle(legendX + 20 + i * 28, legendY + 35, r * 0.5f, (Color){c.r, c.g, c.b, c.a});
     }
     DrawText("Low", legendX, legendY + 50, 10, (Color){100, 200, 255, 255});
     DrawText("High", legendX + 115, legendY + 50, 10, (Color){255, 100, 100, 255});
@@ -1159,7 +1175,7 @@ static void RenderLegendLayers(void) {
     int legendHeight = 140;
     
     DrawRectangle(legendX - 5, legendY - 5, 155, legendHeight, (Color){20, 20, 30, 200});
-    DrawText("Collision Layers", legendX, legendY, 14, WHITE);
+    DrawText("Collision Layers", legendX, legendY, 14, (Color){255, 255, 255, 255});
     
     const char* layerNames[] = {"L_PLAYER", "L_ENEMY", "L_BULLET", "L_WORLD", "L_PICKUP", "L_TRIGGER", "L_6", "L_7"};
     
@@ -1167,11 +1183,12 @@ static void RenderLegendLayers(void) {
     for (int i = 0; i < 8; i++) {
         if (s_layerCounts[i] == 0) continue;
         
-        DrawCircle(legendX + 8, rowY + 6, 5, s_layerColors[i]);
+        creColor lc = s_layerColors[i];
+        DrawCircle(legendX + 8, rowY + 6, 5, (Color){lc.r, lc.g, lc.b, lc.a});
         
         char layerStr[32];
         snprintf(layerStr, sizeof(layerStr), "%s: %u", layerNames[i], s_layerCounts[i]);
-        DrawText(layerStr, legendX + 20, rowY, 11, s_layerColors[i]);
+        DrawText(layerStr, legendX + 20, rowY, 11, (Color){lc.r, lc.g, lc.b, lc.a});
         
         rowY += 14;
         if (rowY > legendY + legendHeight - 20) break;

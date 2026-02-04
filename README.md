@@ -30,12 +30,12 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Command System
 - [x] Viewport System
 - [ ] Audio System(using Raylib)
-- [ ] Save Manager 
 - [ ] Particle System
-- [ ] Post-processing/Shader System
 - [ ] AI System
 - [ ] Raycasting
+- [ ] Save Manager 
 - [ ] Time System (?)
+- [ ] Post-processing/Shader System
 - [ ] Lighting System
 - [ ] Editor (using Nuklear)
 - [ ] Animation Engine (Procedural Animation)

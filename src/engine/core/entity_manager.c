@@ -4,16 +4,21 @@
  */
 
 #include "entity_manager.h"
+#include "entity_registry.h"
+#include "cre_types.h"
+#include "cre_colors.h"
+
 #include <stdio.h>
 #include <string.h>
 #include "logger.h"
+#include <assert.h>
 
 // ============================================================================
 // Core API Implementation
 // ============================================================================
 
 void EntityManager_Init(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Zero everything including generations on first init
     memset(reg, 0, sizeof(EntityRegistry));
@@ -31,7 +36,7 @@ void EntityManager_Init(EntityRegistry* reg) {
 }
 
 void EntityManager_Reset(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Clear component_masks and state_flags, but NOT generations!
     memset(reg->component_masks, 0, sizeof(reg->component_masks));
@@ -73,9 +78,9 @@ void EntityManager_Reset(EntityRegistry* reg) {
     
     Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
 }
-
-Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
-    if (!reg || reg->free_count == 0) {
+Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
+    assert(reg && "reg is NULL");
+    if (reg->free_count == 0) {
         // Registry is null or full
         return ENTITY_INVALID;
     }
@@ -98,8 +103,8 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t
     reg->vel_y[index] = 0.0f;
     
     // Size (default 32x32)
-    reg->size_w[index] = 32.0f;
-    reg->size_h[index] = 32.0f;
+    reg->size_w[index] = 64.0f;
+    reg->size_h[index] = 64.0f;
 
     // Physics specific
     reg->inv_mass[index]      = 0.0f;
@@ -112,7 +117,7 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t
     
     // Sprite and color
     reg->sprite_ids[index] = 0;
-    reg->colors[index] = WHITE;
+    reg->colors[index] = creBLANK;
     // Animations
     reg->anim_speeds[index] = 1.0f;
     reg->anim_timers[index] = 0.0f;
@@ -129,7 +134,7 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t
 }
 
 void EntityManager_Destroy(EntityRegistry* reg, Entity e) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     // Validate handle
     if (e.id >= MAX_ENTITIES) return;
@@ -152,50 +157,7 @@ void EntityManager_Destroy(EntityRegistry* reg, Entity e) {
 }
 
 void EntityManager_Shutdown(EntityRegistry* reg) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     memset(reg, 0, sizeof(EntityRegistry));
     Log(LOG_LVL_INFO, "Entity Manager Shutdown");
-}
-
-// ============================================================================
-// Legacy Compatibility Implementation
-// ============================================================================
-
-bool EntityManager_GetLegacy(EntityRegistry* reg, Entity e, EntityData* out_data) {
-    if (!reg || !EntityManager_IsValid(reg, e) || out_data == NULL) return false;
-    
-    uint32_t id = e.id;
-    
-    out_data->position = (Vector2){ reg->pos_x[id], reg->pos_y[id] };
-    out_data->velocity = (Vector2){ reg->vel_x[id], reg->vel_y[id] };
-    out_data->size = (Vector2){ reg->size_w[id], reg->size_h[id] };
-    out_data->color = reg->colors[id];
-    out_data->rotation = reg->rotation[id];
-    out_data->restitution = 0.0f; // Not stored in SoA
-    out_data->generation = reg->generations[id];
-    out_data->flags = (uint32_t)(reg->state_flags[id] & 0xFFFFFFFF);
-    out_data->spriteID = reg->sprite_ids[id];
-    out_data->type = reg->types[id];
-    
-    return true;
-}
-
-bool EntityManager_SetLegacy(EntityRegistry* reg, Entity e, const EntityData* data) {
-    if (!reg || !EntityManager_IsValid(reg, e) || data == NULL) return false;
-    
-    uint32_t id = e.id;
-    
-    reg->pos_x[id] = data->position.x;
-    reg->pos_y[id] = data->position.y;
-    reg->vel_x[id] = data->velocity.x;
-    reg->vel_y[id] = data->velocity.y;
-    reg->size_w[id] = data->size.x;
-    reg->size_h[id] = data->size.y;
-    reg->colors[id] = data->color;
-    reg->rotation[id] = data->rotation;
-    reg->state_flags[id] = (reg->state_flags[id] & 0xFFFFFFFF00000000ULL) | data->flags;
-    reg->sprite_ids[id] = data->spriteID;
-    reg->types[id] = data->type;
-    
-    return true;
 }

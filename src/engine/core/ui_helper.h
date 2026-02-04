@@ -1,11 +1,12 @@
 #ifndef UI_HELPER_H
 #define UI_HELPER_H
 
-#include "raylib.h"
+#include "cre_types.h"
+#include "raylib.h"  // For Rectangle
 
-void DrawTextCentered(const char* text, int y , int fontSize, Color color);
+void DrawTextCentered(const char* text, int y , int fontSize, creColor color);
 
 // Optional: Useful if you want to center text inside a specific box (like a button)
-void DrawTextCenteredInBox(const char* text, Rectangle box, int fontSize, Color color);
+void DrawTextCenteredInBox(const char* text, Rectangle box, int fontSize, creColor color);
 
 #endif

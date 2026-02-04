@@ -2,10 +2,11 @@
 #define ASSET_MANAGER_H
 
 #include "raylib.h"
+#include "cre_types.h"
 
 void Asset_Init(void);
 void Asset_Shutdown(void);
 Texture2D Asset_getTexture(void);
-Rectangle Asset_getRect(int spriteID);
+creRectangle Asset_getRect(int spriteID);
 
 #endif

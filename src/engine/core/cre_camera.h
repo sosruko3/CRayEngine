@@ -1,8 +1,10 @@
 #ifndef CRE_CAMERA_H
 #define CRE_CAMERA_H
 
-#include "raylib.h"
-#include "viewport.h" // REMOVE THIS AFTER IMPLEMENTING SERVICE LOCATOR
+#include "cre_types.h"
+#include "raylib.h"  // For Camera2D and Rectangle (Raylib interop)
+typedef struct ViewportSize ViewportSize;
+
 
 /**
  * CRE_Camera - The "Stupid" Core Camera
@@ -12,7 +14,7 @@
  * viewport-aware centering.
  */
 typedef struct {
-    Vector2 position;   // Camera target position in world space
+    creVec2 position;   // Camera target position in world space
     float   zoom;       // Zoom level (1.0 = default)
     float   rotation;   // Rotation in degrees
 } CRE_Camera;
@@ -28,12 +30,12 @@ void creCamera_Init(ViewportSize vp);
 /**
  * Set the camera's world position directly.
  */
-void creCamera_SetPosition(Vector2 position);
+void creCamera_SetPosition(creVec2 position);
 
 /**
  * Get the camera's current world position.
  */
-Vector2 creCamera_GetPosition(void);
+creVec2 creCamera_GetPosition(void);
 
 /**
  * Set the camera zoom level.
@@ -68,9 +70,9 @@ Camera2D creCamera_GetInternal(ViewportSize vp);
  * Get the visible area in world space for frustum culling.
  * @return Rectangle representing the camera's view bounds in world coordinates
  */
-Rectangle creCamera_GetViewBounds(ViewportSize vp);
+creRectangle creCamera_GetViewBounds(ViewportSize vp);
 
 
 // For Frustum Culling
-Rectangle creCamera_GetCullBounds(ViewportSize vp);
+creRectangle creCamera_GetCullBounds(ViewportSize vp);
 #endif

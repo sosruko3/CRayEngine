@@ -9,8 +9,11 @@
 #ifndef ENTITY_MANAGER_H
 #define ENTITY_MANAGER_H
 
-#include "entity_registry.h"
+typedef struct Entity Entity;
+typedef struct EntityRegistry EntityRegistry;
 #include <stddef.h>
+#include <stdint.h>
+#include "cre_types.h"
 
 // ============================================================================
 // Core API
@@ -41,7 +44,7 @@ void EntityManager_Reset(EntityRegistry* reg);
  * @param initial_flags Initial state flags
  * @return Entity handle, or ENTITY_INVALID if registry is full
  */
-Entity EntityManager_Create(EntityRegistry* reg, int type, Vector2 pos, uint64_t initial_CompMask, uint64_t initial_flags);
+Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags);
 
 /**
  * @brief Destroy an entity, returning its slot to the free list.
@@ -59,80 +62,4 @@ void EntityManager_Destroy(EntityRegistry* reg, Entity e);
  */
 void EntityManager_Shutdown(EntityRegistry* reg);
 
-// ============================================================================
-// Validation & Access Helpers
-// ============================================================================
-
-/**
- * @brief Check if an entity handle is still valid.
- * 
- * Validates that:
- * - ID is within bounds
- * - Entity is active
- * - Generation matches
- * 
- * @param reg Pointer to the EntityRegistry
- * @param e Entity handle to validate
- * @return true if valid, false otherwise
- */
-static inline bool EntityManager_IsValid(EntityRegistry* reg, Entity e) {
-    if (!reg || e.id >= MAX_ENTITIES) return false;
-    if (!(reg->state_flags[e.id] & FLAG_ACTIVE)) return false;
-    if (reg->generations[e.id] != e.generation) return false;
-    return true;
-}
-
-/**
- * @brief Get entity state flags (includes behavioral flags + collision layer/mask).
- * 
- * @param reg Pointer to the EntityRegistry
- * @param e Entity handle
- * @return Pointer to state_flags, or NULL if invalid
- */
-static inline uint64_t* EntityManager_GetStateFlags(EntityRegistry* reg, Entity e) {
-    if (!EntityManager_IsValid(reg, e)) return NULL;
-    return &reg->state_flags[e.id];
-}
-
-/**
- * @brief Get entity component mask.
- * 
- * @param reg Pointer to the EntityRegistry
- * @param e Entity handle
- * @return Pointer to component mask, or NULL if invalid
- */
-static inline uint64_t* EntityManager_GetCompMask(EntityRegistry* reg, Entity e) {
-    if (!EntityManager_IsValid(reg, e)) return NULL;
-    return &reg->component_masks[e.id];
-}
-
-// ============================================================================
-// Legacy Compatibility (for gradual migration)
-// ============================================================================
-
-/**
- * @brief Legacy compatibility - get EntityData view for an entity.
- * @deprecated Use direct SoA access for new code.
- * 
- * This creates a COPY of the data. For performance-critical code,
- * access the registry arrays directly.
- * 
- * @param reg Pointer to the EntityRegistry
- * @param e Entity handle
- * @param out_data Output struct to fill
- * @return true if entity is valid and data was copied, false otherwise
- */
-bool EntityManager_GetLegacy(EntityRegistry* reg, Entity e, EntityData* out_data);
-
-/**
- * @brief Legacy compatibility - set EntityData for an entity.
- * @deprecated Use direct SoA access for new code.
- * 
- * @param reg Pointer to the EntityRegistry
- * @param e Entity handle
- * @param data Data to copy into the registry
- * @return true if entity is valid and data was set, false otherwise
- */
-bool EntityManager_SetLegacy(EntityRegistry* reg, Entity e, const EntityData* data);
-
-#endif // ENTITY_MANAGER_H
+#endif

@@ -11,6 +11,7 @@
 #include "entity_registry.h"
 #include "command_bus.h"
 #include "atlas_data.h"  // Only used in AnimationSystem_Play (the baker)
+#include "assert.h"
 
 //============================================================================
 // Helper functions
@@ -26,7 +27,8 @@ static bool IsValidAnimEntity(EntityRegistry* reg,uint32_t id) {
 // ============================================================================
 
 void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
-    if (!reg || !bus) return;
+    assert(reg && "reg is NULL");
+    assert(bus && "Bus is mandatory!");
 
     CommandIterator iter = CommandBus_GetIterator(bus);
     const Command* cmd;
@@ -65,8 +67,8 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus)
 // ============================================================================
 
 void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animID, bool forceReset) {
-    if (!reg) return;
-    if (animID >= ANIM_COUNT) return;
+    assert(reg && "reg is NULL");
+    assert(animID < ANIM_COUNT && "Invalid Animation ID! Check your Anim enum.");
 
     // Skip if already playing this animation (unless forced)
     if (!forceReset && 
@@ -96,7 +98,7 @@ void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animI
 }
 
 void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float multiplier) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     if (entityID >= MAX_ENTITIES) return;
     reg->anim_speeds[entityID] = multiplier;
 }
@@ -106,7 +108,7 @@ void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float mult
 // ============================================================================
 
 void AnimationSystem_Update(EntityRegistry* reg, uint32_t max_used_bound, float dt) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
 
     // Clamp delta time to prevent spiral of death
     if (dt > 0.05f) dt = 0.05f;

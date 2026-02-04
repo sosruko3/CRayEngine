@@ -1,13 +1,14 @@
 #include "ui_helper.h"
 #include "config.h"
+#include "types_macro.h"
 
-void DrawTextCentered(const char* text, int y, int fontSize, Color color)
+void DrawTextCentered(const char* text, int y, int fontSize, creColor color)
 {
     int textWidth = MeasureText(text,fontSize);
-    DrawText(text,(SCREEN_WIDTH - textWidth)/2,y,fontSize,color);
+    DrawText(text,(SCREEN_WIDTH - textWidth)/2,y,fontSize,R_COL(color));
 }
 
-void DrawTextCenteredInBox(const char* text, Rectangle box, int fontSize, Color color)
+void DrawTextCenteredInBox(const char* text, Rectangle box, int fontSize, creColor color)
 {
     int textWidth = MeasureText(text, fontSize);
     
@@ -15,5 +16,5 @@ void DrawTextCenteredInBox(const char* text, Rectangle box, int fontSize, Color 
     int centerX = box.x + (box.width / 2) - (textWidth / 2);
     int centerY = box.y + (box.height / 2) - (fontSize / 2); // Approximation for height
     
-    DrawText(text, centerX, centerY, fontSize, color);
+    DrawText(text, centerX, centerY, fontSize, R_COL(color));
 }

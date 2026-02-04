@@ -12,26 +12,31 @@
 #include "atlas_data.h"
 #include "engine/core/command_bus.h"
 #include "engine/physics/physics_system.h"
+#include <assert.h>
 
 #define SLEEP_RADIUS      2500.0f 
 #define SLEEP_RADIUS_SQR  (SLEEP_RADIUS * SLEEP_RADIUS)
-#define PLAYER_SPEED 500.0f
+#define PLAYER_SPEED 400.0f
 #define SCALE_FACTOR 4.0f
 
 static uint32_t s_cameraTargetID = MAX_ENTITIES + 1;
 
 void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     uint32_t maxBound = reg->max_used_bound;
+    ViewportSize v = Viewport_Get();
+    float boundMinX = -(v.width * 1.5f);
+    float boundMaxX =  (v.width * 1.5f);
+    float boundMinY = -(v.height * 1.5f);
+    float boundMaxY =  (v.height * 1.5f);
     
     for (uint32_t i = 0; i < maxBound; i++) {
         if (!(reg->state_flags[i] & FLAG_ACTIVE)) continue;
         
-        ViewportSize v = Viewport_Get();
         float posX = reg->pos_x[i];
         float posY = reg->pos_y[i];
-        bool isOutofBounds = (posX < -100 || posX > v.width + 100 ||
-                              posY < -100 || posY > v.height + 100);
+        bool isOutofBounds = (posX < -(boundMinX) || posX > (boundMaxX) ||
+                              posY < -(boundMinY) || posY > (boundMaxY));
 
         switch (reg->types[i]) {
             case TYPE_PLAYER: {
@@ -71,22 +76,24 @@ void ControlSystem_SetCameraTarget(EntityRegistry* reg, uint32_t entityID) {
     s_cameraTargetID = entityID;
 
     if (reg && s_cameraTargetID < MAX_ENTITIES) {
-        Vector2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
+        creVec2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
         creCamera_CenterOn(pos);
     }
 }
 
 void ControlSystem_UpdateCamera(EntityRegistry* reg) {
-    if (!reg || s_cameraTargetID >= MAX_ENTITIES) return;
+    assert(reg && "reg is NULL");
+    if (s_cameraTargetID >= MAX_ENTITIES) return;
     
     if (reg->state_flags[s_cameraTargetID] & FLAG_ACTIVE) {
-        Vector2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
+        creVec2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
         creCamera_CenterOn(pos);
     }
 }
 
 void ControlSystem_UpdateSleepState(EntityRegistry* reg) {
-    if (!reg || s_cameraTargetID >= MAX_ENTITIES) return;
+    assert(reg && "reg is NULL");
+    if (s_cameraTargetID >= MAX_ENTITIES) return;
     
     float playerX = reg->pos_x[s_cameraTargetID];
     float playerY = reg->pos_y[s_cameraTargetID];
@@ -112,24 +119,19 @@ void ControlSystem_UpdateSleepState(EntityRegistry* reg) {
 }
 
 void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
-    if (!reg) return;
+    assert(reg && "reg is NULL");
     
     uint64_t compMask = COMP_POSITION | COMP_VELOCITY | COMP_SIZE | COMP_SPRITE | COMP_COLOR | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
     uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_ANIMATED | FLAG_ALWAYS_AWAKE | SET_LAYER(L_PLAYER) | SET_MASK(L_ENEMY | L_BULLET);
     
-    Entity player = EntityManager_Create(reg, TYPE_PLAYER, (Vector2){100, 200}, compMask, flags);
+    Entity player = EntityManager_Create(reg, TYPE_PLAYER, (creVec2){100, 200}, compMask, flags);
     if (ENTITY_IS_VALID(player)) {
         reg->sprite_ids[player.id] = SPR_PLAYER_IDLE0;
-        reg->size_w[player.id] = 16 * SCALE_FACTOR;
-        reg->size_h[player.id] = 16 * SCALE_FACTOR;
-        reg->vel_x[player.id] = 0;
-        reg->vel_y[player.id] = 0;
-        reg->colors[player.id] = WHITE;
         
         Command cmd;
         cmd.type = CMD_PHYS_DEFINE;
         cmd.entityID = player.id;
-        cmd.physDef.material_id = MAT_DEFAULT;
+        cmd.physDef.material_id = MAT_PLAYER;
         cmd.physDef.flags = 0;
         cmd.physDef.drag = 0.1f;
         CommandBus_Push(bus,cmd);

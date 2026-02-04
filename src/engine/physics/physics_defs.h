@@ -14,6 +14,7 @@ typedef enum {
     MAT_STATIC,
     MAT_BOUNCY,
     MAT_ICE,
+    MAT_PLAYER,
     MAT_COUNT
 } MaterialID;
 

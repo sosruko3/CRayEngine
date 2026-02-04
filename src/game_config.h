@@ -22,4 +22,4 @@
 #define FONT_SIZE_SCORE 80
 
 #define dirCONFIG "assets/config/settings.cfg"
-#endif //game_config.h
+#endif

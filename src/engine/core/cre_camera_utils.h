@@ -1,8 +1,8 @@
 #ifndef CRE_CAMERA_UTILS_H
 #define CRE_CAMERA_UTILS_H
 
-#include "raylib.h"
-#include "viewport.h"
+#include "cre_types.h"
+typedef struct ViewportSize ViewportSize;
 // Will refactor these parts later on.
 
 /**
@@ -21,7 +21,7 @@
  * @param speed  Interpolation speed (higher = faster, typical range: 1.0 - 10.0)
  * @param dt     Delta time in seconds
  */
-void creCamera_LerpTo(Vector2 target, float speed, float dt);
+void creCamera_LerpTo(creVec2 target, float speed, float dt);
 
 /**
  * Apply a camera shake effect.
@@ -39,7 +39,7 @@ void creCamera_ApplyShake(float intensity);
  * @param screenPos Position in screen/pixel coordinates
  * @return Position in world coordinates
  */
-Vector2 creCamera_ScreenToWorld(Vector2 screenPos,ViewportSize vp);
+creVec2 creCamera_ScreenToWorld(creVec2 screenPos,ViewportSize vp);
 
 /**
  * Convert a world position to screen coordinates.
@@ -48,9 +48,9 @@ Vector2 creCamera_ScreenToWorld(Vector2 screenPos,ViewportSize vp);
  * @param worldPos Position in world coordinates
  * @return Position in screen/pixel coordinates
  */
-Vector2 creCamera_WorldToScreen(Vector2 worldPos,ViewportSize vp);
+creVec2 creCamera_WorldToScreen(creVec2 worldPos,ViewportSize vp);
 
 
 // Center to the target
-void creCamera_CenterOn(Vector2 targetPosition);
+void creCamera_CenterOn(creVec2 targetPosition);
 #endif

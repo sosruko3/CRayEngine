@@ -3,7 +3,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please run 'cmake -B build' and 'cmake --build build'.")
 endif()
 
-project(CRayEngine VERSION 0.7)
+project(CRayEngine VERSION 0.8)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -60,13 +60,12 @@ set(SOURCES
     src/engine/core/cre_camera.c
     src/engine/core/cre_camera_utils.c
     src/engine/core/viewport.c
+    src/engine/core/command_bus.c
     src/engine/physics/physics_system.c
     src/engine/physics/spatial_hash.c
     
     # Game
     src/game/game.c
-    src/game/entities/snake.c
-    src/game/entities/food.c
     src/game/game_scenes.c
     src/game/controlSystem.c
     src/game/debugSystem.c
@@ -85,7 +84,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     
     if(result)
         message(STATUS "IPO/LTO is supported: Enabling")
-        set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
     else()
         message(WARNING "IPO/LTO is not supported: ${output}")
     endif()

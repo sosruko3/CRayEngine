@@ -3,12 +3,13 @@
 #include "logger.h"
 #include "config.h"
 #include "atlas_data.h"
+#include "cre_types.h"
 
 static Texture2D atlasTexture;
 
-// Helper: Convert SpriteMeta to Rectangle for rendering
-static inline Rectangle SpriteMeta_ToRect(const SpriteMeta* meta) {
-    return (Rectangle){ (float)meta->x, (float)meta->y, (float)meta->w, (float)meta->h };
+// Helper: Convert SpriteMeta to creRectangle for rendering
+static inline creRectangle SpriteMeta_ToRect(const SpriteMeta* meta) {
+    return (creRectangle){ (float)meta->x, (float)meta->y, (float)meta->w, (float)meta->h };
 }
 
 void Asset_Init(void) {
@@ -43,7 +44,7 @@ void Asset_Shutdown(void) {
 Texture2D Asset_getTexture(void) {
     return atlasTexture;
 }
-Rectangle Asset_getRect(int spriteID) {
+creRectangle Asset_getRect(int spriteID) {
     if (spriteID < 0 || spriteID >= SPRITE_COUNT) {
         Log(LOG_LVL_WARNING,"ASSETS: Missing sprite ID %d,using Fallback.",spriteID);
         return SpriteMeta_ToRect(&ASSET_SPRITES[SPR_MISSING]);
