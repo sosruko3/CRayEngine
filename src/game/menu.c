@@ -7,6 +7,7 @@
 #include "engine/core/input.h"
 #include "engine/core/config.h"
 #include "game_config.h"
+#include "engine/core/cre_types.h"
 
 void Menu_Init(EntityRegistry* reg, CommandBus* bus) {
     Log(LOG_LVL_INFO,"Scene: Menu Initialized");
@@ -20,10 +21,10 @@ void Menu_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
 }
 
 void Menu_Draw(EntityRegistry* reg, CommandBus* bus) {
-    DrawTextCentered(GAME_TITLE,SCREEN_HEIGHT/2-80,FONT_SIZE_TITLE,RED);
+    DrawTextCentered(GAME_TITLE,SCREEN_HEIGHT/2-80,FONT_SIZE_TITLE,(creColor){230, 41, 55, 255}); /*RED*/
 
-    DrawTextCentered(MENU_START_TEXT,SCREEN_HEIGHT/2,FONT_SIZE_TITLE,BLACK);
-    DrawTextCentered(MENU_TO_QUIT,SCREEN_HEIGHT/2+80,FONT_SIZE_TITLE,BLACK);
+    DrawTextCentered(MENU_START_TEXT,SCREEN_HEIGHT/2,FONT_SIZE_TITLE,(creColor){0, 0, 0, 255}); /*BLACK*/
+    DrawTextCentered(MENU_TO_QUIT,SCREEN_HEIGHT/2+80,FONT_SIZE_TITLE,(creColor){0, 0, 0, 255});
 }
 
 void Menu_Unload(EntityRegistry* reg, CommandBus* bus) {

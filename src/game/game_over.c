@@ -7,9 +7,8 @@
 #include "engine/core/ui_helper.h"
 #include "game_config.h"
 #include "engine/core/config.h"
+#include "engine/core/cre_types.h"
 
-
-extern int finalScore;
 
 void GameOver_Init(EntityRegistry* reg, CommandBus* bus) {
     // Optional for game over sound effect or anything
@@ -24,14 +23,9 @@ void GameOver_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
 void GameOver_Draw(EntityRegistry* reg, CommandBus* bus) {
 
     ClearBackground(BLACK);
-    DrawTextCentered(GAMEOVER_TITLE_TEXT,SCREEN_HEIGHT/2-50,FONT_SIZE_TITLE,RED);
+    DrawTextCentered(GAMEOVER_TITLE_TEXT,SCREEN_HEIGHT/2-50,FONT_SIZE_TITLE,(creColor){230, 41, 55, 255}); /*RED*/
 
-    char scoreText[20];
-    sprintf(scoreText,"Score: %d", finalScore);
-    DrawText(scoreText,SCREEN_WIDTH * 0.02f,SCREEN_HEIGHT * 0.02f,FONT_SIZE_SCORE,RAYWHITE);
-
-
-    DrawTextCentered(GAMEOVER_RESTART_TEXT,SCREEN_HEIGHT/2+50,FONT_SIZE_SUBTITLE,RAYWHITE);
+    DrawTextCentered(GAMEOVER_RESTART_TEXT,SCREEN_HEIGHT/2+50,FONT_SIZE_SUBTITLE,(creColor){245, 245, 245, 255}); /*RAYWHITE*/
     
 }
 
