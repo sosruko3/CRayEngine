@@ -30,8 +30,7 @@ void cre_RendererCore_BeginWorldMode(Camera2D camera);
 void cre_RendererCore_EndWorldMode(void);
 
 /* Consolidated sprite draw
- * - pivot: normalized (0,0)=top-left, (0.5,0.5)=center, (1,1)=bottom-right
- * - flipX/flipY: handled via negative srcRect dimensions */
+ * - pivot: normalized (0,0)=top-left, (0.5,0.5)=center, (1,1)=bottom-right */
 void cre_RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
                             float rotation,bool flipX, bool flipY, creColor tint);
 

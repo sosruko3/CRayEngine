@@ -939,6 +939,13 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
     for (uint32_t i = 0; i <= bound; i++) {
         uint64_t flags = reg->state_flags[i];
         if (!(flags & FLAG_ACTIVE)) continue;
+        if (!(flags & FLAG_VISIBLE)) continue;
+        if (flags & FLAG_CULLED) continue;
+
+        uint64_t comps = reg->component_masks[i];
+        bool hasAabb = (comps & COMP_COLLISION_AABB) != 0;
+        bool hasCircle = (comps & COMP_COLLISION_Circle) != 0;
+        if (!hasAabb && !hasCircle) continue;
         
         float px = reg->pos_x[i];
         float py = reg->pos_y[i];
@@ -961,7 +968,14 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
         creColor layerColor = s_layerColors[layerIndex % 8];
         
         // Draw entity bounds with layer color
-        DrawRectangleLines((int)(px - 1), (int)(py - 1), (int)w + 2, (int)h + 2, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+        if (hasAabb) {
+            DrawRectangleLines((int)(px - 1), (int)(py - 1), (int)w + 2, (int)h + 2, R_COL(layerColor));
+        } else if (hasCircle) {
+            float radius = w * 0.5f;
+            if (radius > 0.0f) {
+                DrawCircleLines((int)(px + radius), (int)(py + radius), radius, R_COL(layerColor));
+            }
+        }
         
         // Draw small layer indicator
         DrawCircle((int)px, (int)py, 3, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});

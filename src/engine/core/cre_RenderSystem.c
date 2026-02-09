@@ -32,7 +32,6 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
             creVec2 size = {reg->size_w[id], reg->size_h[id]};
              
             // Entity position is top-left of collision box
-            // DrawSprite uses center pivot, so offset to center of collision box
             position.x += size.x * 0.5f;
             position.y += size.y * 1.0f;
             

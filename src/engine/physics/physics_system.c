@@ -523,12 +523,15 @@
                 const bool bIsCircle = (compsB & COMP_COLLISION_Circle) != 0;
                 const bool aIsAABB   = (compsA & COMP_COLLISION_AABB) != 0;
                 const bool bIsAABB   = (compsB & COMP_COLLISION_AABB) != 0;
+
+                float radiusA = p_size_w[i] * 0.5f;
+                float radiusB = p_size_w[j] * 0.5f;
                 
                 if (aIsCircle && bIsCircle) {
                     // Circle vs Circle
                     collided = CheckCircle_Circle(
-                        p_pos_x[i], p_pos_y[i], p_size_w[i] * 0.5f,
-                        p_pos_x[j], p_pos_y[j], p_size_w[j] * 0.5f,
+                        p_pos_x[i] + radiusA, p_pos_y[i] + radiusA, radiusA,
+                        p_pos_x[j] + radiusB, p_pos_y[j] + radiusB, radiusB,
                         &overlap, &normal
                     );
                 } else if (aIsAABB && bIsAABB) {
@@ -541,14 +544,14 @@
                 } else if (aIsCircle && bIsAABB) {
                     // Circle (A) vs AABB (B)
                     collided = CheckCircle_AABB(
-                        p_pos_x[i], p_pos_y[i], p_size_w[i] * 0.5f,
+                        p_pos_x[i] + radiusA, p_pos_y[i] + radiusA, radiusA,
                         p_pos_x[j], p_pos_y[j], p_size_w[j], p_size_h[j],
                         &overlap, &normal
                     );
                 } else if (aIsAABB && bIsCircle) {
                     // AABB (A) vs Circle (B) - swap and invert normal
                     collided = CheckCircle_AABB(
-                        p_pos_x[j], p_pos_y[j], p_size_w[j] * 0.5f,
+                        p_pos_x[j] + radiusB, p_pos_y[j] + radiusB, radiusB,
                         p_pos_x[i], p_pos_y[i], p_size_w[i], p_size_h[i],
                         &overlap, &normal
                     );
