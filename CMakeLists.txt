@@ -35,8 +35,14 @@ add_custom_target(GenerateAtlas DEPENDS "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/at
 include(FetchContent)
 FetchContent_Declare(
     raylib
-    URL https://github.com/raysan5/raylib/archive/refs/tags/5.5.tar.gz
+    GIT_REPOSITORY https://github.com/raysan5/raylib.git
+    GIT_TAG master
+    GIT_PROGRESS TRUE
 )
+set(BUILD_EXAMPLES    OFF CACHE BOOL "" FORCE)
+set(BUILD_GAMES       OFF CACHE BOOL "" FORCE)
+set(BUILD_RESOURCES   OFF CACHE BOOL "" FORCE)
+set(USE_EXTERNAL_GLFW OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(raylib)
 
 # --- Sources ---

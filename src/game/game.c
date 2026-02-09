@@ -45,7 +45,7 @@ void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
     double endTime = GetTime(); // FOR DEBUG
     physicsTime = (endTime - startTime) * 1000.0; // FOR DEBUG
     
-    AnimationSystem_Update(reg,reg->max_used_bound, dt);
+    AnimationSystem_Update(reg, dt);
     ControlSystem_UpdateCamera(reg);
     ControlSystem_ChangeZoom();
 
@@ -75,7 +75,6 @@ static void ResetGameplay(EntityRegistry* reg, CommandBus* bus) {
     Log(LOG_LVL_DEBUG, "ResetGameplay: Starting...");
     EntityManager_Reset(reg);
     
-    // this is for test, change location later on
     ControlSystem_SpawnPlayer(reg,bus);
     Log(LOG_LVL_DEBUG, "ResetGameplay: SpawnPlayer done");
 }

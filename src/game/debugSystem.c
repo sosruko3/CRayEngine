@@ -60,10 +60,6 @@ static DebugVisualizationMode s_currentMode = DEBUG_MODE_OFF;
 static bool s_debugEnabled = false;
 static bool s_statsHudEnabled = true;
 
-// Contact pressure tracking (per-entity collision count)
-static uint16_t s_contactPressure[MAX_ENTITIES];
-static uint32_t s_totalContactsThisFrame = 0;
-
 // Frame timing for stats
 static double s_lastFrameTime = 0.0;
 static double s_avgFrameTime = 0.0;
@@ -74,8 +70,6 @@ static uint16_t s_heatmapMaxCount = 1;
 static float s_velocityMaxSpeed = 0.0f;
 static float s_velocityAvgSpeed = 0.0f;
 static uint32_t s_velocityMovingCount = 0;
-static uint16_t s_pressureMaxPressure = 1;
-static uint32_t s_pressureHighCount = 0;
 static uint32_t s_layerCounts[8] = {0};
 
 // Mode names for HUD display
@@ -84,7 +78,6 @@ static const char* s_modeNames[] = {
     "Spatial Hash Heatmap",
     "Entity State Overlay",
     "Velocity Field",
-    "Contact Pressure",
     "Collision Layers"
 };
 
@@ -164,7 +157,6 @@ static creColor GetVelocityColor(float speed, unsigned char alpha) {
 static void RenderSpatialHashHeatmap(EntityRegistry* reg);
 static void RenderEntityStateOverlay(EntityRegistry* reg);
 static void RenderVelocityField(EntityRegistry* reg);
-static void RenderContactPressure(EntityRegistry* reg);
 static void RenderCollisionLayers(EntityRegistry* reg);
 
 // Screen-space legend/HUD renderers
@@ -172,7 +164,6 @@ static void RenderModeIndicator(void);
 static void RenderLegendSpatialHash(void);
 static void RenderLegendEntityState(void);
 static void RenderLegendVelocity(void);
-static void RenderLegendPressure(void);
 static void RenderLegendLayers(void);
 
 // ============================================================================
@@ -183,9 +174,7 @@ void DebugSystem_Init(void) {
     s_currentMode = DEBUG_MODE_OFF;
     s_debugEnabled = false;
     s_statsHudEnabled = true;
-    memset(s_contactPressure, 0, sizeof(s_contactPressure));
-    s_totalContactsThisFrame = 0;
-    Log(LOG_LVL_INFO, "Debug System Initialized - Press F1 to toggle, F2-F6 for modes");
+    Log(LOG_LVL_INFO, "Debug System Initialized - Press F1 to toggle, F2-F5 for modes");
 }
 
 void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
@@ -196,18 +185,21 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
     // -------------------------------------------------------------------------
     if (IsKeyPressed(KEY_F1)) {
         s_debugEnabled = !s_debugEnabled;
-        if (s_debugEnabled && s_currentMode == DEBUG_MODE_OFF) {
-            s_currentMode = DEBUG_MODE_SPATIAL_HASH;
+        if (s_debugEnabled) {
+            if (s_currentMode == DEBUG_MODE_OFF) {
+                s_currentMode = DEBUG_MODE_SPATIAL_HASH;
+            }
+        } else {
+            s_currentMode = DEBUG_MODE_OFF;
         }
         Log(LOG_LVL_INFO, "Debug Overlay: %s", s_debugEnabled ? "ON" : "OFF");
     }
     
-    // Direct mode selection (F2-F6)
+    // Direct mode selection (F2-F5)
     if (IsKeyPressed(KEY_F2)) { s_currentMode = DEBUG_MODE_SPATIAL_HASH; s_debugEnabled = true; }
     if (IsKeyPressed(KEY_F3)) { s_currentMode = DEBUG_MODE_ENTITY_STATE; s_debugEnabled = true; }
     if (IsKeyPressed(KEY_F4)) { s_currentMode = DEBUG_MODE_VELOCITY_FIELD; s_debugEnabled = true; }
-    if (IsKeyPressed(KEY_F5)) { s_currentMode = DEBUG_MODE_CONTACT_PRESSURE; s_debugEnabled = true; }
-    if (IsKeyPressed(KEY_F6)) { s_currentMode = DEBUG_MODE_COLLISION_LAYERS; s_debugEnabled = true; }
+    if (IsKeyPressed(KEY_F5)) { s_currentMode = DEBUG_MODE_COLLISION_LAYERS; s_debugEnabled = true; }
     
     // Cycle modes (F8)
     if (IsKeyPressed(KEY_F8)) {
@@ -243,7 +235,7 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
                     .entityID = e.id, 
                     .physDef.material_id = MAT_DEFAULT,
                     .physDef.flags = 0,
-                    .physDef.drag = 2.0f 
+                    .physDef.drag = 0.1f 
                 };
                 CommandBus_Push(bus, cmd);
                 AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
@@ -308,9 +300,6 @@ void DebugSystem_RenderWorldSpace(EntityRegistry* reg) {
         case DEBUG_MODE_VELOCITY_FIELD:
             RenderVelocityField(reg);
             break;
-        case DEBUG_MODE_CONTACT_PRESSURE:
-            RenderContactPressure(reg);
-            break;
         case DEBUG_MODE_COLLISION_LAYERS:
             RenderCollisionLayers(reg);
             break;
@@ -318,10 +307,6 @@ void DebugSystem_RenderWorldSpace(EntityRegistry* reg) {
             break;
     }
     
-    // Decay contact pressure for next frame
-    for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-        s_contactPressure[i] = (uint16_t)(s_contactPressure[i] * CONTACT_DECAY_RATE);
-    }
 }
 
 /**
@@ -359,9 +344,6 @@ void DebugSystem_RenderScreenSpace(EntityRegistry* reg) {
                 break;
             case DEBUG_MODE_VELOCITY_FIELD:
                 RenderLegendVelocity();
-                break;
-            case DEBUG_MODE_CONTACT_PRESSURE:
-                RenderLegendPressure();
                 break;
             case DEBUG_MODE_COLLISION_LAYERS:
                 RenderLegendLayers();
@@ -459,18 +441,10 @@ void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
     DrawText(buffer, hudX + 10, rowY, 14, RED);
     rowY += rowSpacing;
     
-    // Contact info
-    snprintf(buffer, sizeof(buffer), "Contacts: %u", s_totalContactsThisFrame);
-    DrawText(buffer, hudX + 10, rowY, 14, (Color){255, 180, 100, 255});
-    rowY += rowSpacing;
-    
     // Mode indicator
     DrawLine(hudX + 5, rowY - 2, hudX + hudWidth - 5, rowY - 2, (Color){60, 60, 80, 255});
     snprintf(buffer, sizeof(buffer), "Mode: %s", s_modeNames[s_currentMode]);
     DrawText(buffer, hudX + 10, rowY + 3, 12, (Color){180, 180, 200, 255});
-    
-    // Reset contact counter
-    s_totalContactsThisFrame = 0;
 }
 
 DebugVisualizationMode DebugSystem_GetMode(void) {
@@ -484,21 +458,6 @@ void DebugSystem_SetMode(DebugVisualizationMode mode) {
 
 bool DebugSystem_IsEnabled(void) {
     return s_debugEnabled;
-}
-
-void DebugSystem_RecordContact(uint32_t entityA, uint32_t entityB) {
-    if (entityA < MAX_ENTITIES && s_contactPressure[entityA] < 65535) {
-        s_contactPressure[entityA]++;
-    }
-    if (entityB < MAX_ENTITIES && s_contactPressure[entityB] < 65535) {
-        s_contactPressure[entityB]++;
-    }
-    s_totalContactsThisFrame++;
-}
-
-void DebugSystem_ClearContacts(void) {
-    // Don't clear - we use decay instead for smooth visualization
-    s_totalContactsThisFrame = 0;
 }
 
 void DebugSystem_Draw(void) {
@@ -678,7 +637,7 @@ static void RenderModeIndicator(void) {
     DrawText(modeName, x, y, 20, (Color){100, 200, 255, 255});
     
     // Controls hint at bottom
-    const char* hint = "F1: Toggle | F2-F6: Modes | F8: Cycle | TAB: Stats";
+    const char* hint = "F1: Toggle | F2-F5: Modes | F8: Cycle | TAB: Stats";
     int hintWidth = MeasureText(hint, 12);
     DrawText(hint, (vpWidth - hintWidth) / 2, vpHeight - 25, 12, (Color){150, 150, 150, 200});
 }
@@ -966,64 +925,7 @@ static void RenderVelocityField(EntityRegistry* reg) {
 }
 
 // ============================================================================
-// Mode 4: Contact Pressure
-// ============================================================================
-
-static void RenderContactPressure(EntityRegistry* reg) {
-    const uint32_t bound = reg->max_used_bound;
-    
-    uint16_t maxPressure = 1;
-    uint32_t highPressureCount = 0;
-    
-    // Find max pressure
-    for (uint32_t i = 0; i <= bound; i++) {
-        if (s_contactPressure[i] > maxPressure) {
-            maxPressure = s_contactPressure[i];
-        }
-    }
-    
-    // Draw pressure indicators
-    for (uint32_t i = 0; i <= bound; i++) {
-        uint64_t flags = reg->state_flags[i];
-        if (!(flags & FLAG_ACTIVE)) continue;
-        
-        uint16_t pressure = s_contactPressure[i];
-        if (pressure == 0) continue;
-        
-        float px = reg->pos_x[i];
-        float py = reg->pos_y[i];
-        
-        // Normalize pressure
-        float normalized = (float)pressure / (float)maxPressure;
-        
-        // Size and color based on pressure
-        float radius = 4.0f + normalized * 12.0f;
-        creColor pressureColor = GetHeatmapColor(normalized, 180);
-        
-        // Draw pressure ring
-        DrawCircleLines((int)px, (int)py, radius, (Color){pressureColor.r, pressureColor.g, pressureColor.b, pressureColor.a});
-        DrawCircle((int)px, (int)py, radius * 0.5f, (Color){pressureColor.r, pressureColor.g, pressureColor.b, 100});
-        
-        // Count high pressure entities
-        if (normalized > 0.5f) {
-            highPressureCount++;
-            
-            // Draw pressure value for high-pressure entities
-            if (normalized > 0.7f) {
-                char pressureStr[8];
-                snprintf(pressureStr, sizeof(pressureStr), "%d", pressure);
-                DrawText(pressureStr, (int)px + (int)radius + 2, (int)py - 5, 10, WHITE);
-            }
-        }
-    }
-    
-    // Cache stats for legend (drawn in screen space)
-    s_pressureMaxPressure = maxPressure;
-    s_pressureHighCount = highPressureCount;
-}
-
-// ============================================================================
-// Mode 5: Collision Layers
+// Mode 4: Collision Layers
 // ============================================================================
 
 static void RenderCollisionLayers(EntityRegistry* reg) {
@@ -1141,31 +1043,6 @@ static void RenderLegendVelocity(void) {
     DrawText(statsStr, legendX, legendY + 70, 11, (Color){200, 200, 200, 255});
     snprintf(statsStr, sizeof(statsStr), "Moving: %u", s_velocityMovingCount);
     DrawText(statsStr, legendX + 85, legendY + 70, 11, GREEN);
-}
-
-static void RenderLegendPressure(void) {
-    ViewportSize vp = Viewport_Get();
-    int legendX = (int)vp.width - 170;
-    int legendY = 50;
-    
-    DrawRectangle(legendX - 5, legendY - 5, 165, 100, (Color){20, 20, 30, 200});
-    DrawText("Contact Pressure", legendX, legendY, 14, WHITE);
-    
-    // Pressure scale circles
-    for (int i = 0; i < 5; i++) {
-        float t = i / 4.0f;
-        creColor c = GetHeatmapColor(t, 255);
-        float r = 4.0f + t * 12.0f;
-        DrawCircle(legendX + 20 + i * 28, legendY + 35, r * 0.5f, (Color){c.r, c.g, c.b, c.a});
-    }
-    DrawText("Low", legendX, legendY + 50, 10, (Color){100, 200, 255, 255});
-    DrawText("High", legendX + 115, legendY + 50, 10, (Color){255, 100, 100, 255});
-    
-    char statsStr[48];
-    snprintf(statsStr, sizeof(statsStr), "Hotspots: %u", s_pressureHighCount);
-    DrawText(statsStr, legendX, legendY + 68, 12, YELLOW);
-    snprintf(statsStr, sizeof(statsStr), "Peak: %d contacts", s_pressureMaxPressure);
-    DrawText(statsStr, legendX, legendY + 84, 12, (Color){255, 180, 100, 255});
 }
 
 static void RenderLegendLayers(void) {

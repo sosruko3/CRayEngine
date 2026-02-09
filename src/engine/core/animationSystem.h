@@ -48,10 +48,9 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus)
  * Writes sprite_ids[] only when frame changes and entity is visible.
  * 
  * @param reg Pointer to EntityRegistry
- * @param max_used_bound Highest entity index that may be active
  * @param dt Delta time in seconds (clamped to 0.05f max internally)
  */
-void AnimationSystem_Update(EntityRegistry* reg, uint32_t max_used_bound, float dt);
+void AnimationSystem_Update(EntityRegistry* reg, float dt);
 
 /**
  * @brief Set animation speed multiplier for an entity.

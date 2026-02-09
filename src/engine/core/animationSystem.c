@@ -107,7 +107,7 @@ void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float mult
 // The Hot Loop - Pure SoA, NO atlas_data.h access
 // ============================================================================
 
-void AnimationSystem_Update(EntityRegistry* reg, uint32_t max_used_bound, float dt) {
+void AnimationSystem_Update(EntityRegistry* reg, float dt) {
     assert(reg && "reg is NULL");
 
     // Clamp delta time to prevent spiral of death
@@ -116,6 +116,7 @@ void AnimationSystem_Update(EntityRegistry* reg, uint32_t max_used_bound, float 
     // Cache array pointers for hot loop (12 streams + masks/flags)
     const uint64_t* masks    = reg->component_masks;
     const uint64_t* flags    = reg->state_flags;
+    uint32_t max_used_bound  = reg->max_used_bound;
     
     // Dynamic state arrays
     float*    timers         = reg->anim_timers;
@@ -129,6 +130,7 @@ void AnimationSystem_Update(EntityRegistry* reg, uint32_t max_used_bound, float 
     const uint16_t* frame_counts   = reg->anim_frame_counts;
     const uint16_t* start_sprites  = reg->anim_start_sprites;
     const bool*     loops          = reg->anim_loops;
+    
 
     const uint64_t required_mask  = COMP_ANIMATION;
     const uint64_t required_flags = FLAG_ACTIVE;

@@ -22,5 +22,4 @@ typedef struct creRectangle {
     float height;           // Rectangle height
 } creRectangle;
 
-
 #endif

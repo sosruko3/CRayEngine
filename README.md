@@ -31,7 +31,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Viewport System
 - [ ] Audio System(using Raylib)
 - [ ] Particle System
-- [ ] AI System
+- [ ] AI Systems
 - [ ] Raycasting
 - [ ] Save Manager 
 - [ ] Time System (?)
@@ -49,7 +49,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 * **C Compiler** (GCC, Clang, or MSVC)
 * **Raylib** (Cmake fetches Raylib automatically)
 * **Python3** (Required for Automated textureAtlas script)
-* **Pip and Pillow(If not included in Python3) **
+* **Pip and Pillow**(If not included in Python3)
 
 ### Instructions
 1. Clone the repository:

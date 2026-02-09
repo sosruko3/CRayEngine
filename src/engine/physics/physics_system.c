@@ -219,6 +219,10 @@
         for (uint32_t i = 0; i <= bound; i++) {
             const uint64_t flags = reg->state_flags[i];
             const uint64_t comps = reg->component_masks[i];
+            float* restrict const p_pos_x = reg->pos_x;
+            float* restrict const p_pos_y = reg->pos_y;
+            float* restrict const p_size_w = reg->size_w;
+            float* restrict const p_size_h = reg->size_h;
             
             // Filter: Active + Physics component + Static (or infinite mass)
             if (!(flags & FLAG_ACTIVE)) continue;
@@ -228,10 +232,10 @@
             // Add to static layer
             SpatialHash_AddStatic(
                 i,
-                (int)reg->pos_x[i],
-                (int)reg->pos_y[i],
-                (int)reg->size_w[i],
-                (int)reg->size_h[i]
+                (int)p_pos_x[i],
+                (int)p_pos_y[i],
+                (int)p_size_w[i],
+                (int)p_size_h[i]
             );
             staticCount++;
         }
@@ -344,7 +348,7 @@
         const uint64_t skipFlags = FLAG_STATIC | FLAG_SLEEPING;
         
         // -------------------------------------------------------------------------
-        // Loop 1: Apply Gravity
+        // Apply Gravity,Drag,Integration,Sleep Check in One loop
         // -------------------------------------------------------------------------
         for (uint32_t i = 0; i <= bound; i++) {
             if (!(flags[i] & FLAG_ACTIVE)) continue;
@@ -355,17 +359,17 @@
             vel_x[i] += g_gravity_x * gravity_scale[i] * dt;
             vel_y[i] += g_gravity_y * gravity_scale[i] * dt;
             
-            // Loop 2: Apply Drag (clamped to prevent sign flip)
+            // Apply Drag (clamped to prevent sign flip)
             const float dragFactor = 1.0f - (drag[i] * dt);
             const float clampedDrag = (dragFactor > 0.0f) ? dragFactor : 0.0f;
             vel_x[i] *= clampedDrag;
             vel_y[i] *= clampedDrag;
             
-            // Loop 3: Integrate Position (Semi-Implicit Euler)
+            // Integrate Position (Semi-Implicit Euler)
             pos_x[i] += vel_x[i] * dt;
             pos_y[i] += vel_y[i] * dt;
             
-            // Loop 4: Branchless Sleep Check
+            // Branchless Sleep Check
             const float speedSq = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i];
             bool isSlow = (speedSq < sleepThresholdSq);
             bool canSleep = !(flags[i] & FLAG_ALWAYS_AWAKE);
@@ -391,13 +395,13 @@
         // Clear dynamic layer (static layer persists)
         SpatialHash_ClearDynamic();
         
-        const uint32_t bound = reg->max_used_bound;
-        const uint64_t reqComps = COMP_PHYSICS;
-        const uint64_t skipFlags = FLAG_STATIC | FLAG_CULLED;
-        float* restrict const p_pos_x = reg->pos_x;
-        float* restrict const p_pos_y = reg->pos_y;
-        float* restrict const p_size_w = reg->size_w;
-        float* restrict const p_size_h = reg->size_h;
+        const uint32_t bound             = reg->max_used_bound;
+        const uint64_t reqComps          = COMP_PHYSICS;
+        const uint64_t skipFlags         = FLAG_STATIC | FLAG_CULLED;
+        float* restrict const p_pos_x    = reg->pos_x;
+        float* restrict const p_pos_y    = reg->pos_y;
+        float* restrict const p_size_w   = reg->size_w;
+        float* restrict const p_size_h   = reg->size_h;
         uint64_t* restrict const p_flags = reg->state_flags;
         uint64_t* restrict const p_comps = reg->component_masks;
         
@@ -440,13 +444,13 @@
         uint32_t neighbours[PHYS_MAX_NEIGHBOURS];
         const uint32_t bound = reg->max_used_bound;
 
-        const uint64_t reqComps = COMP_PHYSICS;
-        const uint64_t target_flags = (FLAG_ACTIVE | FLAG_STATIC | FLAG_SLEEPING);
+        const uint64_t reqComps          = COMP_PHYSICS;
+        const uint64_t target_flags      = (FLAG_ACTIVE | FLAG_STATIC | FLAG_SLEEPING);
         const uint64_t target_flags_true = FLAG_ACTIVE;
-        float* restrict const p_pos_x = reg->pos_x;
-        float* restrict const p_pos_y = reg->pos_y;
-        float* restrict const p_size_w = reg->size_w;
-        float* restrict const p_size_h = reg->size_h;
+        float* restrict const p_pos_x    = reg->pos_x;
+        float* restrict const p_pos_y    = reg->pos_y;
+        float* restrict const p_size_w   = reg->size_w;
+        float* restrict const p_size_h   = reg->size_h;
         float* restrict const p_inv_mass = reg->inv_mass;
         uint64_t* restrict const p_flags = reg->state_flags;
         uint64_t* restrict const p_comps = reg->component_masks;

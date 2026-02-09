@@ -9,13 +9,12 @@
  *   1. Spatial Hash Heatmap  - Cell density hotspots
  *   2. Entity State Overlay  - Sleep/Wake/Culled/Static states
  *   3. Velocity Field        - Momentum vectors and energy
- *   4. Contact Pressure      - Collision frequency per entity
- *   5. Collision Layers      - Layer/Mask group visualization
- *   6. Stats HUD             - Real-time performance metrics
+ *   4. Collision Layers      - Layer/Mask group visualization
+ *   5. Stats HUD             - Real-time performance metrics
  * 
  * Controls:
  *   F1        - Toggle debug overlay on/off
- *   F2-F7     - Switch visualization modes (1-6)
+ *   F2-F5     - Switch visualization modes (1-4)
  *   F8        - Cycle through modes
  *   TAB       - Toggle stats HUD (always available)
  */
@@ -37,8 +36,7 @@ typedef enum {
     DEBUG_MODE_SPATIAL_HASH,    // 1: Cell density heatmap
     DEBUG_MODE_ENTITY_STATE,    // 2: Sleep/Wake/Culled overlay
     DEBUG_MODE_VELOCITY_FIELD,  // 3: Velocity vectors + energy
-    DEBUG_MODE_CONTACT_PRESSURE,// 4: Collision frequency
-    DEBUG_MODE_COLLISION_LAYERS,// 5: Layer/Mask groups
+    DEBUG_MODE_COLLISION_LAYERS,// 4: Layer/Mask groups
     DEBUG_MODE_COUNT
 } DebugVisualizationMode;
 
@@ -56,7 +54,7 @@ void DebugSystem_Init(void);
  * 
  * Key bindings:
  *   F1      - Toggle debug overlay
- *   F2-F7   - Select visualization mode
+ *   F2-F5   - Select visualization mode
  *   F8      - Cycle modes
  *   TAB     - Toggle stats HUD
  *   Z       - Spawn 100 test entities
@@ -114,7 +112,7 @@ void DebugSystem_RenderPhysicsInsight(EntityRegistry* reg);
 /**
  * @brief Render stats HUD overlay (can be called independently).
  * 
- * Shows: Entity counts, physics timing, contact stats, memory usage.
+ * Shows: Entity counts, physics timing, memory usage.
  * 
  * @param reg Entity registry
  */
@@ -139,21 +137,6 @@ void DebugSystem_SetMode(DebugVisualizationMode mode);
 bool DebugSystem_IsEnabled(void);
 
 /**
- * @brief Record a collision contact for pressure visualization.
- * 
- * Call this from physics solver when a contact is detected.
- * Thread-safe for single-threaded physics.
- * 
- * @param entityA First entity in contact
- * @param entityB Second entity in contact
- */
-void DebugSystem_RecordContact(uint32_t entityA, uint32_t entityB);
-
-/**
- * @brief Clear contact pressure data (call at frame start).
- */
-void DebugSystem_ClearContacts(void);
-
 /**
  * @brief Legacy draw function (placeholder).
  */
