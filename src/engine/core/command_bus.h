@@ -7,6 +7,11 @@
 #include <assert.h>
 #include <stdalign.h>
 
+// MSVC needs __restrict instead of restrict
+#if defined(_MSC_VER)
+    #define restrict __restrict
+#endif
+
 // Command Flags
 #define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
 #define CMD_PHYS_FLAG_SENSOR  (1 << 1) // Bit 1: Trigger (Future proofing)
@@ -80,7 +85,7 @@ typedef struct {
 
 typedef struct {
     uint8_t material_id; // e.g., MAT_WOOF
-    uint8_t flags;      // e.g., true for Walls
+    uint8_t flags;      // e.g., static
     uint8_t _padding[2];
     float drag;
 } CommandPayloadPhysDef;
@@ -92,7 +97,7 @@ typedef struct {
 } CommandPayloadAudio;
 
 // ============================================================================
-// Command Structure (24 bytes, C11 Anonymous Union)
+// Command Structure (32 bytes, C11 Anonymous Union)
 // ============================================================================
 
 typedef struct Command {
@@ -109,10 +114,11 @@ typedef struct Command {
         CommandPayloadPhysDef physDef;
         alignas(4) uint8_t     raw[16];
     };
+    uint8_t _padding[8];
 } Command;
 
 // Compile-time struct verification
-static_assert(sizeof(Command) == 24, "Command struct must be exactly 24 bytes");
+static_assert(sizeof(Command) == 32, "Command struct must be exactly 32 bytes");
 static_assert(alignof(Command) >= 4, "Command struct must be at least 4-byte aligned");
 
 // ============================================================================
@@ -171,7 +177,7 @@ void CommandBus_Clear(CommandBus* bus);
  * @param cmd The command to push
  * @return true if successful, false if buffer is full
  */
-static inline bool CommandBus_Push(CommandBus* bus, Command cmd) {
+static inline bool CommandBus_Push(CommandBus* restrict bus, Command cmd) {
     assert(bus != NULL && "CommandBus_Push: bus is NULL");
     
     // Check if buffer is full (free-running index arithmetic)

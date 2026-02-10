@@ -102,7 +102,7 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t
     reg->vel_x[index] = 0.0f;
     reg->vel_y[index] = 0.0f;
     
-    // Size (default 32x32)
+    // Size (default 64x64)
     reg->size_w[index] = 64.0f;
     reg->size_h[index] = 64.0f;
 
@@ -115,9 +115,12 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t
     // Rotation
     reg->rotation[index] = 0.0f;
     
-    // Sprite and color
+    // Sprite specific
     reg->sprite_ids[index] = 0;
     reg->colors[index] = creBLANK;
+    reg->pivot_x[index] = 0.5f;
+    reg->pivot_y[index] = 0.5f;
+    
     // Animations
     reg->anim_speeds[index] = 1.0f;
     reg->anim_timers[index] = 0.0f;

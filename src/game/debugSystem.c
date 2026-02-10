@@ -235,7 +235,7 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
                     .entityID = e.id, 
                     .physDef.material_id = MAT_DEFAULT,
                     .physDef.flags = 0,
-                    .physDef.drag = 0.1f 
+                    .physDef.drag = 2.0f 
                 };
                 CommandBus_Push(bus, cmd);
                 AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);

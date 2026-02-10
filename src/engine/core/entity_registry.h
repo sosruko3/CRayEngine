@@ -117,7 +117,7 @@ typedef struct EntityRegistry {
     
     alignas(64) float size_w[MAX_ENTITIES];             ///< Size width
     alignas(64) float size_h[MAX_ENTITIES];             ///< Size height
-    alignas(64) uint8_t material_id[MAX_ENTITIES]; ///< Material ID for physics.
+    alignas(64) uint8_t material_id[MAX_ENTITIES];      ///< Material ID for physics.
     alignas(64) float drag[MAX_ENTITIES];               ///< Air resistance etc. for physics.
     alignas(64) float inv_mass[MAX_ENTITIES];           ///< Physics Mass
     alignas(64) float gravity_scale[MAX_ENTITIES];      ///< Gravity Scales
@@ -125,6 +125,8 @@ typedef struct EntityRegistry {
 
     alignas(64) uint16_t sprite_ids[MAX_ENTITIES];      ///< Sprite/texture ID
     alignas(64) creColor colors[MAX_ENTITIES];          ///< Tint color
+    alignas(64) float  pivot_x[MAX_ENTITIES];           ///< Pivot_x of sprite
+    alignas(64) float  pivot_y[MAX_ENTITIES];           ///< Pivot_y of sprite
 
     // Animation SoA arrays - Dynamic State (managed by AnimationSystem)
     alignas(64) float    anim_timers[MAX_ENTITIES];     ///< Time accumulator for frame advance

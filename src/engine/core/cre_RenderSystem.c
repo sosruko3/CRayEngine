@@ -28,12 +28,17 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
         // Double checking - entity must be active and visible
         uint64_t flags = reg->state_flags[id];
         if ((flags & (FLAG_ACTIVE | FLAG_VISIBLE)) == (FLAG_ACTIVE | FLAG_VISIBLE)) {
+            uint16_t spriteIds = reg->sprite_ids[id];
             creVec2 position = {reg->pos_x[id], reg->pos_y[id]};
             creVec2 size = {reg->size_w[id], reg->size_h[id]};
+            float rotation = reg->rotation[id];
+            float pivotX = reg->pivot_x[id];
+            float pivotY = reg->pivot_y[id];
+            creColor color = reg->colors[id];
              
             // Entity position is top-left of collision box
-            position.x += size.x * 0.5f;
-            position.y += size.y * 1.0f;
+            position.x += size.x * pivotX;
+            position.y += size.y * pivotY;
             
             // Animation flip data - check if entity has animation component
             bool flipX = false;
@@ -44,14 +49,14 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
             }
             
             cre_RendererCore_DrawSprite(
-                reg->sprite_ids[id],
+                spriteIds,
                 position,
                 size,
-                (creVec2){0.5f, 1.0f}, // From feet.
-                reg->rotation[id],
+                (creVec2){pivotX,pivotY},
+                rotation,
                 flipX,
                 flipY,
-                reg->colors[id]
+                color
             );
         }
     }
