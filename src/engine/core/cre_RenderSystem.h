@@ -1,7 +1,6 @@
 #ifndef CRE_RENDERSYSTEM_H
 #define CRE_RENDERSYSTEM_H
 
-#include "raylib.h"
 #include "cre_types.h"
 typedef struct EntityRegistry EntityRegistry;
 

@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #define GAME_VIRTUAL_HEIGHT 1080.0f // Change these values to change resolution
-#define TARGET_FRAMERATE 60 // FOR DEBUG.
+#define TARGET_FRAMERATE 60 
 #define MIN_ZOOM 0.2f
 #define MAX_ZOOM 5.0f
 #define CAMERA_CULL_MARGIN 256.0f
@@ -30,11 +30,8 @@
 #define MAX_VISIBLE_ENTITIES 4096
 
 // Will remove these soon.
-#define GRID_WIDTH    (SCREEN_WIDTH / CELL_SIZE)
-#define GRID_HEIGHT   (SCREEN_HEIGHT / CELL_SIZE)
 #define SCREEN_WIDTH  1920
 #define SCREEN_HEIGHT 1080
-#define CELL_SIZE     40
 
 
 #endif

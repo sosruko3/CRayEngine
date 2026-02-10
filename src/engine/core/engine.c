@@ -1,9 +1,7 @@
 #include "engine.h"
 #include "raylib.h"
-#include <stdio.h>
 #include "config.h"
 #include "logger.h"
-#include <stdlib.h>
 #include "input.h"
 #include "scene_manager.h"
 #include "entity_manager.h"
@@ -13,6 +11,8 @@
 #include "viewport.h"
 #include "cre_camera.h"
 #include "command_bus.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const char* configFileName) {
     Logger_Init();
@@ -44,7 +44,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
 }
 void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {
     Log(LOG_LVL_INFO,"Entering main loop");
-    
+    İ
     while (!WindowShouldClose()) {
         Viewport_Update();
         if (Viewport_wasResized()) {

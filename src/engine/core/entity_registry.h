@@ -44,17 +44,12 @@ typedef struct Entity {
 // These bits indicate which components an entity possesses.
 
 #define COMP_NONE             (0ULL)
-#define COMP_POSITION         (1ULL << 0)
-#define COMP_VELOCITY         (1ULL << 1)
-#define COMP_SIZE             (1ULL << 2)
-#define COMP_ROTATION         (1ULL << 3)
-#define COMP_SPRITE           (1ULL << 4)
-#define COMP_COLOR            (1ULL << 5)
-#define COMP_ANIMATION        (1ULL << 6)
-#define COMP_PHYSICS          (1ULL << 7)
-#define COMP_COLLISION_Circle (1ULL << 8)
-#define COMP_COLLISION_AABB   (1ULL << 9)
-// Reserve bits 10-31 for future component types
+#define COMP_SPRITE           (1ULL << 1)
+#define COMP_ANIMATION        (1ULL << 2)
+#define COMP_PHYSICS          (1ULL << 3)
+#define COMP_COLLISION_Circle (1ULL << 4)
+#define COMP_COLLISION_AABB   (1ULL << 5)
+// Reserve bits 6-31 for future component types
 // Bits 32-63 available for game-specific components
 
 // ============================================================================

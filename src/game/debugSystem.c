@@ -222,8 +222,7 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
             int x = GetRandomValue((int)((-4)*v.width), (int)(v.width*4));
             int y = GetRandomValue((int)((-4)*v.height), (int)(v.height*4));
             
-            uint64_t compMask = COMP_POSITION | COMP_VELOCITY | COMP_SIZE | COMP_SPRITE | 
-                               COMP_COLOR | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
+            uint64_t compMask = COMP_SPRITE| COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
             uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);
             
             Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){x, y}, compMask, flags);
@@ -249,8 +248,7 @@ void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");
     
     if (IsKeyPressed(KEY_X)) {
-        uint64_t compMask = COMP_POSITION | COMP_VELOCITY | COMP_SIZE | COMP_SPRITE | 
-                           COMP_COLOR | COMP_PHYSICS | COMP_COLLISION_Circle;
+        uint64_t compMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_Circle;
         uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID | FLAG_ALWAYS_AWAKE | 
                         SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_BULLET | L_ENEMY);
         

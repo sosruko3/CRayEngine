@@ -43,11 +43,11 @@ typedef enum CommandType {
     CMD_PHYS_MOVE,
     CMD_PHYS_APPLY_FORCE,
     CMD_PHYS_SET_VELOCITY,
-
     CMD_PHYS_LOAD_STATIC,
     CMD_PHYS_DEFINE,
     CMD_PHYS_RESET,
     CMD_PHYS_DEBUG_DRAW,
+
     // Animation commands
     CMD_ANIM_PLAY,
     CMD_ANIM_STOP,
@@ -60,6 +60,8 @@ typedef enum CommandType {
     // Entity commands
     CMD_ENTITY_SPAWN,
     CMD_ENTITY_DESTROY,
+    CMD_ENTITY_ADD_COMPONENT,
+    CMD_ENTITY_SET_PIVOT,
     
     CMD_TYPE_COUNT
 } CommandType;
@@ -96,6 +98,12 @@ typedef struct {
     float volume;
 } CommandPayloadAudio;
 
+typedef struct {
+    uint32_t type; // Entity type
+    float x;
+    float y;
+} CommandPayloadSpawn;
+
 // ============================================================================
 // Command Structure (32 bytes, C11 Anonymous Union)
 // ============================================================================
@@ -111,10 +119,10 @@ typedef struct Command {
         CommandPayloadAnim     anim;
         CommandPayloadForce    force;
         CommandPayloadAudio    audio;
-        CommandPayloadPhysDef physDef;
-        alignas(4) uint8_t     raw[16];
+        CommandPayloadPhysDef  physDef;
+        CommandPayloadSpawn    spawn;
+        alignas(4) uint8_t     raw[24];
     };
-    uint8_t _padding[8];
 } Command;
 
 // Compile-time struct verification
