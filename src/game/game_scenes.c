@@ -1,7 +1,7 @@
 #include "game_scenes.h"
 #include "game_over.h"
 #include "game.h"
-#include "engine/core/logger.h"
+#include "engine/core/cre_logger.h"
 #include "menu.h"
 
 Scene Game_GetScene(int stateID) {

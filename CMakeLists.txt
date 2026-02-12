@@ -53,22 +53,24 @@ set(SOURCES
     "${GEN_DIR}/atlas_data.c"
 
     # Core Engine
-    src/engine/core/engine.c
-    src/engine/core/ui_helper.c
-    src/engine/core/logger.c
-    src/engine/core/scene_manager.c
-    src/engine/core/input.c
-    src/engine/core/entity_manager.c
-    src/engine/core/asset_manager.c
-    src/engine/core/cre_RendererCore.c
-    src/engine/core/cre_RenderSystem.c
-    src/engine/core/animationSystem.c
-    src/engine/core/cre_camera.c
-    src/engine/core/cre_camera_utils.c
-    src/engine/core/viewport.c
-    src/engine/core/command_bus.c
-    src/engine/physics/physics_system.c
-    src/engine/physics/spatial_hash.c
+    src/engine/core/cre_engine.c
+    src/engine/core/cre_uiHelper.c
+    src/engine/core/cre_logger.c
+    src/engine/core/cre_commandBus.c
+    src/engine/scene/cre_sceneManager.c
+    src/engine/platform/cre_input.c
+    src/engine/platform/cre_viewport.c
+    src/engine/ecs/cre_entityManager.c
+    src/engine/loaders/cre_assetManager.c
+    src/engine/systems/render/cre_RendererCore.c
+    src/engine/systems/render/cre_RenderSystem.c
+    src/engine/systems/render/cre_renderAPI.c
+    src/engine/systems/animation/cre_animationSystem.c
+    src/engine/systems/camera/cre_camera.c
+    src/engine/systems/camera/cre_cameraUtils.c
+    src/engine/systems/physics/cre_physicsSystem.c
+    src/engine/systems/physics/cre_spatialHash.c
+    src/engine/systems/physics/cre_physicsAPI.c
     
     # Game
     src/game/game.c
@@ -100,7 +102,7 @@ endif()
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
 
 # --- Include Directories ---
-target_include_directories(${PROJECT_NAME} PRIVATE src include "${GEN_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE src "${GEN_DIR}")
 
 # --- Linking ---
 target_link_libraries(${PROJECT_NAME} raylib m)

@@ -1,17 +1,17 @@
 #include "controlSystem.h"
 #include "raylib.h"
 #include "entity_types.h"
-#include "engine/core/entity_manager.h"
-#include "engine/core/entity_registry.h"
-#include "engine/core/input.h"
-#include "engine/core/animationSystem.h"
-#include "engine/core/viewport.h"
-#include "engine/core/cre_camera.h"
-#include "engine/core/cre_camera_utils.h"
-#include "engine/core/config.h"
+#include "engine/ecs/cre_entityManager.h"
+#include "engine/ecs/cre_entityRegistry.h"
+#include "engine/platform/cre_input.h"
+#include "engine/systems/animation/cre_animationSystem.h"
+#include "engine/platform/cre_viewport.h"
+#include "engine/systems/camera/cre_camera.h"
+#include "engine/systems/camera/cre_cameraUtils.h"
+#include "engine/core/cre_config.h"
 #include "atlas_data.h"
-#include "engine/core/command_bus.h"
-#include "engine/physics/physics_system.h"
+#include "engine/core/cre_commandBus.h"
+#include "engine/systems/physics/cre_physicsSystem.h"
 #include <assert.h>
 
 #define SLEEP_RADIUS      2500.0f 
@@ -130,7 +130,7 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
         
         Command cmd;
         cmd.type = CMD_PHYS_DEFINE;
-        cmd.entityID = player.id;
+        cmd.entity = (Entity){player.id,player.generation};
         cmd.physDef.material_id = MAT_PLAYER;
         cmd.physDef.flags = 0;
         cmd.physDef.drag = 0.1f;

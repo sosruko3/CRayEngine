@@ -1,11 +1,11 @@
 #include "menu.h"
 #include "raylib.h"
-#include "engine/core/scene_manager.h" // For switch scene,
+#include "engine/scene/cre_sceneManager.h" // For switch scene,
 #include "game_scenes.h"
-#include "engine/core/logger.h"
-#include "engine/core/ui_helper.h"
-#include "engine/core/input.h"
-#include "engine/core/config.h"
+#include "engine/core/cre_logger.h"
+#include "engine/core/cre_uiHelper.h"
+#include "engine/platform/cre_input.h"
+#include "engine/core/cre_config.h"
 #include "game_config.h"
 #include "engine/core/cre_types.h"
 

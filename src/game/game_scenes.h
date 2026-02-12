@@ -1,7 +1,7 @@
 #ifndef GAME_SCENES_H
 #define GAME_SCENES_H
 
-#include "engine/core/scenes.h"
+#include "engine/scene/cre_scenes.h"
 
 typedef enum {
     GAME_STATE_MENU,

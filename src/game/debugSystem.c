@@ -14,21 +14,21 @@
 #include "debugSystem.h"
 #include "raylib.h"
 #include "engine/core/cre_types.h"
-#include "engine/core/types_macro.h"
+#include "engine/core/cre_typesMacro.h"
 #include "engine/core/cre_colors.h"
 #include "entity_types.h"
-#include "engine/core/entity_manager.h"
-#include "engine/core/entity_registry.h"
-#include "engine/core/logger.h"
-#include "engine/core/animationSystem.h"
-#include "engine/core/viewport.h"
-#include "engine/core/cre_camera.h"
-#include "engine/core/config.h"
+#include "engine/ecs/cre_entityManager.h"
+#include "engine/ecs/cre_entityRegistry.h"
+#include "engine/core/cre_logger.h"
+#include "engine/systems/animation/cre_animationSystem.h"
+#include "engine/platform/cre_viewport.h"
+#include "engine/systems/camera/cre_camera.h"
+#include "engine/core/cre_config.h"
 #include "atlas_data.h"
-#include "engine/core/command_bus.h"
-#include "engine/physics/physics_defs.h"
-#include "engine/physics/physics_system.h"
-#include "engine/physics/spatial_hash.h"
+#include "engine/core/cre_commandBus.h"
+#include "engine/systems/physics/cre_physics_defs.h"
+#include "engine/systems/physics/cre_physicsSystem.h"
+#include "engine/systems/physics/cre_spatialHash.h"
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -231,7 +231,8 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
                 reg->vel_y[e.id] = (float)GetRandomValue(-20, 20);
                 Command cmd = {
                     .type = CMD_PHYS_DEFINE, 
-                    .entityID = e.id, 
+                    .entity.id = e.id, 
+                    .entity.generation = e.generation,
                     .physDef.material_id = MAT_DEFAULT,
                     .physDef.flags = 0,
                     .physDef.drag = 2.0f 
@@ -260,7 +261,7 @@ void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
 
             Command cmd;
             cmd.type = CMD_PHYS_DEFINE;
-            cmd.entityID = e.id;
+            cmd.entity = (Entity){e.id,e.generation};
             cmd.physDef.material_id = MAT_DEFAULT;
             cmd.physDef.flags = 0;
             cmd.physDef.drag = 0.1f;

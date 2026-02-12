@@ -1,13 +1,13 @@
-#include "engine/core/engine.h"
+#include "engine/core/cre_engine.h"
 #define _ISOC11_SOURCE // for aligned_alloc
 #include <stdlib.h>
-#include "engine/core/config.h"
+#include "engine/core/cre_config.h"
 #include "game_config.h"
-#include "engine/core/scene_manager.h"
+#include "engine/scene/cre_sceneManager.h"
 #include "game/game_scenes.h"
 #include "game/game.h"
-#include "engine/core/command_bus.h"
-#include "engine/core/entity_registry.h"
+#include "engine/core/cre_commandBus.h"
+#include "engine/ecs/cre_entityRegistry.h"
 
 int main(void) {
     // Using alloc because EntityRegistry is big.
