@@ -43,10 +43,10 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
             // Animation flip data - check if entity has animation component
             bool flipX = false;
             bool flipY = false;
-            if (reg->component_masks[id] & COMP_ANIMATION) {
+            //if (reg->component_masks[id] & COMP_ANIMATION) {
                 // TODO: Add flip data to registry if needed
                 // For now, no flip
-            }
+            //}
             
             cre_RendererCore_DrawSprite(
                 spriteIds,

@@ -128,11 +128,15 @@ void Input_Remap(GameAction action, int key) {
     keyBindings[action] = key;
 }
 
-
-
-
-
-
-
-
-
+void Input_Poll(void) {
+    // CURRENTLY: Raylib handles polling internally in EndDrawing/WindowShouldClose.
+    // So we don't strictly need code here.
+    
+    // FUTURE PROOFING:
+    // 1. If you add Gamepad support, you might check connections here.
+    // 2. If you add an Input Recording system (Replay), you would record the keys here.
+    // 3. If you switch to SDL2 later, you would put SDL_PollEvent here.
+    
+    // For now, leave it empty or add a comment.
+    // PollInputEvents(); // Optional: Explicitly poll if not using standard Raylib loop
+}

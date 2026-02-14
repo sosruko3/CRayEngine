@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Debug View - build_assets.py v2.3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #16213e;
+            border-radius: 8px;
+        }
+        .controls label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        .controls input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        .stats {
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background: #0f3460;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .atlas-container {
+            position: relative;
+            display: inline-block;
+            background: repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 20px 20px;
+            border: 2px solid #00d4ff;
+            border-radius: 4px;
+            overflow: auto;
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        .atlas-wrapper {
+            position: relative;
+            width: 4096px;
+            height: 4096px;
+        }
+        .atlas-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4096px;
+            height: 4096px;
+            image-rendering: pixelated;
+        }
+        .sprite-box {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sprite-box:hover {
+            background: rgba(0, 255, 0, 0.5) !important;
+            border-color: rgba(0, 255, 0, 1) !important;
+            z-index: 1000;
+        }
+        .sprite-box .label {
+            font-size: 9px;
+            color: white;
+            text-shadow: 1px 1px 1px black, -1px -1px 1px black;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .show-labels .sprite-box .label {
+            opacity: 1;
+        }
+        .extruded-box {
+            position: absolute;
+            border: 1px dashed rgba(0, 200, 255, 0.4);
+            pointer-events: none;
+            display: none;
+        }
+        .show-extrusion .extruded-box {
+            display: block;
+        }
+        .hide-boxes .sprite-box {
+            display: none;
+        }
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 200px;
+            border: 1px solid #0f3460;
+        }
+        .info-panel h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Atlas Debug View</h1>
+    
+    <div class="stats">
+        <strong>Sprites:</strong> 9 unique, 
+        0 duplicates | 
+        <strong>Atlas:</strong> 4096x4096px
+    </div>
+    
+    <div class="controls">
+        <label>
+            <input type="checkbox" id="toggleBoxes" checked onchange="toggleClass('hide-boxes', !this.checked)">
+            Show Sprite Boxes
+        </label>
+        <label>
+            <input type="checkbox" id="toggleLabels" onchange="toggleClass('show-labels', this.checked)">
+            Show ID Labels
+        </label>
+        <label>
+            <input type="checkbox" id="toggleExtrusion" onchange="toggleClass('show-extrusion', this.checked)">
+            Show Extrusion Borders
+        </label>
+    </div>
+    
+    <div class="atlas-container">
+        <div class="atlas-wrapper" id="atlasWrapper">
+            <img src="atlas.png" alt="Texture Atlas" class="atlas-image">
+            
+            <!-- Extruded region boxes (shown optionally) -->
+        <div class="extruded-box" 
+             style="left: 760px; top: 2px; width: 18px; height: 18px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 367px; top: 2px; width: 151px; height: 195px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 2px; top: 2px; width: 169px; height: 206px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 173px; top: 2px; width: 192px; height: 200px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 735px; top: 2px; width: 23px; height: 20px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 648px; top: 2px; width: 60px; height: 34px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 780px; top: 2px; width: 18px; height: 18px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 520px; top: 2px; width: 126px; height: 125px;">
+        </div>
+        <div class="extruded-box" 
+             style="left: 710px; top: 2px; width: 23px; height: 34px;">
+        </div>
+            
+            <!-- Sprite boxes -->
+        <div class="sprite-box" 
+             style="left: 761px; top: 3px; width: 16px; height: 16px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="cactus (ID: 0)&#10;Atlas: (761, 3)&#10;Size: 16x16&#10;Offset: (0, 0)&#10;Original: 16x16">
+            <span class="label">0</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 368px; top: 3px; width: 149px; height: 193px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="character_zombie_run0 (ID: 1)&#10;Atlas: (368, 3)&#10;Size: 149x193&#10;Offset: (23, 63)&#10;Original: 192x256">
+            <span class="label">1</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 3px; top: 3px; width: 167px; height: 204px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="character_zombie_run1 (ID: 2)&#10;Atlas: (3, 3)&#10;Size: 167x204&#10;Offset: (12, 51)&#10;Original: 192x256">
+            <span class="label">2</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 174px; top: 3px; width: 190px; height: 198px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="character_zombie_run2 (ID: 3)&#10;Atlas: (174, 3)&#10;Size: 190x198&#10;Offset: (1, 47)&#10;Original: 192x256">
+            <span class="label">3</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 736px; top: 3px; width: 21px; height: 18px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="enemy_idle (ID: 4)&#10;Atlas: (736, 3)&#10;Size: 21x18&#10;Offset: (2, 6)&#10;Original: 24x24">
+            <span class="label">4</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 649px; top: 3px; width: 58px; height: 32px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="fish_blue (ID: 5)&#10;Atlas: (649, 3)&#10;Size: 58x32&#10;Offset: (3, 16)&#10;Original: 64x64">
+            <span class="label">5</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 781px; top: 3px; width: 16px; height: 16px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="missing (ID: 6)&#10;Atlas: (781, 3)&#10;Size: 16x16&#10;Offset: (0, 0)&#10;Original: 16x16">
+            <span class="label">6</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 521px; top: 3px; width: 124px; height: 123px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="player_idle0 (ID: 7)&#10;Atlas: (521, 3)&#10;Size: 124x123&#10;Offset: (0, 0)&#10;Original: 124x123">
+            <span class="label">7</span>
+        </div>
+        <div class="sprite-box" 
+             style="left: 711px; top: 3px; width: 21px; height: 32px;
+                    background: rgba(255, 0, 0, 0.3); border: 1px solid rgba(255, 0, 0, 0.8);"
+             title="soldier (ID: 8)&#10;Atlas: (711, 3)&#10;Size: 21x32&#10;Offset: (5, 0)&#10;Original: 32x32">
+            <span class="label">8</span>
+        </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleClass(className, add) {
+            const wrapper = document.getElementById('atlasWrapper');
+            if (add) {
+                wrapper.classList.add(className);
+            } else {
+                wrapper.classList.remove(className);
+            }
+        }
+    </script>
+</body>
+</html>

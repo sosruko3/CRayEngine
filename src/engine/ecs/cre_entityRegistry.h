@@ -19,26 +19,6 @@
 #include "engine/core/cre_config.h"
 
 // ============================================================================
-// Entity Handle
-// ============================================================================
-
-/**
- * @brief Lightweight handle to reference an entity safely.
- * 
- * The generation field ensures stale handles don't access recycled entities.
- */
-typedef struct Entity {
-    uint32_t id;         ///< Index into the registry arrays
-    uint32_t generation; ///< Generation counter for validation
-} Entity;
-
-/** Invalid entity sentinel value */
-#define ENTITY_INVALID ((Entity){ .id = UINT32_MAX, .generation = 0 })
-
-/** Check if an entity handle is valid (not the sentinel) */
-#define ENTITY_IS_VALID(e) ((e).id != UINT32_MAX)
-
-// ============================================================================
 // Component Mask Bits (uint64_t masks[])
 // ============================================================================
 // These bits indicate which components an entity possesses.

@@ -23,6 +23,8 @@ add_custom_command(
     OUTPUT "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.c" "${GEN_DIR}/atlas.png"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${GEN_DIR}"
     COMMAND ${Python3_EXECUTABLE} "${ASSET_SCRIPT}" --input "${RAW_TEXTURES_DIR}" --output "${GEN_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/src/assets/atlas"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${GEN_DIR}" "${CMAKE_SOURCE_DIR}/src/assets/atlas"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${GEN_DIR}/atlas.png" "${CMAKE_BINARY_DIR}/atlas.png"
     DEPENDS "${ASSET_SCRIPT}" ${RAW_PNGS}
     COMMENT "[ASSET PIPELINE] Packing texture atlas..."
@@ -50,7 +52,7 @@ set(SOURCES
     src/main.c
 
     # Generated Atlas
-    "${GEN_DIR}/atlas_data.c"
+    src/assets/atlas/atlas_data.c
 
     # Core Engine
     src/engine/core/cre_engine.c
@@ -61,13 +63,16 @@ set(SOURCES
     src/engine/platform/cre_input.c
     src/engine/platform/cre_viewport.c
     src/engine/ecs/cre_entityManager.c
+    src/engine/ecs/cre_entityAPI.c
     src/engine/loaders/cre_assetManager.c
     src/engine/systems/render/cre_RendererCore.c
     src/engine/systems/render/cre_RenderSystem.c
     src/engine/systems/render/cre_renderAPI.c
     src/engine/systems/animation/cre_animationSystem.c
+    src/engine/systems/animation/cre_animationAPI.c
     src/engine/systems/camera/cre_camera.c
     src/engine/systems/camera/cre_cameraUtils.c
+    src/engine/systems/camera/cre_cameraAPI.c
     src/engine/systems/physics/cre_physicsSystem.c
     src/engine/systems/physics/cre_spatialHash.c
     src/engine/systems/physics/cre_physicsAPI.c

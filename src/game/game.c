@@ -23,7 +23,6 @@
 #include <assert.h>
 
 // Global variables
-static double physicsTime = 0.0; // FOR DEBUG
 static EntityRegistry* s_gameReg = NULL; // Store registry pointer for ResetGameplay
 
 // Helper function
@@ -39,13 +38,6 @@ void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
     DebugSystem_HandleInput(reg, bus);
     DebugSystem_SpawnTestEntity(reg, bus);
     ControlSystem_UpdateLogic(reg, dt);
-
-    double startTime = GetTime(); // FOR DEBUG
-    PhysicsSystem_Update(reg,bus,dt);
-    double endTime = GetTime(); // FOR DEBUG
-    physicsTime = (endTime - startTime) * 1000.0; // FOR DEBUG
-    
-    AnimationSystem_Update(reg, dt);
     ControlSystem_UpdateCamera(reg);
     ControlSystem_ChangeZoom();
 
@@ -66,7 +58,7 @@ void Game_Draw(EntityRegistry* reg, CommandBus* bus) {
     ViewportSize v = Viewport_Get();
     DrawFPS(v.width*0.02f,v.height*0.02f); // FOR DEBUG
     uint32_t activeCount = DebugSystem_GetActiveCount(reg); // FOR DEBUG
-    DrawText(TextFormat("Physics time: %.04f ms | Entities: %d",physicsTime, activeCount),20,20,20,RED); // FOR DEBUG
+    DrawText(TextFormat("Physics time: %.04f ms | Entities: %d",activeCount, activeCount),20,20,20,RED); // FOR DEBUG
 }
 void Game_Shutdown(EntityRegistry* reg, CommandBus* bus) {
     // Cleanup if needed

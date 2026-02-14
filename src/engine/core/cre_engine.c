@@ -11,6 +11,7 @@
 #include "engine/platform/cre_viewport.h"
 #include "engine/systems/camera/cre_camera.h"
 #include "cre_commandBus.h"
+#include "engine/core/cre_enginePhases.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,23 +44,16 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
 void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {
-    Log(LOG_LVL_INFO,"Entering main loop");
-    
     while (!WindowShouldClose()) {
-        Viewport_Update();
-        if (Viewport_wasResized()) {
-            ViewportSize vp = Viewport_Get();
-            creCamera_UpdateViewportCache(vp);
-            cre_RendererCore_RecreateCanvas((int)vp.width,(int)vp.height);
-            Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",vp.width,vp.height);
-        }
-        SceneManager_Update(reg,bus,dt);
-
+        EnginePhase0_PlatformSync();
+        EnginePhase1_InputAndLogic(reg,bus,dt);
+        EnginePhase2_Simulation(reg,bus,dt);
         cre_RendererCore_BeginFrame();
         SceneManager_Draw(reg,bus);
         cre_RendererCore_EndFrame();
+        CommandIterator iter = CommandBus_GetIterator(bus);
+        CommandBus_Flush(bus,&iter);
     }
-    Log(LOG_LVL_INFO,"Main loop exited. (Window closed)");
 }
 void Engine_Shutdown(EntityRegistry* reg, CommandBus* bus) {
     Log(LOG_LVL_INFO,"Shutting down Raylib...");

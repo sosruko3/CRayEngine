@@ -1,0 +1,4 @@
+#ifndef CRE_CAMERASYSTEM_H
+#define CRE_CAMERASYSTEM_H
+
+#endif

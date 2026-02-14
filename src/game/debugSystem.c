@@ -231,8 +231,7 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
                 reg->vel_y[e.id] = (float)GetRandomValue(-20, 20);
                 Command cmd = {
                     .type = CMD_PHYS_DEFINE, 
-                    .entity.id = e.id, 
-                    .entity.generation = e.generation,
+                    .entity = (Entity){e.id,e.generation},
                     .physDef.material_id = MAT_DEFAULT,
                     .physDef.flags = 0,
                     .physDef.drag = 2.0f 

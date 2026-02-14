@@ -27,5 +27,6 @@ bool Input_IsDown(GameAction action);
 
 void Input_Remap(GameAction action,int key);
 
+void Input_Poll(void);
 
 #endif

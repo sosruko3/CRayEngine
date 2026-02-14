@@ -1,0 +1,4 @@
+#ifndef CRE_ANIMATIONAPI_H
+#define CRE_ANIMATIONAPI_H
+
+#endif

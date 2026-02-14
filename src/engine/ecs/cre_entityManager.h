@@ -9,7 +9,6 @@
 #ifndef ENTITY_MANAGER_H
 #define ENTITY_MANAGER_H
 
-typedef struct Entity Entity;
 typedef struct EntityRegistry EntityRegistry;
 #include <stddef.h>
 #include <stdint.h>

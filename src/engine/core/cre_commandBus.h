@@ -1,7 +1,7 @@
 #ifndef COMMAND_BUS_H
 #define COMMAND_BUS_H
 
-#include "engine/ecs/cre_entityRegistry.h" // required for Entity struct.
+#include "engine/core/cre_types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
