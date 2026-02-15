@@ -1,56 +1,54 @@
-#ifndef CRE_CAMERA_UTILS_H
-#define CRE_CAMERA_UTILS_H
+#ifndef CRE_CAMERAUTILS_H
+#define CRE_CAMERAUTILS_H
 
 #include "engine/core/cre_types.h"
-typedef struct ViewportSize ViewportSize;
-// Will refactor these parts later on.
+typedef struct Camera2D Camera2D;
 
 /**
  * CRE_Camera_Utils - The "Smart" Camera Toolbox
  * 
- * This module provides optional convenience functions for common camera
- * operations. Game developers can use these utilities or implement their
- * own camera behaviors using the core creCamera_* functions.
+ * Math and conversion helpers used by camera systems.
+ * No camera state is stored or mutated in this module.
  */
 
 /**
- * Smoothly interpolate the camera position towards a target.
+ * Smoothly interpolate a position towards a target.
  * Uses exponential decay for smooth deceleration.
  * 
+ * @param current Current position
  * @param target The world position to move towards
  * @param speed  Interpolation speed (higher = faster, typical range: 1.0 - 10.0)
  * @param dt     Delta time in seconds
+ * @return Interpolated position
  */
-void creCamera_LerpTo(creVec2 target, float speed, float dt);
+creVec2 cameraUtils_Lerp(creVec2 current, creVec2 target, float speed, float dt);
 
 /**
- * Apply a camera shake effect.
- * Adds a randomized offset to the camera position for the current frame.
- * Call this each frame you want shake; the effect is additive.
+ * Create randomized camera shake offset.
  * 
  * @param intensity Maximum shake offset in world units
+ * @return Offset vector to add to camera target
  */
-void creCamera_ApplyShake(float intensity);
+creVec2 cameraUtils_RandomShakeOffset(float intensity);
 
 /**
  * Convert a screen position to world coordinates.
  * Takes into account camera position, zoom, rotation, and viewport offset.
  * 
  * @param screenPos Position in screen/pixel coordinates
+ * @param cam Active camera transform
  * @return Position in world coordinates
  */
-creVec2 creCamera_ScreenToWorld(creVec2 screenPos,ViewportSize vp);
+creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, Camera2D cam);
 
 /**
  * Convert a world position to screen coordinates.
  * Takes into account camera position, zoom, rotation, and viewport offset.
  * 
  * @param worldPos Position in world coordinates
+ * @param cam Active camera transform
  * @return Position in screen/pixel coordinates
  */
-creVec2 creCamera_WorldToScreen(creVec2 worldPos,ViewportSize vp);
+creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, Camera2D cam);
 
-
-// Center to the target
-void creCamera_CenterOn(creVec2 targetPosition);
 #endif

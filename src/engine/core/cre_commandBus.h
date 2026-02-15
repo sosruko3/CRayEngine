@@ -1,5 +1,5 @@
-#ifndef COMMAND_BUS_H
-#define COMMAND_BUS_H
+#ifndef CRE_COMMANDBUS_H
+#define CRE_COMMANDBUS_H
 
 #include "engine/core/cre_types.h"
 #include <stdint.h>

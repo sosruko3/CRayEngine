@@ -1,5 +1,5 @@
-#ifndef PHYSICS_DEFS_H
-#define PHYSICS_DEFS_H
+#ifndef CRE_PHYSICS_DEFS_H
+#define CRE_PHYSICS_DEFS_H
 
 #define PHYS_MAX_MATERIALS 256
 

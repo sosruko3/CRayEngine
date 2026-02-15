@@ -17,7 +17,7 @@
 #include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/systems/render/cre_RendererCore.h"
 #include "engine/platform/cre_viewport.h"
-#include "engine/systems/camera/cre_camera.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/platform/cre_input.h"
 #include <stdio.h> // For sprintf
 #include <assert.h>
@@ -38,7 +38,6 @@ void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
     DebugSystem_HandleInput(reg, bus);
     DebugSystem_SpawnTestEntity(reg, bus);
     ControlSystem_UpdateLogic(reg, dt);
-    ControlSystem_UpdateCamera(reg);
     ControlSystem_ChangeZoom();
 
     if (Input_IsPressed(ACTION_CONFIRM))    SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
@@ -46,8 +45,8 @@ void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
 void Game_Draw(EntityRegistry* reg, CommandBus* bus) {
 
     ClearBackground(DARKGREEN);
-    cre_RendererCore_BeginWorldMode(creCamera_GetInternal(Viewport_Get()));
-    cre_RenderSystem_DrawEntities(reg, creCamera_GetCullBounds(Viewport_Get()));
+    cre_RendererCore_BeginWorldMode(cameraSystem_GetInternal());
+    cre_RenderSystem_DrawEntities(reg, cameraSystem_GetCullBounds());
     DebugSystem_RenderWorldSpace(reg); // World-space debug overlays (inside camera)
     cre_RendererCore_EndWorldMode(); // After this is UI etc.
 

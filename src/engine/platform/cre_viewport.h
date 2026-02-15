@@ -1,5 +1,5 @@
-#ifndef VIEWPORT_H
-#define VIEWPORT_H
+#ifndef CRE_VIEWPORT_H
+#define CRE_VIEWPORT_H
 
 #include "stdbool.h"
 

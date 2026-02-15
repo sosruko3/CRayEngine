@@ -1,5 +1,5 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef CRE_LOGGER_H
+#define CRE_LOGGER_H
 
 typedef enum {
     LOG_LVL_INFO, // Normal things

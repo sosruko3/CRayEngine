@@ -1,5 +1,5 @@
 /**
- * @file animationSystem.h
+ * @file cre_animationSystem.h
  * @brief Pure SoA Animation System with Baked Data
  * 
  * Data-Oriented animation processing using "baked" constant data.
@@ -20,8 +20,8 @@
  *   - anim_loops[]         : bool     - whether animation loops
  */
 
-#ifndef ANIMATION_SYSTEM_H
-#define ANIMATION_SYSTEM_H
+#ifndef CRE_ANIMATIONSYSTEM_H
+#define CRE_ANIMATIONSYSTEM_H
 
 #include <stdint.h>
 #include <stdbool.h>

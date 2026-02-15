@@ -6,8 +6,8 @@
  * All functions take an EntityRegistry* as the first parameter.
  */
 
-#ifndef ENTITY_MANAGER_H
-#define ENTITY_MANAGER_H
+#ifndef CRE_ENTITYMANAGER_H
+#define CRE_ENTITYMANAGER_H
 
 typedef struct EntityRegistry EntityRegistry;
 #include <stddef.h>

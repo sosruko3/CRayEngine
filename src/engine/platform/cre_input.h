@@ -1,5 +1,5 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef CRE_INPUT_H
+#define CRE_INPUT_H
 #include <stdbool.h>
 
 typedef enum {

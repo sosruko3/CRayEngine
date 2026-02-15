@@ -1,5 +1,5 @@
-#ifndef SCENE_MANAGER_H
-#define SCENE_MANAGER_H
+#ifndef CRE_SCENEMANAGER_H
+#define CRE_SCENEMANAGER_H
 
 #include "cre_scenes.h"
 

@@ -1,5 +1,5 @@
-#ifndef ASSET_MANAGER_H
-#define ASSET_MANAGER_H
+#ifndef CRE_ASSETMANAGER_H
+#define CRE_ASSETMANAGER_H
 
 #include "raylib.h"
 #include "engine/core/cre_types.h"

@@ -9,8 +9,8 @@
  * - Separated data highways for SIMD-friendly iteration
  */
 
-#ifndef ENTITY_REGISTERY_H
-#define ENTITY_REGISTERY_H
+#ifndef CRE_ENTITYREGISTRY_H
+#define CRE_ENTITYREGISTRY_H
 
 #include "engine/core/cre_types.h"
 #include <stdint.h>

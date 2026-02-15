@@ -6,8 +6,7 @@
 #include "engine/platform/cre_input.h"
 #include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/platform/cre_viewport.h"
-#include "engine/systems/camera/cre_camera.h"
-#include "engine/systems/camera/cre_cameraUtils.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/core/cre_config.h"
 #include "atlas_data.h"
 #include "engine/core/cre_commandBus.h"
@@ -65,10 +64,10 @@ void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt) {
 
 void ControlSystem_ChangeZoom(void) {
     if (Input_IsDown(ACTION_PRIMARY)) {
-        creCamera_SetZoom(creCamera_GetZoom() * 1.01f);
+        cameraSystem_SetZoom(cameraSystem_GetZoom() * 1.01f);
     }
     else if (Input_IsDown(ACTION_SECONDARY)) {
-        creCamera_SetZoom(creCamera_GetZoom() * 0.99f);
+        cameraSystem_SetZoom(cameraSystem_GetZoom() * 0.99f);
     }
 }
 
@@ -76,18 +75,12 @@ void ControlSystem_SetCameraTarget(EntityRegistry* reg, uint32_t entityID) {
     s_cameraTargetID = entityID;
 
     if (reg && s_cameraTargetID < MAX_ENTITIES) {
-        creVec2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
-        creCamera_CenterOn(pos);
-    }
-}
+        Entity target = { .id = s_cameraTargetID, .generation = reg->generations[s_cameraTargetID] };
+        cameraSystem_SetTargetEntity(target);
+        cameraSystem_SetMode(CAM_MODE_FOLLOW);
 
-void ControlSystem_UpdateCamera(EntityRegistry* reg) {
-    assert(reg && "reg is NULL");
-    if (s_cameraTargetID >= MAX_ENTITIES) return;
-    
-    if (reg->state_flags[s_cameraTargetID] & FLAG_ACTIVE) {
         creVec2 pos = {reg->pos_x[s_cameraTargetID], reg->pos_y[s_cameraTargetID]};
-        creCamera_CenterOn(pos);
+        cameraSystem_SetPosition(pos);
     }
 }
 

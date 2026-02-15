@@ -1,6 +1,6 @@
 #include "cre_entitySystem.h"
 #include "cre_entityManager.h"
-#include "cre_commandBus.h"
+#include "engine/core/cre_commandBus.h"
 
 void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");

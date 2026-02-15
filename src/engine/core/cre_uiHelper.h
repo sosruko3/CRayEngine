@@ -1,5 +1,5 @@
-#ifndef UI_HELPER_H
-#define UI_HELPER_H
+#ifndef CRE_UIHELPER_H
+#define CRE_UIHELPER_H
 
 #include "cre_types.h"
 #include "raylib.h"  // For Rectangle

@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef CRE_CONFIG_H
+#define CRE_CONFIG_H
 
 #define GAME_VIRTUAL_HEIGHT 1080.0f // Change these values to change resolution
 #define TARGET_FRAMERATE 60 

@@ -22,7 +22,7 @@
 #include "engine/core/cre_logger.h"
 #include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/platform/cre_viewport.h"
-#include "engine/systems/camera/cre_camera.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/core/cre_config.h"
 #include "atlas_data.h"
 #include "engine/core/cre_commandBus.h"
@@ -481,7 +481,7 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
     creVec2 mouseScreen = {raylibMouseScreen.x * scaleX, raylibMouseScreen.y * scaleY};
     
     // Convert to world space
-    Camera2D cam = creCamera_GetInternal(vp);
+    Camera2D cam = cameraSystem_GetInternal();
     Vector2 raylibMouseWorld = GetScreenToWorld2D((Vector2){mouseScreen.x, mouseScreen.y}, cam);
     creVec2 mouseWorld = {raylibMouseWorld.x, raylibMouseWorld.y};
     
@@ -651,7 +651,7 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
     // We'll sample the world in a grid and count entities in each cell
     
     ViewportSize v = Viewport_Get();
-    Camera2D cam = creCamera_GetInternal(v);
+    Camera2D cam = cameraSystem_GetInternal();
     creVec2 camTarget = {cam.target.x, cam.target.y};
     
     // Calculate visible area
@@ -753,7 +753,7 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
     
     // Get viewport for orphan indicators drawn at screen edges
     ViewportSize vp = Viewport_Get();
-    Camera2D cam = creCamera_GetInternal(vp);
+    Camera2D cam = cameraSystem_GetInternal();
     
     // Draw entities as colored dots
     for (uint32_t i = 0; i <= bound; i++) {

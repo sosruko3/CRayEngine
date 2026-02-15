@@ -1,5 +1,5 @@
 /**
- * @file physics_system.h
+ * @file cre_physicsSystem.h
  * @brief 4-Phase Physics Pipeline for Data-Oriented Entity System
  * 
  * Pipeline Architecture:
@@ -12,8 +12,8 @@
  * Sub-stepping is configurable via PHYS_SUB_STEPS in config.h.
  */
 
-#ifndef PHYSICS_SYSTEM_H
-#define PHYSICS_SYSTEM_H
+#ifndef CRE_PHYSICSSYSTEM_H
+#define CRE_PHYSICSSYSTEM_H
 
 #include <stdint.h>
 #include <stdbool.h>

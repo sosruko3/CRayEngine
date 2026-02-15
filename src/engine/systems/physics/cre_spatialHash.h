@@ -1,5 +1,5 @@
-#ifndef SPATIAL_HASH_H
-#define SPATIAL_HASH_H
+#ifndef CRE_SPATIALHASH_H
+#define CRE_SPATIALHASH_H
 
 #include <stdint.h>
 

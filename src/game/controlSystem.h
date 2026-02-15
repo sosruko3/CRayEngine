@@ -25,12 +25,6 @@ void ControlSystem_ChangeZoom(void);
 void ControlSystem_SetCameraTarget(EntityRegistry* reg, uint32_t entityID);
 
 /**
- * @brief Update camera position to follow target entity.
- * @param reg Pointer to the EntityRegistry
- */
-void ControlSystem_UpdateCamera(EntityRegistry* reg);
-
-/**
  * @brief Update sleep state for entities based on distance from camera target.
  * 
  * Entities far from the camera target are marked as FLAG_CULLED.

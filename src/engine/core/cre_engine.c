@@ -9,7 +9,7 @@
 #include "engine/systems/render/cre_RendererCore.h"
 #include "engine/loaders/cre_assetManager.h"
 #include "engine/platform/cre_viewport.h"
-#include "engine/systems/camera/cre_camera.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
 #include "cre_commandBus.h"
 #include "engine/core/cre_enginePhases.h"
 #include <stdio.h>
@@ -40,7 +40,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
     Asset_Init();
     PhysicsSystem_Init();
 
-    creCamera_Init(Viewport_Get());
+    cameraSystem_Init(Viewport_Get());
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
 void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {

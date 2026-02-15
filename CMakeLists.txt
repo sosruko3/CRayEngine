@@ -64,13 +64,14 @@ set(SOURCES
     src/engine/platform/cre_viewport.c
     src/engine/ecs/cre_entityManager.c
     src/engine/ecs/cre_entityAPI.c
+    src/engine/ecs/cre_entitySystem.c
     src/engine/loaders/cre_assetManager.c
     src/engine/systems/render/cre_RendererCore.c
     src/engine/systems/render/cre_RenderSystem.c
     src/engine/systems/render/cre_renderAPI.c
     src/engine/systems/animation/cre_animationSystem.c
     src/engine/systems/animation/cre_animationAPI.c
-    src/engine/systems/camera/cre_camera.c
+    src/engine/systems/camera/cre_cameraSystem.c
     src/engine/systems/camera/cre_cameraUtils.c
     src/engine/systems/camera/cre_cameraAPI.c
     src/engine/systems/physics/cre_physicsSystem.c

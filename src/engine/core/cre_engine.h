@@ -1,5 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef CRE_ENGINE_H
+#define CRE_ENGINE_H
 
 // Forward Declaration
 typedef struct EntityRegistry EntityRegistry;

@@ -1,5 +1,5 @@
-#ifndef SCENES_H
-#define SCENES_H
+#ifndef CRE_SCENES_H
+#define CRE_SCENES_H
 
 // Forward Declaration
 typedef struct EntityRegistry EntityRegistry;
