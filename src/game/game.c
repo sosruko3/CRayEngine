@@ -10,7 +10,7 @@
 #include "engine/core/cre_logger.h"
 #include "entity_types.h"
 #include "controlSystem.h"
-#include "debugSystem.h"
+#include "engine/systems/debug/cre_debugSystem.h"
 #include "engine/systems/render/cre_RenderSystem.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/loaders/cre_assetManager.h"
@@ -35,21 +35,23 @@ void Game_Init(EntityRegistry* reg, CommandBus* bus) {
 }
 void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
     ControlSystem_UpdateSleepState(reg);
-    DebugSystem_HandleInput(reg, bus);
-    DebugSystem_SpawnTestEntity(reg, bus);
+    DebugSystem_HandleInput(reg);
+    ControlSystem_HandleDebugSpawning(reg, bus);
     ControlSystem_UpdateLogic(reg, dt);
-    ControlSystem_ChangeZoom();
+    ControlSystem_ChangeZoom(dt);
 
     if (Input_IsPressed(ACTION_CONFIRM))    SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
 }
 void Game_Draw(EntityRegistry* reg, CommandBus* bus) {
 
     ClearBackground(DARKGREEN);
-    cre_RendererCore_BeginWorldMode(cameraSystem_GetInternal());
-    cre_RenderSystem_DrawEntities(reg, cameraSystem_GetCullBounds());
-    DebugSystem_RenderWorldSpace(reg); // World-space debug overlays (inside camera)
-    cre_RendererCore_EndWorldMode(); // After this is UI etc.
+    RendererCore_BeginWorldMode(cameraSystem_GetInternal());
 
+    RendererSystem_Draw(reg,cameraSystem_GetCullBounds());
+    DebugSystem_RenderWorldSpace(reg); // World-space debug overlays (inside camera)
+    
+    RendererCore_EndWorldMode(); // After this is UI etc.
+    
     // Screen-space debug HUD (outside camera)
     DebugSystem_RenderScreenSpace(reg); // DEBUG
     DebugSystem_RenderMouseHover(reg); // DEBUG

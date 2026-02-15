@@ -77,12 +77,12 @@ set(SOURCES
     src/engine/systems/physics/cre_physicsSystem.c
     src/engine/systems/physics/cre_spatialHash.c
     src/engine/systems/physics/cre_physicsAPI.c
+    src/engine/systems/debug/cre_debugSystem.c
     
     # Game
     src/game/game.c
     src/game/game_scenes.c
     src/game/controlSystem.c
-    src/game/debugSystem.c
     src/game/menu.c
     src/game/game_over.c
 )

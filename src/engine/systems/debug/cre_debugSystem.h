@@ -57,20 +57,10 @@ void DebugSystem_Init(void);
  *   F2-F5   - Select visualization mode
  *   F8      - Cycle modes
  *   TAB     - Toggle stats HUD
- *   Z       - Spawn 100 test entities
- *   X       - Spawn single test entity
  * 
  * @param reg Entity registry
- * @param bus Command bus for entity spawning
  */
-void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus);
-
-/**
- * @brief Spawn a single test entity at (400, 400).
- * @param reg Entity registry
- * @param bus Command bus
- */
-void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus);
+void DebugSystem_HandleInput(EntityRegistry* reg);
 
 /**
  * @brief Get count of active entities.

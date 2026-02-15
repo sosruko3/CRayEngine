@@ -11,18 +11,19 @@
  *   - Stats HUD available in all modes (TAB toggle)
  *   - Alpha blending for non-intrusive overlays
  */
-#include "debugSystem.h"
+#include "cre_debugSystem.h"
 #include "raylib.h"
 #include "engine/core/cre_types.h"
 #include "engine/core/cre_typesMacro.h"
 #include "engine/core/cre_colors.h"
-#include "entity_types.h"
+#include "game/entity_types.h"
 #include "engine/ecs/cre_entityManager.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/core/cre_logger.h"
 #include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/platform/cre_viewport.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
+#include "engine/systems/camera/cre_cameraUtils.h"
 #include "engine/core/cre_config.h"
 #include "atlas_data.h"
 #include "engine/core/cre_commandBus.h"
@@ -177,9 +178,9 @@ void DebugSystem_Init(void) {
     Log(LOG_LVL_INFO, "Debug System Initialized - Press F1 to toggle, F2-F5 for modes");
 }
 
-void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
+void DebugSystem_HandleInput(EntityRegistry* reg) {
     assert(reg && "reg is NULL");
-    
+
     // -------------------------------------------------------------------------
     // Mode Toggle Controls
     // -------------------------------------------------------------------------
@@ -211,62 +212,6 @@ void DebugSystem_HandleInput(EntityRegistry* reg, CommandBus* bus) {
     // Stats HUD toggle (TAB)
     if (IsKeyPressed(KEY_TAB)) {
         s_statsHudEnabled = !s_statsHudEnabled;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Entity Spawning (Z = many, X = single)
-    // -------------------------------------------------------------------------
-    if (IsKeyPressed(KEY_Z)) {
-        ViewportSize v = Viewport_Get();
-        for (int i = 0; i < SPAWN_COUNT; i++) {
-            int x = GetRandomValue((int)((-4)*v.width), (int)(v.width*4));
-            int y = GetRandomValue((int)((-4)*v.height), (int)(v.height*4));
-            
-            uint64_t compMask = COMP_SPRITE| COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
-            uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);
-            
-            Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){x, y}, compMask, flags);
-            if (ENTITY_IS_VALID(e)) {
-                reg->vel_x[e.id] = (float)GetRandomValue(-20, 20);
-                reg->vel_y[e.id] = (float)GetRandomValue(-20, 20);
-                Command cmd = {
-                    .type = CMD_PHYS_DEFINE, 
-                    .entity = (Entity){e.id,e.generation},
-                    .physDef.material_id = MAT_DEFAULT,
-                    .physDef.flags = 0,
-                    .physDef.drag = 2.0f 
-                };
-                CommandBus_Push(bus, cmd);
-                AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
-            }
-        }
-        Log(LOG_LVL_INFO, "Spawned %d entities!", SPAWN_COUNT);
-    }
-}
-
-void DebugSystem_SpawnTestEntity(EntityRegistry* reg, CommandBus* bus) {
-    assert(reg && "reg is NULL");
-    
-    if (IsKeyPressed(KEY_X)) {
-        uint64_t compMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_Circle;
-        uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID | FLAG_ALWAYS_AWAKE | 
-                        SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_BULLET | L_ENEMY);
-        
-        Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){400, 400}, compMask, flags);
-        if (ENTITY_IS_VALID(e)) {
-            reg->sprite_ids[e.id] = SPR_ENEMY_IDLE;
-            reg->vel_x[e.id] = 20;
-            reg->vel_y[e.id] = 20;
-
-            Command cmd;
-            cmd.type = CMD_PHYS_DEFINE;
-            cmd.entity = (Entity){e.id,e.generation};
-            cmd.physDef.material_id = MAT_DEFAULT;
-            cmd.physDef.flags = 0;
-            cmd.physDef.drag = 0.1f;
-            CommandBus_Push(bus, cmd);
-        }
-        Log(LOG_LVL_INFO, "Spawned Test Entity");
     }
 }
 
@@ -482,8 +427,7 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
     
     // Convert to world space
     Camera2D cam = cameraSystem_GetInternal();
-    Vector2 raylibMouseWorld = GetScreenToWorld2D((Vector2){mouseScreen.x, mouseScreen.y}, cam);
-    creVec2 mouseWorld = {raylibMouseWorld.x, raylibMouseWorld.y};
+    creVec2 mouseWorld = cameraUtils_ScreenToWorld(mouseScreen, cam);
     
     const uint32_t bound = reg->max_used_bound;
     int32_t hoveredEntity = -1;

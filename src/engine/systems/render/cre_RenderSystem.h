@@ -8,11 +8,13 @@ typedef struct EntityRegistry EntityRegistry;
  * @brief Draw all visible entities within the cull rectangle.
  * 
  * Uses spatial hash query to find entities in view, then draws them
- * using cre_RendererCore_DrawSprite.
+ * using RendererCore_DrawSprite.
  * 
  * @param reg Pointer to the EntityRegistry
  * @param cullRect The creRectangle defining the visible area (camera bounds)
  */
-void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect);
+void RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect);
+
+void RendererSystem_Draw(EntityRegistry* reg,creRectangle view);
 
 #endif

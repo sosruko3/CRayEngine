@@ -8,7 +8,28 @@
 #include "atlas_data.h" 
 #include <assert.h>
 
-void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
+static void _Renderer_SyncDecorations(EntityRegistry* reg) {
+    const uint32_t bound = reg->max_used_bound;
+    const uint64_t reqComps = (COMP_PHYSICS | COMP_SPRITE);
+    
+    for (uint32_t i = 0; i <= bound; i++) {
+        const uint64_t flags = reg->state_flags[i];
+        const uint64_t comps = reg->component_masks[i];
+        
+        if (!(flags & FLAG_ACTIVE)) continue;
+        if (comps & reqComps) continue;
+
+        SpatialHash_AddDynamic(
+            i,
+            (int)reg->pos_x[i],
+            (int)reg->pos_y[i],
+            (int)reg->size_w[i],
+            (int)reg->size_h[i]
+        );
+    }
+}
+
+void RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
     assert(reg && "reg is NULL");
     
     static uint32_t visibleEntities[MAX_VISIBLE_ENTITIES];
@@ -48,7 +69,7 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
                 // For now, no flip
             //}
             
-            cre_RendererCore_DrawSprite(
+            RendererCore_DrawSprite(
                 spriteIds,
                 position,
                 size,
@@ -60,4 +81,11 @@ void cre_RenderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
             );
         }
     }
+}
+
+void RendererSystem_Draw(EntityRegistry* reg,creRectangle view) {
+    _Renderer_SyncDecorations(reg);
+
+    // Sorting is required here.
+    RenderSystem_DrawEntities(reg, view);
 }

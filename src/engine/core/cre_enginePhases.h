@@ -17,7 +17,7 @@ void EnginePhase0_PlatformSync(void) {
         ViewportSize vp = Viewport_Get();
 
         cameraSystem_UpdateViewportCache(vp);
-        cre_RendererCore_RecreateCanvas((int)vp.width,(int)vp.height);
+        RendererCore_RecreateCanvas((int)vp.width,(int)vp.height);
         Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",vp.width,vp.height);
     }
 }
@@ -32,12 +32,15 @@ void EnginePhase1_InputAndLogic(EntityRegistry* reg,CommandBus* bus,float dt) {
 void EnginePhase2_Simulation(EntityRegistry* reg,CommandBus* bus,float dt) {
     // AI and Particle systems are not implemented right now.
     EntitySystem_Update(reg,bus);
-
     PhysicsSystem_Update(reg,bus,dt);
-
     AnimationSystem_Update(reg,dt);
-    cameraSystem_Update(reg,bus,dt);
 }
 
+void EnginePhase3_RenderState(EntityRegistry* reg, CommandBus* bus, float dt) {
+    cameraSystem_Update(reg,bus,dt);
 
+    RendererCore_BeginFrame();
+    SceneManager_Draw(reg,bus);
+    RendererCore_EndFrame();
+}
 #endif

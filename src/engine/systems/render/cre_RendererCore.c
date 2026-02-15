@@ -25,7 +25,7 @@ static cre_RendererCore_State state = {0};
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal Helpers
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight) {
+void RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
     }
@@ -37,13 +37,13 @@ void cre_RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Lifecycle
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_Init(int virtualWidth,int virtualHeight) {
+void RendererCore_Init(int virtualWidth,int virtualHeight) {
     state.filterMode      = TEXTURE_FILTER_POINT; // FOR PIXEL ARTS.
-    cre_RendererCore_RecreateCanvas(virtualWidth,virtualHeight);
+    RendererCore_RecreateCanvas(virtualWidth,virtualHeight);
     Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth, state.virtualHeight);
 }
 
-void cre_RendererCore_Shutdown(void) {
+void RendererCore_Shutdown(void) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
         state.canvas = (RenderTexture2D){0};
@@ -55,7 +55,7 @@ void cre_RendererCore_Shutdown(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Frame Control
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_BeginFrame(void) {
+void RendererCore_BeginFrame(void) {
     /* Cache atlas once per frame */
     state.cachedAtlas = Asset_getTexture();
     
@@ -67,7 +67,7 @@ void cre_RendererCore_BeginFrame(void) {
     ClearBackground(R_COL(creBLACK));
 }
 
-void cre_RendererCore_EndFrame(void) {
+void RendererCore_EndFrame(void) {
     EndTextureMode();
     
     /* Upscale virtual canvas to physical window (no global flip) */
@@ -92,18 +92,18 @@ void cre_RendererCore_EndFrame(void) {
 /* ─────────────────────────────────────────────────────────────────────────────
  * Camera Interface
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_BeginWorldMode(Camera2D camera) {
+void RendererCore_BeginWorldMode(Camera2D camera) {
     BeginMode2D(camera);
 }
 
-void cre_RendererCore_EndWorldMode(void) {
+void RendererCore_EndWorldMode(void) {
     EndMode2D();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Consolidated Sprite Draw
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
+void RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
                             float rotation, bool flipX, bool flipY, creColor tint) {
     creRectangle srcRect = Asset_getRect((int)spriteID);
     
@@ -138,7 +138,7 @@ void cre_RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 si
 /* ─────────────────────────────────────────────────────────────────────────────
  * Settings
  * ───────────────────────────────────────────────────────────────────────────── */
-void cre_RendererCore_SetFilter(int filterMode) {
+void RendererCore_SetFilter(int filterMode) {
     state.filterMode = filterMode;
     if (state.canvas.id != 0) {
         SetTextureFilter(state.canvas.texture, filterMode);

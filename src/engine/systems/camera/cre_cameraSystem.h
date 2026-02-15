@@ -7,7 +7,6 @@
 
 typedef struct EntityRegistry EntityRegistry;
 typedef struct CommandBus CommandBus;
-typedef struct CameraSystemState CameraSystemState;
 
 typedef enum CameraSystemMode {
     CAM_MODE_MANUAL = 0,
@@ -16,6 +15,7 @@ typedef enum CameraSystemMode {
     CAM_MODE_LOCKED
 } CameraSystemMode;
 
+bool cameraSystem_IsTargetValid(const EntityRegistry* reg, Entity target);
 void cameraSystem_Init(ViewportSize vp);
 void cameraSystem_UpdateViewportCache(ViewportSize vp);
 

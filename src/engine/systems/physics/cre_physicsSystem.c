@@ -1,5 +1,5 @@
     /**
-     * @file physics_system.c
+     * @file cre_physicsSystem.c
      * @brief 4-Phase Physics Pipeline Implementation
      * 
      * Data-Oriented physics system operating on EntityRegistry SoA arrays.
@@ -224,10 +224,18 @@
             float* restrict const p_size_w = reg->size_w;
             float* restrict const p_size_h = reg->size_h;
             
-            // Filter: Active + Physics component + Static (or infinite mass)
+            // Filter: Active + Physics/Sprite + Static (or infinite mass)
+            // If has sprite and/or physics, it works. This is for particles etc.
+            bool hasPhysics = (comps & COMP_PHYSICS);
+            bool hasSprite  = (comps & COMP_SPRITE);
+
             if (!(flags & FLAG_ACTIVE)) continue;
-            if (!(comps & COMP_PHYSICS)) continue;
-            if (!(flags & FLAG_STATIC) && reg->inv_mass[i] > 0.0f) continue;
+            if (!hasPhysics && !hasSprite) continue;
+            bool isStatic = (flags & FLAG_STATIC);
+
+            if (hasPhysics) {
+                if (!isStatic && reg->inv_mass[i] > 0.001f) continue;
+            }
             
             // Add to static layer
             SpatialHash_AddStatic(

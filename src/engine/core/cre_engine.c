@@ -33,7 +33,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
         Logger_Shutdown();
         exit(1);
     }
-    cre_RendererCore_Init((int)v.width,(int)v.height);
+    RendererCore_Init((int)v.width,(int)v.height);
 
     CommandBus_Init(bus); // Make sure this function is getting called.
     EntityManager_Init(reg);
@@ -48,9 +48,7 @@ void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {
         EnginePhase0_PlatformSync();
         EnginePhase1_InputAndLogic(reg,bus,dt);
         EnginePhase2_Simulation(reg,bus,dt);
-        cre_RendererCore_BeginFrame();
-        SceneManager_Draw(reg,bus);
-        cre_RendererCore_EndFrame();
+        EnginePhase3_RenderState(reg,bus,dt);
         CommandIterator iter = CommandBus_GetIterator(bus);
         CommandBus_Flush(bus,&iter);
     }

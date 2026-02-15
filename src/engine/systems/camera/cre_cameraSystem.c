@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <math.h>
 
+#define cam_safety_epsilon 0.0001f
+
 typedef struct CameraSystemState {
     creVec2 position;
     float zoom;
@@ -37,7 +39,7 @@ static CameraSystemState s_cameraSystem = {
     .baseDiagonal = 0.0f
 };
 
-static bool cameraSystem_IsTargetValid(const EntityRegistry* reg, Entity target) {
+bool cameraSystem_IsTargetValid(const EntityRegistry* reg, Entity target) {
     if (!ENTITY_IS_VALID(target)) return false;
     if (target.id >= MAX_ENTITIES) return false;
     if (reg->generations[target.id] != target.generation) return false;
@@ -83,31 +85,37 @@ void cameraSystem_Update(EntityRegistry* reg, const CommandBus* bus, float dt) {
     assert(bus && "bus is NULL");
 
     if (dt > 0.05f) dt = 0.05f;
-    if (dt < 0.0f) dt = 0.0f;
+    if (dt < 0.0001f) dt = 0.0f;
 
     cameraSystem_ProcessCommands(reg, bus);
 
-    if (s_cameraSystem.mode == CAM_MODE_FOLLOW &&
-        cameraSystem_IsTargetValid(reg, s_cameraSystem.targetEntity)) {
-        const uint32_t id = s_cameraSystem.targetEntity.id;
-        const creVec2 targetPos = { reg->pos_x[id], reg->pos_y[id] };
-
-        if (s_cameraSystem.smoothSpeed > 0.0f) {
-            s_cameraSystem.position = cameraUtils_Lerp(
-                s_cameraSystem.position,
-                targetPos,
-                s_cameraSystem.smoothSpeed,
-                dt
-            );
-        } else {
-            s_cameraSystem.position = targetPos;
+    if (s_cameraSystem.mode == CAM_MODE_FOLLOW) {
+        if (cameraSystem_IsTargetValid(reg, s_cameraSystem.targetEntity)) {
+            const uint32_t id = s_cameraSystem.targetEntity.id;
+            const creVec2 targetPos = { reg->pos_x[id], reg->pos_y[id] };
+            
+            if (s_cameraSystem.smoothSpeed > cam_safety_epsilon) {
+                s_cameraSystem.position = cameraUtils_Lerp(
+                    s_cameraSystem.position,
+                    targetPos,
+                    s_cameraSystem.smoothSpeed,
+                    dt
+                );
+            }
+            else {
+                s_cameraSystem.position = targetPos;
+            }
+        }
+        else {
+            s_cameraSystem.mode = CAM_MODE_MANUAL;
+            s_cameraSystem.targetEntity = ENTITY_INVALID;
         }
     }
 
-    if (s_cameraSystem.shakeTimer > 0.0f && s_cameraSystem.shakeIntensity > 0.0f) {
+    if (s_cameraSystem.shakeTimer > cam_safety_epsilon && s_cameraSystem.shakeIntensity > cam_safety_epsilon) {
         s_cameraSystem.shakeOffset = cameraUtils_RandomShakeOffset(s_cameraSystem.shakeIntensity);
         s_cameraSystem.shakeTimer -= dt;
-        if (s_cameraSystem.shakeTimer <= 0.0f) {
+        if (s_cameraSystem.shakeTimer <= cam_safety_epsilon) {
             s_cameraSystem.shakeTimer = 0.0f;
             s_cameraSystem.shakeIntensity = 0.0f;
             s_cameraSystem.shakeOffset = (creVec2){0.0f, 0.0f};
@@ -160,7 +168,7 @@ Entity cameraSystem_GetTargetEntity(void) {
 }
 
 void cameraSystem_SetSmoothSpeed(float smoothSpeed) {
-    if (smoothSpeed < 0.0f) smoothSpeed = 0.0f;
+    if (smoothSpeed < cam_safety_epsilon) smoothSpeed = 0.0f;
     s_cameraSystem.smoothSpeed = smoothSpeed;
 }
 
@@ -169,7 +177,7 @@ float cameraSystem_GetSmoothSpeed(void) {
 }
 
 void cameraSystem_StartShake(float duration, float intensity) {
-    if (duration <= 0.0f || intensity <= 0.0f) return;
+    if (duration <= cam_safety_epsilon || intensity <= cam_safety_epsilon) return;
     s_cameraSystem.shakeTimer = duration;
     s_cameraSystem.shakeIntensity = intensity;
 }
@@ -201,7 +209,7 @@ creRectangle cameraSystem_GetViewBounds(void) {
         .height = viewHeight
     };
 
-    if (s_cameraSystem.rotation != 0.0f) {
+    if (fabsf(s_cameraSystem.rotation) > cam_safety_epsilon) {
         float visibleDiagonal = s_cameraSystem.baseDiagonal / s_cameraSystem.zoom;
         bounds.x = s_cameraSystem.position.x - (visibleDiagonal * 0.5f);
         bounds.y = s_cameraSystem.position.y - (visibleDiagonal * 0.5f);
@@ -221,8 +229,4 @@ creRectangle cameraSystem_GetCullBounds(void) {
         .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),
         .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)
     };
-}
-
-const CameraSystemState* cameraSystem_GetState(void) {
-    return &s_cameraSystem;
 }
