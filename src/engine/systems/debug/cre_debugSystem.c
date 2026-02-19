@@ -1,5 +1,5 @@
 /**
- * @file debugSystem.c
+ * @file cre_debugSystem.c
  * @brief Physics Insight Debug Visualization Suite
  * 
  * Professional visualization tools for debugging high-performance physics.
@@ -442,23 +442,29 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
         float py = reg->pos_y[i];
         float w = reg->size_w[i];
         float h = reg->size_h[i];
+        const float pivotX = reg->pivot_x[i];
+        const float pivotY = reg->pivot_y[i];
+        const float drawX = px - (w * pivotX);
+        const float drawY = py - (h * pivotY);
         
         // Skip invalid sizes
         if (w <= 0 || h <= 0) continue;
         
         if (comps & COMP_COLLISION_Circle) {
-            // Circle uses center position
+            // Circle uses center position based on pivot-corrected draw origin
             float radius = w * 0.5f;
-            float dx = mouseWorld.x - px;
-            float dy = mouseWorld.y - py;
+            float centerX = drawX + radius;
+            float centerY = drawY + radius;
+            float dx = mouseWorld.x - centerX;
+            float dy = mouseWorld.y - centerY;
             if ((dx * dx + dy * dy) <= (radius * radius)) {
                 hoveredEntity = (int32_t)i;
                 break;
             }
         } else {
-            // AABB uses top-left position (matches physics + render)
-            if (mouseWorld.x >= px && mouseWorld.x <= px + w &&
-                mouseWorld.y >= py && mouseWorld.y <= py + h) {
+            // AABB uses pivot-corrected top-left position
+            if (mouseWorld.x >= drawX && mouseWorld.x <= drawX + w &&
+                mouseWorld.y >= drawY && mouseWorld.y <= drawY + h) {
                 hoveredEntity = (int32_t)i;
                 break;
             }
@@ -893,6 +899,11 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
         float py = reg->pos_y[i];
         float w = reg->size_w[i];
         float h = reg->size_h[i];
+        const float pivotX = reg->pivot_x[i];
+        const float pivotY = reg->pivot_y[i];
+
+        const float drawX = px - (w * pivotX);
+        const float drawY = py - (h * pivotY);
         
         // Extract layer (bits 48-55)
         uint32_t layer = (uint32_t)GET_LAYER(flags);
@@ -911,16 +922,21 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
         
         // Draw entity bounds with layer color
         if (hasAabb) {
-            DrawRectangleLines((int)(px - 1), (int)(py - 1), (int)w + 2, (int)h + 2, R_COL(layerColor));
+            DrawRectangleLines((int)(drawX - 1), (int)(drawY - 1), (int)w + 2, (int)h + 2, R_COL(layerColor));
         } else if (hasCircle) {
             float radius = w * 0.5f;
             if (radius > 0.0f) {
-                DrawCircleLines((int)(px + radius), (int)(py + radius), radius, R_COL(layerColor));
+                DrawCircleLines((int)(drawX + radius), (int)(drawY + radius), radius, R_COL(layerColor));
             }
         }
         
         // Draw small layer indicator
-        DrawCircle((int)px, (int)py, 3, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+        if (hasCircle) {
+            const float radius = w * 0.5f;
+            DrawCircle((int)(drawX + radius), (int)(drawY + radius), 3, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+        } else {
+            DrawCircle((int)drawX, (int)drawY, 3, (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+        }
     }
     
     // Cache layer counts for legend (drawn in screen space)

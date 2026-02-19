@@ -1,5 +1,5 @@
 /**
- * @file debugSystem.h
+ * @file cre_debugSystem.h
  * @brief Physics Insight Debug Visualization Suite
  * 
  * Professional developer tools for visualizing physics engine internals.
