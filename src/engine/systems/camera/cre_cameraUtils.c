@@ -1,8 +1,8 @@
 #include "cre_cameraUtils.h"
 #include "raylib.h"
+#include "engine/core/cre_typesMacro.h"
 #include <stdlib.h>
 #include <math.h>
-#include "engine/core/cre_typesMacro.h"
 
 
 // ============================================================================

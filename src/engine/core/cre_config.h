@@ -1,7 +1,7 @@
 #ifndef CRE_CONFIG_H
 #define CRE_CONFIG_H
 
-#define GAME_VIRTUAL_HEIGHT 1080.0f // Change these values to change resolution
+#define GAME_VIRTUAL_HEIGHT 360.0f // Change these values to change resolution
 #define TARGET_FRAMERATE 60 
 #define MIN_ZOOM 0.2f
 #define MAX_ZOOM 5.0f
@@ -27,7 +27,7 @@
 
 #define atlasDir      "atlas.png"
 #define MAX_ENTITIES 16384
-#define MAX_VISIBLE_ENTITIES 4096
+#define MAX_VISIBLE_ENTITIES 8192
 
 // Will remove these soon.
 #define SCREEN_WIDTH  1920

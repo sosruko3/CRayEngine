@@ -98,6 +98,7 @@ typedef struct {
 typedef struct Command {
     uint16_t type;          // CommandType (2 bytes)
     uint16_t _reserved;     // Padding/future use (2 bytes)
+    uint32_t _reserved2;    // For 8 byte header.
     Entity entity;      // Target entity(id,generations) (8 bytes)
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
@@ -106,7 +107,7 @@ typedef struct Command {
         CommandPayloadAudio    audio;
         CommandPayloadPhysDef  physDef;
         CommandPayloadSpawn    spawn;
-        alignas(4) uint8_t     raw[52];
+        alignas(4) uint8_t     raw[48];
     };
 } Command;
 

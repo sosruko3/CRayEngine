@@ -82,7 +82,7 @@ void SpatialHash_ClearAll(void);
 
 /**
  * @brief Queries both static and dynamic layers for entities in the given area.
- * 
+ * Warning: Not up to date.
  * Results are deduplicated via linear scan.
  * 
  * @param x World X position

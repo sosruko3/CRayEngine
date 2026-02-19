@@ -6,8 +6,8 @@
 #include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
-#include "engine/systems/render/cre_RenderSystem.h"
-#include "engine/systems/render/cre_RendererCore.h"
+#include "engine/systems/render/cre_renderSystem.h"
+#include "engine/systems/render/cre_rendererCore.h"
 #include "engine/ecs/cre_entitySystem.h"
 #include "engine/platform/cre_viewport.h"
 
@@ -17,8 +17,8 @@ void EnginePhase0_PlatformSync(void) {
         ViewportSize vp = Viewport_Get();
 
         cameraSystem_UpdateViewportCache(vp);
-        RendererCore_RecreateCanvas((int)vp.width,(int)vp.height);
-        Log(LOG_LVL_INFO,"ENGINE: Resolution updated to %0.fx%0.f",vp.width,vp.height);
+        rendererCore_RecreateCanvas((int32_t)vp.width,(int32_t)vp.height);
+        Log(LOG_LVL_INFO,"[ENGINE] Resolution updated to %0.fx%0.f",vp.width,vp.height);
     }
 }
 
@@ -39,8 +39,8 @@ void EnginePhase2_Simulation(EntityRegistry* reg,CommandBus* bus,float dt) {
 void EnginePhase3_RenderState(EntityRegistry* reg, CommandBus* bus, float dt) {
     cameraSystem_Update(reg,bus,dt);
 
-    RendererCore_BeginFrame();
+    rendererCore_BeginFrame();
     SceneManager_Draw(reg,bus);
-    RendererCore_EndFrame();
+    rendererCore_EndFrame();
 }
 #endif

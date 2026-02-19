@@ -6,7 +6,7 @@
 #include "engine/scene/cre_sceneManager.h"
 #include "engine/ecs/cre_entityManager.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
-#include "engine/systems/render/cre_RendererCore.h"
+#include "engine/systems/render/cre_rendererCore.h"
 #include "engine/loaders/cre_assetManager.h"
 #include "engine/platform/cre_viewport.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
@@ -33,7 +33,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
         Logger_Shutdown();
         exit(1);
     }
-    RendererCore_Init((int)v.width,(int)v.height);
+    rendererCore_Init((int32_t)v.width,(int32_t)v.height);
 
     CommandBus_Init(bus); // Make sure this function is getting called.
     EntityManager_Init(reg);

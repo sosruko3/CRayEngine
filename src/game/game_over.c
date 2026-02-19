@@ -3,11 +3,11 @@
 #include "engine/scene/cre_sceneManager.h"
 #include "game_scenes.h"
 #include "engine/platform/cre_input.h"
-#include <stdio.h> // for sprintf
 #include "engine/core/cre_uiHelper.h"
 #include "game_config.h"
 #include "engine/core/cre_config.h"
 #include "engine/core/cre_types.h"
+#include <stdio.h> // for sprintf
 
 
 void GameOver_Init(EntityRegistry* reg, CommandBus* bus) {

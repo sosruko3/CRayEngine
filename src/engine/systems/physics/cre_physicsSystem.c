@@ -224,7 +224,7 @@
             float* restrict const p_size_w = reg->size_w;
             float* restrict const p_size_h = reg->size_h;
             
-            // Filter: Active + Physics/Sprite + Static (or infinite mass)
+            // Filter: Active + Physics+Sprite + Static (or infinite mass)
             // If has sprite and/or physics, it works. This is for particles etc.
             bool hasPhysics = (comps & COMP_PHYSICS);
             bool hasSprite  = (comps & COMP_SPRITE);
