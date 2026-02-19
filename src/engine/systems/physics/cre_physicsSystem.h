@@ -9,7 +9,7 @@
  *   Phase 3: Narrow Phase + Solver (Collision Detection & Response)
  * 
  * All phases operate on EntityRegistry SoA arrays for cache efficiency.
- * Sub-stepping is configurable via PHYS_SUB_STEPS in config.h.
+ * Sub-stepping is configurable via PHYS_SUB_STEPS in cre_config.h.
  */
 
 #ifndef CRE_PHYSICSSYSTEM_H

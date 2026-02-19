@@ -49,7 +49,7 @@
 #define HEATMAP_CELL_ALPHA 150       // Alpha for heatmap cells
 #define ENTITY_DOT_RADIUS 3          // Radius for entity state dots
 
-// Spatial hash visualization (matches config.h)
+// Spatial hash visualization (matches cre_config.h)
 #define VIS_GRID_SIZE SPATIAL_GRID_SIZE
 #define VIS_HASH_SIZE SPATIAL_HASH_SIZE
 

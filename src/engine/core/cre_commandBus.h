@@ -135,7 +135,7 @@ typedef struct CommandBus {
 } CommandBus;
 
 // ============================================================================
-// Cold Path Functions (Implemented in command_bus.c)
+// Cold Path Functions (Implemented in cre_commandBus.c)
 // ============================================================================
 
 /**
