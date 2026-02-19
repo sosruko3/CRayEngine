@@ -21,7 +21,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Config Manager
 - [x] Entity System (ECS-Lite,SoA structure)
 - [x] Collision System (AABB,Circle)
-- [x] Spatial Hash
+- [x] Spatial Hash (Dual-Layered(Static/Dynamic) ,Index-based object pool)
 - [x] Physics System
 - [x] Asset Manager (using TextureAtlas)
 - [x] Animation System
@@ -29,6 +29,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Camera System (using Raylib)
 - [x] Command System
 - [x] Viewport System
+- [ ] Profiler System
 - [ ] Audio System(using Raylib)
 - [ ] Particle System
 - [ ] AI Systems
