@@ -183,7 +183,7 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");
     
     uint64_t compMask = COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_Circle;
-    uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_ANIMATED | FLAG_ALWAYS_AWAKE | SET_LAYER(L_PLAYER) | SET_MASK(L_ENEMY | L_BULLET);
+    uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_ALWAYS_AWAKE | SET_LAYER(L_PLAYER) | SET_MASK(L_ENEMY | L_BULLET);
     
     Entity player = EntityManager_Create(reg, TYPE_PLAYER, (creVec2){100, 200}, compMask, flags);
     if (ENTITY_IS_VALID(player)) {

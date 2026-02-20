@@ -2,6 +2,16 @@
 #define CRE_COMMANDBUS_DEFS_H
 
 #include <stdint.h>
+#include <stdbool.h>
+
+// Command Flags
+#define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
+#define CMD_PHYS_FLAG_SENSOR  (1 << 1) // Bit 1: Trigger (Future proofing)
+#define CMD_PHYS_FLAG_BULLET  (1 << 2) // Bit 2: CCD/Fast Mover (Future proofing)
+
+// Animation Command Flags
+#define ANIM_FLAG_FORCE_RESET  (1 << 0) // Bit 0: 1 = Force restart
+#define ANIM_FLAG_LOOP_OVERRIDE (1 << 1) // Bit 1: 1 = Force loop (example)
 
 #define CMD_DOMAIN_MASK    0xFF00
 #define CMD_DOMAIN_PHYS    0x0100
@@ -24,15 +34,21 @@ typedef enum CommandType {
     
     // Entity commands
     CMD_ENTITY_SPAWN = CMD_DOMAIN_ENTITY,
+    CMD_ENTITY_rSPAWN, // rSPAWN is = RESERVEDSPAWN, which needs id parameter.
     CMD_ENTITY_DESTROY,
-    CMD_ENTITY_ADD_COMPONENT,
-    CMD_ENTITY_SET_PIVOT,
+    CMD_ENTITY_ADDCOMPONENT,
+    CMD_ENTITY_SETPIVOT,
+    CMD_ENTITY_SETTYPE,
+    CMD_ENTITY_SETFLAGS,
 
     // Animation commands
     CMD_ANIM_PLAY = CMD_DOMAIN_ANIM,
     CMD_ANIM_STOP,
     CMD_ANIM_PAUSE,
     CMD_ANIM_RESUME,
+    CMD_ANIM_SETSPEED,
+    CMD_ANIM_SETFRAME,
+    CMD_ANIM_SETLOOP,
 
     // Render commands
     CMD_RENDER_SETDEPTHMATH = CMD_DOMAIN_RENDER,
@@ -43,6 +59,27 @@ typedef enum CommandType {
 // ============================================================================
 // Command Payload Structures (4-byte aligned)
 // ============================================================================
+
+// --- GENERIC / SHARED PAYLOADS ---
+// Used for ANY command in the engine that just needs two floats 
+typedef struct {
+    creVec2 value;
+} CommandPayloadVec2;
+
+typedef struct {
+    float value;
+} CommandPayloadF32;
+
+typedef struct {
+    uint16_t value;
+} CommandPayloadU16;
+
+typedef struct {
+    bool value;
+} CommandPayloadB8;
+
+// --- SPECIFIC PAYLOADS ---
+// Used only when a command has a highly unique footprint
 
 typedef struct {
     uint16_t animID;
@@ -64,9 +101,8 @@ typedef struct {
 } CommandPayloadAudio;
 
 typedef struct {
-    uint16_t type; // Entity type
-    float x;
-    float y;
+    uint16_t type;
+    creVec2 vec2;
 } CommandPayloadSpawn;
 
 typedef struct {
@@ -77,5 +113,6 @@ typedef struct {
     uint8_t shiftDepth;
     uint8_t _pad[2];
 } CommandPayloadRenderDepth;
+
 
 #endif

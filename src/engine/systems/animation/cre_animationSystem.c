@@ -38,7 +38,7 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus)
 
     while (CommandBus_Next(bus, &iter, &cmd)) {
         // this part is kinda fragile, fix later on.
-        if (cmd->type < CMD_ANIM_PLAY || cmd->type > CMD_ANIM_RESUME) continue;
+        if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_ANIM) continue;
         Entity entity = cmd->entity;
         const uint32_t id = entity.id;
         if (!IsValidAnimEntity(reg,entity)) continue;
@@ -57,16 +57,15 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus)
                 break;
             }
             case CMD_ANIM_PAUSE: {
-                // Pause: set speed to 0 (timer stops advancing)
-                reg->anim_speeds[id] = 0.0f;
+                reg->state_flags[id] |= FLAG_ANIM_PAUSED;
                 break;
             }
             case CMD_ANIM_RESUME: {
-                reg->anim_speeds[id] = 1.0f; // change this later.
+            reg->state_flags[id] &= ~FLAG_ANIM_PAUSED;
                 break;
             }
             default:
-                // Not an animation command, ignore
+
                 break;
         }
     }
@@ -144,12 +143,14 @@ void AnimationSystem_Update(EntityRegistry* reg, float dt) {
 
     const uint64_t required_mask  = COMP_ANIMATION;
     const uint64_t required_flags = FLAG_ACTIVE;
+    const uint64_t notrequired_flags = FLAG_ANIM_PAUSED;
 
     for (uint32_t i = 0; i < max_used_bound; ++i) {
-        // Filter: skip if missing animation component or inactive
+        // If possible, make this part branchless in the future.
         if (!(masks[i] & required_mask)) continue;
         if (!(flags[i] & required_flags)) continue;
-
+        if ( (flags[i] & notrequired_flags)) continue;
+ 
         // Skip already finished animations
         if (finished[i]) continue;
 
@@ -162,7 +163,7 @@ void AnimationSystem_Update(EntityRegistry* reg, float dt) {
 
         // Calculate effective delta time with speed multiplier
         float speed = speeds[i];
-        if (speed <= 0.0f) continue;  // Paused (speed = 0)
+        if (speed <= 0.0001f) continue;  // Paused (speed = 0)
         
         const float effectiveDt = dt * speed;
         timers[i] += effectiveDt;

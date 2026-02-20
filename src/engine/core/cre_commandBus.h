@@ -15,15 +15,6 @@
     #define restrict __restrict
 #endif
 
-// Command Flags
-#define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
-#define CMD_PHYS_FLAG_SENSOR  (1 << 1) // Bit 1: Trigger (Future proofing)
-#define CMD_PHYS_FLAG_BULLET  (1 << 2) // Bit 2: CCD/Fast Mover (Future proofing)
-
-// Animation Command Flags
-#define ANIM_FLAG_FORCE_RESET  (1 << 0) // Bit 0: 1 = Force restart
-#define ANIM_FLAG_LOOP_OVERRIDE (1 << 1) // Bit 1: 1 = Force loop (example)
-
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -44,10 +35,15 @@ typedef struct Command {
     uint16_t type;          // CommandType (2 bytes)
     uint16_t _reserved;     // Padding/future use (2 bytes)
     uint32_t _reserved2;    // For 8 byte header.
-    Entity entity;      // Target entity(id,generations) (8 bytes)
+    Entity entity;          // Target entity(id,generations) (8 bytes)
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
     union {
+        CommandPayloadVec2        vec2;
+        CommandPayloadF32         f32;
+        CommandPayloadU16         u16;
+        CommandPayloadB8          b8;
+
         CommandPayloadAnim        anim;
         CommandPayloadAudio       audio;
         CommandPayloadPhysDef     physDef;
