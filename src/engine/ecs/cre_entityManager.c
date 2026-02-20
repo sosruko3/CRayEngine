@@ -1,5 +1,5 @@
 /**
- * @file entity_manager.c
+ * @file cre_entityManager.c
  * @brief Packed Parallel SoA Entity Manager Implementation
  */
 
@@ -41,7 +41,9 @@ void EntityManager_Reset(EntityRegistry* reg) {
     // Clear component_masks and state_flags, but NOT generations!
     memset(reg->component_masks, 0, sizeof(reg->component_masks));
     memset(reg->state_flags, 0, sizeof(reg->state_flags));
-    
+    memset(reg->render_layer,0,sizeof(reg->render_layer));
+    memset(reg->batch_ids,   0, sizeof(reg->batch_ids));
+
     // Clear data highways
     memset(reg->pos_x,               0, sizeof(reg->pos_x));
     memset(reg->pos_y,               0, sizeof(reg->pos_y));
@@ -93,6 +95,8 @@ Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t
     reg->component_masks[index] = initial_CompMask;
     reg->state_flags[index] = initial_flags | FLAG_ACTIVE;
     reg->types[index] = (uint16_t)type;
+    reg->render_layer[index] = RENDER_LAYER_DEFAULT;
+    reg->batch_ids[index] = RENDER_BATCH_DEFAULT;
     
     // Position
     reg->pos_x[index] = pos.x;
@@ -147,6 +151,8 @@ void EntityManager_Destroy(EntityRegistry* reg, Entity e) {
     // Clear the slot
     reg->component_masks[e.id] = COMP_NONE;
     reg->state_flags[e.id] = 0;
+    reg->render_layer[e.id] = RENDER_LAYER_DEFAULT;
+    reg->batch_ids[e.id] = RENDER_BATCH_DEFAULT;
     
     // Increment generation to invalidate stale handles
     reg->generations[e.id]++;

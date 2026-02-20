@@ -1,5 +1,5 @@
 /**
- * @file entity_manager.h
+ * @file cre_entityManager.h
  * @brief Entity Manager API for Packed Parallel SoA Entity System
  * 
  * Provides O(1) entity creation and destruction with generational validation.

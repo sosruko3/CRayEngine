@@ -1,5 +1,5 @@
 /**
- * @file entity_registry.h
+ * @file cre_entityRegistry.h
  * @brief Packed Parallel Structure of Arrays (SoA) Entity System
  * 
  * Data-Oriented Design entity registry with:
@@ -70,6 +70,17 @@
 #define CLEAR_MASK(flags)  ((flags) & ~(0xFFFFULL << MASK_SHIFT))
 
 // ============================================================================
+// Render Order / Batch Constants
+// ============================================================================
+#define RENDER_LAYER_DEFAULT 0u
+#define RENDER_LAYER_ENEMY   10u
+#define RENDER_LAYER_PLAYER  20u
+
+#define RENDER_BATCH_DEFAULT 0u
+#define RENDER_BATCH_PLAYER  1u
+#define RENDER_BATCH_ENEMY   2u
+
+// ============================================================================
 // Entity Registry (Packed Parallel SoA)
 // ============================================================================
 
@@ -89,6 +100,8 @@ typedef struct EntityRegistry {
 
     alignas(64) uint64_t component_masks[MAX_ENTITIES]; ///< Component presence bits
     alignas(64) uint64_t state_flags[MAX_ENTITIES];     ///< Behavioral flags + collision data
+    alignas(64) uint8_t render_layer[MAX_ENTITIES];     ///< Render_layer
+    alignas(64) uint8_t batch_ids[MAX_ENTITIES];        ///< Render batch lookup index
     
     alignas(64) float size_w[MAX_ENTITIES];             ///< Size width
     alignas(64) float size_h[MAX_ENTITIES];             ///< Size height

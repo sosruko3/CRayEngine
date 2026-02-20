@@ -7,6 +7,9 @@
 #include "game_config.h"
 #include "engine/core/cre_config.h"
 #include "engine/core/cre_types.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
+#include "engine/systems/render/cre_rendererCore.h"
+#include "engine/systems/render/cre_renderSystem.h"
 #include <stdio.h> // for sprintf
 
 
@@ -23,6 +26,13 @@ void GameOver_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
 void GameOver_Draw(EntityRegistry* reg, CommandBus* bus) {
 
     ClearBackground(BLACK);
+    rendererCore_BeginWorldMode(cameraSystem_GetInternal());
+
+    renderSystem_Draw(reg, bus, cameraSystem_GetCullBounds());
+    
+    rendererCore_EndWorldMode(); 
+    rendererCore_EndWorldRender();
+
     DrawTextCentered(GAMEOVER_TITLE_TEXT,SCREEN_HEIGHT/2-50,FONT_SIZE_TITLE,(creColor){230, 41, 55, 255}); /*RED*/
 
     DrawTextCentered(GAMEOVER_RESTART_TEXT,SCREEN_HEIGHT/2+50,FONT_SIZE_SUBTITLE,(creColor){245, 245, 245, 255}); /*RAYWHITE*/

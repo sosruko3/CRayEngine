@@ -1,4 +1,4 @@
-#include "cre_RendererCore.h"
+#include "cre_rendererCore.h"
 #include "engine/loaders/cre_assetManager.h"
 #include "engine/core/cre_logger.h"
 #include "raylib.h"
@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stddef.h>
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal State (Encapsulated)
@@ -15,9 +16,12 @@
 typedef struct {
     RenderTexture2D canvas;
     Texture2D       cachedAtlas;
-    int             virtualWidth;
-    int             virtualHeight;
-    int             filterMode;
+    Texture2D       currentTexture;
+    Shader          currentShader;
+    int32_t         currentBlendMode;
+    int32_t         currentFilterMode;
+    int32_t         virtualWidth;
+    int32_t         virtualHeight;
 } cre_RendererCore_State;
 
 static cre_RendererCore_State state = {0};
@@ -25,39 +29,49 @@ static cre_RendererCore_State state = {0};
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal Helpers
  * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_RecreateCanvas(int virtualWidth, int virtualHeight) {
+void rendererCore_RecreateCanvas(int32_t virtualWidth, int32_t virtualHeight) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
     }
     state.canvas = LoadRenderTexture(virtualWidth, virtualHeight);
-    SetTextureFilter(state.canvas.texture, state.filterMode);
+    SetTextureFilter(state.canvas.texture, TEXTURE_FILTER_POINT);
     state.virtualWidth  = virtualWidth;
     state.virtualHeight = virtualHeight;
 }
 /* ─────────────────────────────────────────────────────────────────────────────
  * Lifecycle
  * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_Init(int virtualWidth,int virtualHeight) {
-    state.filterMode      = TEXTURE_FILTER_POINT; // FOR PIXEL ARTS.
-    RendererCore_RecreateCanvas(virtualWidth,virtualHeight);
+void rendererCore_Init(int32_t virtualWidth,int32_t virtualHeight) {
+    state.currentBlendMode = BLEND_ALPHA;
+    state.currentFilterMode = -1;
+    state.currentShader = (Shader){0};
+    state.currentTexture = (Texture2D){0};
+    rendererCore_RecreateCanvas(virtualWidth,virtualHeight);
     Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth, state.virtualHeight);
 }
 
-void RendererCore_Shutdown(void) {
+void rendererCore_Shutdown(void) {
     if (state.canvas.id != 0) {
         UnloadRenderTexture(state.canvas);
         state.canvas = (RenderTexture2D){0};
     }
     state.cachedAtlas = (Texture2D){0};
+    state.currentTexture = (Texture2D){0};
+    state.currentShader = (Shader){0};
+    state.currentBlendMode = BLEND_ALPHA;
+    state.currentFilterMode = -1;
     Log(LOG_LVL_INFO, "RENDERER: Shutdown complete");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Frame Control
  * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_BeginFrame(void) {
+void rendererCore_BeginFrame(void) {
     /* Cache atlas once per frame */
     state.cachedAtlas = Asset_getTexture();
+    state.currentTexture = state.cachedAtlas;
+    state.currentShader = (Shader){0};
+    state.currentBlendMode = BLEND_ALPHA;
     
     BeginDrawing();
     ClearBackground(R_COL(creBLACK));
@@ -67,7 +81,7 @@ void RendererCore_BeginFrame(void) {
     ClearBackground(R_COL(creBLACK));
 }
 
-void RendererCore_EndFrame(void) {
+void rendererCore_EndWorldRender(void) {
     EndTextureMode();
     
     /* Upscale virtual canvas to physical window (no global flip) */
@@ -86,24 +100,26 @@ void RendererCore_EndFrame(void) {
     };
     
     DrawTexturePro(state.canvas.texture, R_REC(srcRect), R_REC(destRect), (Vector2){0, 0}, 0.0f, R_COL(creBLANK));
+}
+void rendererCore_EndFrame(void) {
     EndDrawing();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Camera Interface
  * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_BeginWorldMode(Camera2D camera) {
+void rendererCore_BeginWorldMode(Camera2D camera) {
     BeginMode2D(camera);
 }
 
-void RendererCore_EndWorldMode(void) {
+void rendererCore_EndWorldMode(void) {
     EndMode2D();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Consolidated Sprite Draw
  * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
+void rendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, creVec2 pivot,
                             float rotation, bool flipX, bool flipY, creColor tint) {
     creRectangle srcRect = Asset_getRect((int)spriteID);
     
@@ -129,18 +145,40 @@ void RendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, 
         size.x * pivot.x,
         size.y * pivot.y
     };
-    
-    DrawTexturePro(
-        state.cachedAtlas, R_REC(src), R_REC(dest), R_VEC(origin), rotation, 
-        R_COL(tint));
+
+    DrawTexturePro(state.currentTexture, R_REC(src), R_REC(dest), R_VEC(origin), rotation, R_COL(tint));
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- * Settings
- * ───────────────────────────────────────────────────────────────────────────── */
-void RendererCore_SetFilter(int filterMode) {
-    state.filterMode = filterMode;
-    if (state.canvas.id != 0) {
-        SetTextureFilter(state.canvas.texture, filterMode);
+void rendererCore_SetState(Texture2D* texture, Shader* shader, int32_t blendMode, int32_t filterMode) {
+    EndShaderMode();
+    EndBlendMode();
+
+    // This is in case current and next atlas has same filter. It would have been a problem for checks.
+    Texture2D nextTexture = (texture != NULL) ? *texture :state.cachedAtlas;
+    bool textureChanged = (nextTexture.id != state.currentTexture.id);
+    state.currentTexture = nextTexture;
+
+    if (state.currentTexture.id != 0 && (textureChanged ||state.currentFilterMode != filterMode)) {
+        state.currentFilterMode = filterMode;
+        SetTextureFilter(state.currentTexture, state.currentFilterMode);
     }
+    
+    state.currentShader = (shader != NULL && shader->id != 0) ? *shader : (Shader){0, NULL};
+    state.currentBlendMode = blendMode;
+
+    BeginBlendMode(state.currentBlendMode);
+    if (state.currentShader.id != 0 ) {
+        BeginShaderMode(state.currentShader);
+    }
+}
+
+/*
+* Helper function for RenderSystem
+*/
+void rendererCore_EndBatch(void) {
+    EndShaderMode();
+    EndBlendMode();
+
+    state.currentShader = (Shader){0};
+    state.currentBlendMode = BLEND_ALPHA;
 }

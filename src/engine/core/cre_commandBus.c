@@ -1,4 +1,5 @@
 #include "cre_commandBus.h"
+#include "cre_commandBus_defs.h"
 #include <string.h>
 
 // ============================================================================

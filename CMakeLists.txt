@@ -66,8 +66,8 @@ set(SOURCES
     src/engine/ecs/cre_entityAPI.c
     src/engine/ecs/cre_entitySystem.c
     src/engine/loaders/cre_assetManager.c
-    src/engine/systems/render/cre_RendererCore.c
-    src/engine/systems/render/cre_RenderSystem.c
+    src/engine/systems/render/cre_rendererCore.c
+    src/engine/systems/render/cre_renderSystem.c
     src/engine/systems/render/cre_renderAPI.c
     src/engine/systems/animation/cre_animationSystem.c
     src/engine/systems/animation/cre_animationAPI.c

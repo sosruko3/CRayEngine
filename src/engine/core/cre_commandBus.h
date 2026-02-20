@@ -1,6 +1,7 @@
 #ifndef CRE_COMMANDBUS_H
 #define CRE_COMMANDBUS_H
 
+#include "cre_commandBus_defs.h"
 #include "engine/core/cre_types.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -34,62 +35,6 @@
 static_assert((CMD_BUFFER_SIZE & CMD_BUFFER_MASK) == 0, 
               "CMD_BUFFER_SIZE must be a power of 2");
 
-// ============================================================================
-// Command Types
-// ============================================================================
-
-typedef enum CommandType {
-    CMD_NONE = 0,
-    // Physics commands
-    CMD_PHYS_MOVE,
-    CMD_PHYS_SET_VELOCITY,
-    CMD_PHYS_LOAD_STATIC,
-    CMD_PHYS_DEFINE,
-    CMD_PHYS_RESET,
-
-    // Animation commands
-    CMD_ANIM_PLAY,
-    CMD_ANIM_STOP,
-    CMD_ANIM_PAUSE,
-    CMD_ANIM_RESUME,
-    
-    // Entity commands
-    CMD_ENTITY_SPAWN,
-    CMD_ENTITY_DESTROY,
-    CMD_ENTITY_ADD_COMPONENT,
-    CMD_ENTITY_SET_PIVOT,
-    
-    CMD_TYPE_COUNT
-} CommandType;
-
-// ============================================================================
-// Command Payload Structures (4-byte aligned)
-// ============================================================================
-
-typedef struct {
-    uint16_t animID;
-    uint16_t flags;
-} CommandPayloadAnim;
-
-typedef struct {
-    uint8_t material_id; // e.g., MAT_WOOF
-    uint8_t flags;      // e.g., static
-    uint8_t _padding[2];
-    float drag;
-} CommandPayloadPhysDef;
-
-typedef struct { 
-    // Not used yet. Will be implemented after sound system.
-    uint16_t soundID;
-    uint16_t _pad;
-    float volume;
-} CommandPayloadAudio;
-
-typedef struct {
-    uint16_t type; // Entity type
-    float x;
-    float y;
-} CommandPayloadSpawn;
 
 // ============================================================================
 // Command Structure (64 bytes, C11 Anonymous Union)
@@ -103,10 +48,11 @@ typedef struct Command {
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
     union {
-        CommandPayloadAnim     anim;
-        CommandPayloadAudio    audio;
-        CommandPayloadPhysDef  physDef;
-        CommandPayloadSpawn    spawn;
+        CommandPayloadAnim        anim;
+        CommandPayloadAudio       audio;
+        CommandPayloadPhysDef     physDef;
+        CommandPayloadSpawn       spawn;
+        CommandPayloadRenderDepth renderDepth;
         alignas(4) uint8_t     raw[48];
     };
 } Command;

@@ -137,6 +137,8 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
 
             Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){x, y}, compMask, flags);
             if (ENTITY_IS_VALID(e)) {
+                reg->render_layer[e.id] = RENDER_LAYER_ENEMY;
+                reg->batch_ids[e.id] = RENDER_BATCH_ENEMY;
                 reg->vel_x[e.id] = (float)GetRandomValue(-20, 20);
                 reg->vel_y[e.id] = (float)GetRandomValue(-20, 20);
 
@@ -148,7 +150,7 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
                     .physDef.drag = 2.0f
                 };
                 CommandBus_Push(bus, cmd);
-                AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
+                //AnimationSystem_Play(reg, e.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
             }
         }
     }
@@ -160,6 +162,8 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
 
         Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){400, 400}, compMask, flags);
         if (ENTITY_IS_VALID(e)) {
+            reg->render_layer[e.id] = RENDER_LAYER_ENEMY;
+            reg->batch_ids[e.id] = RENDER_BATCH_ENEMY;
             reg->sprite_ids[e.id] = SPR_ENEMY_IDLE;
             reg->vel_x[e.id] = 20;
             reg->vel_y[e.id] = 20;
@@ -183,7 +187,9 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
     
     Entity player = EntityManager_Create(reg, TYPE_PLAYER, (creVec2){100, 200}, compMask, flags);
     if (ENTITY_IS_VALID(player)) {
-        reg->sprite_ids[player.id] = SPR_PLAYER_IDLE0;
+        reg->render_layer[player.id] = RENDER_LAYER_PLAYER;
+        reg->batch_ids[player.id] = RENDER_BATCH_PLAYER;
+        reg->sprite_ids[player.id] = SPR_SOLDIER;
         
         Command cmd;
         cmd.type = CMD_PHYS_DEFINE;
@@ -193,7 +199,7 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
         cmd.physDef.drag = 0.1f;
         CommandBus_Push(bus,cmd);
 
-        AnimationSystem_Play(reg, player.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
+        //AnimationSystem_Play(reg, player.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
         ControlSystem_SetCameraTarget(reg, player);
     }
 }

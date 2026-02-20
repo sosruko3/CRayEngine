@@ -11,11 +11,12 @@
 #include "entity_types.h"
 #include "controlSystem.h"
 #include "engine/systems/debug/cre_debugSystem.h"
+#include "engine/systems/render/cre_rendererCore.h"
 #include "engine/systems/render/cre_renderSystem.h"
+#include "engine/systems/render/cre_renderAPI.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/loaders/cre_assetManager.h"
 #include "engine/systems/animation/cre_animationSystem.h"
-#include "engine/systems/render/cre_rendererCore.h"
 #include "engine/platform/cre_viewport.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/platform/cre_input.h"
@@ -30,6 +31,7 @@ static EntityRegistry* s_gameReg = NULL; // Store registry pointer for ResetGame
 void Game_Init(EntityRegistry* reg, CommandBus* bus) {
     assert (reg || bus);
     s_gameReg = reg; // Check this part.
+    renderAPI_SetDepthPreset(bus,DEPTH_PRESET_FLAT);
     ResetGameplay(reg, bus);
 }
 void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
@@ -47,7 +49,7 @@ void Game_Draw(EntityRegistry* reg, CommandBus* bus) {
     rendererCore_BeginWorldMode(cameraSystem_GetInternal());
     // WORLD RENDERING:
 
-    renderSystem_Draw(reg,cameraSystem_GetCullBounds());
+    renderSystem_Draw(reg, bus, cameraSystem_GetCullBounds());
     DebugSystem_RenderWorldSpace(reg); // World-space debug overlays (inside camera)
     
     rendererCore_EndWorldMode(); 
