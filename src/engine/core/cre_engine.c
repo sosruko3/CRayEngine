@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// ENGINE PHASES
+// ENGINE PHASES    
 static void EnginePhase0_PlatformSync(void) {
     Viewport_Update();
     if (Viewport_wasResized()) {
@@ -27,21 +27,18 @@ static void EnginePhase0_PlatformSync(void) {
         Log(LOG_LVL_INFO,"[ENGINE] Resolution updated to %0.fx%0.f",vp.width,vp.height);
     }
 }
-
 static void EnginePhase1_InputAndLogic(EntityRegistry* restrict reg,CommandBus* bus,float dt) {
     Input_Poll(); // Empty right now.
 
     // SceneManager handles input right now due to raylib.
     SceneManager_Update(reg,bus,dt); 
 }
-
 static void EnginePhase2_Simulation(EntityRegistry* restrict  reg,CommandBus* bus,float dt) {
     // AI and Particle systems are not implemented right now.
     EntitySystem_Update(reg,bus);
     PhysicsSystem_Update(reg,bus,dt);
     AnimationSystem_Update(reg,dt);
 }
-
 static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* bus, float dt) {
     cameraSystem_Update(reg,bus,dt);
 
@@ -56,15 +53,16 @@ static void EnginePhase4_Cleanup(EntityRegistry* restrict reg, CommandBus* bus) 
 
 void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const char* configFileName) {
     Logger_Init();
+    Log(LOG_LVL_INFO,"Engine Initializing...");
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
     Viewport_Init(SCREEN_WIDTH,SCREEN_HEIGHT);
     ViewportSize v = Viewport_Get();
     InitWindow(v.width,v.height,title);
     SetTargetFPS(TARGET_FRAMERATE);
-    Log(LOG_LVL_INFO,"Engine Initializing...");
     Log(LOG_LVL_DEBUG,"Target Resolution: %.0fx%.0f",v.width,v.height);
 
+    // Clean this configPath later on.
     const char* configPath = TextFormat("%s%s", GetApplicationDirectory(), configFileName);
     Input_Init(configPath);
     if (!IsWindowReady()) {
@@ -72,13 +70,13 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
         Logger_Shutdown();
         exit(1);
     }
-    rendererCore_Init((int32_t)v.width,(int32_t)v.height);
-
+    
     CommandBus_Init(bus); // Make sure this function is getting called.
     EntityManager_Init(reg);
     Asset_Init();
-    PhysicsSystem_Init();
 
+    rendererCore_Init((int32_t)v.width,(int32_t)v.height);
+    PhysicsSystem_Init();
     cameraSystem_Init(Viewport_Get());
     Log(LOG_LVL_INFO,"Windows created successfully.");
 }
