@@ -56,6 +56,8 @@ Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uin
  */
 Entity EntityManager_ReserveSlot(EntityRegistry* reg);
 
+void EntityManager_ReturnReservedSlot(EntityRegistry* reg, Entity reserved_entity);
+
 /**
  * @brief Destroy an entity, returning its slot to the free list.
  * 

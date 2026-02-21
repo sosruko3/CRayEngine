@@ -487,7 +487,6 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
     
     if (flags & FLAG_ACTIVE)       flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "ACTIVE ");
     if (flags & FLAG_VISIBLE)      flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "VISIBLE ");
-    if (flags & FLAG_SOLID)        flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "SOLID ");
     if (flags & FLAG_STATIC)       flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "STATIC ");
     if (flags & FLAG_SLEEPING)     flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "SLEEPING ");
     if (flags & FLAG_CULLED)       flagsLen += snprintf(flagsStr + flagsLen, sizeof(flagsStr) - flagsLen, "CULLED ");

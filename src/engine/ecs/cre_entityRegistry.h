@@ -43,13 +43,13 @@
 // --- Behavioral Flags (Bits 0-15) ---
 #define FLAG_ACTIVE        (1ULL << 0)  ///< Is this slot in use?
 #define FLAG_VISIBLE       (1ULL << 1)  ///< Should renderer draw it?
-#define FLAG_SOLID         (1ULL << 2)  ///< Participates in collision response
-#define FLAG_ALWAYS_AWAKE  (1ULL << 3)  ///< Never enters sleep state
-#define FLAG_SLEEPING      (1ULL << 4)  ///< Currently sleeping (skip physics)
-#define FLAG_CULLED        (1ULL << 5)  ///< Outside camera view, skip rendering
-#define FLAG_PERSISTENT    (1ULL << 6)  ///< Survives scene transitions
-#define FLAG_STATIC        (1ULL << 7)  ///< Static in physics.
-#define FLAG_ANIM_PAUSED   (1ULL << 8)  ///< Entity's animation is paused.
+#define FLAG_ALWAYS_AWAKE  (1ULL << 2)  ///< Never enters sleep state
+#define FLAG_SLEEPING      (1ULL << 3)  ///< Currently sleeping (skip physics)
+#define FLAG_CULLED        (1ULL << 4)  ///< Outside camera view, skip rendering
+#define FLAG_PERSISTENT    (1ULL << 5)  ///< Survives scene transitions
+#define FLAG_STATIC        (1ULL << 6)  ///< Static in physics.
+#define FLAG_ANIM_PAUSED   (1ULL << 7)  ///< Entity's animation is paused.
+#define CLONE_FLAGS_SCRUB_MASK (FLAG_ACTIVE | FLAG_CULLED | FLAG_SLEEPING)
 // Bits 8-15 reserved for future engine flags
 
 // --- Collision Layer/Mask (64-bit version) ---

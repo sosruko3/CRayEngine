@@ -92,6 +92,18 @@ Entity EntityManager_ReserveSlot(EntityRegistry* reg) {
     return (Entity){ .id = index, .generation = generation };
 }
 
+void EntityManager_ReturnReservedSlot(EntityRegistry* reg, Entity reserved_entity) {
+    assert(reg && "reg is NULL");
+
+    if (reserved_entity.id >= MAX_ENTITIES) return;
+
+    assert(reg->free_count < MAX_ENTITIES && "Double return / Free list overflow!");
+
+    reg->free_list[reg->free_count++] = reserved_entity.id;
+
+    reg->generations[reserved_entity.id]++;
+}
+
 Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
     assert(reg && "reg is NULL");
     if (reg->free_count == 0) {

@@ -157,7 +157,7 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
 
     if (IsKeyPressed(KEY_X)) {
         uint64_t compMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_Circle;
-        uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_SOLID | FLAG_ALWAYS_AWAKE |
+        uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | FLAG_ALWAYS_AWAKE |
                         SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_BULLET | L_ENEMY);
 
         Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){400, 400}, compMask, flags);

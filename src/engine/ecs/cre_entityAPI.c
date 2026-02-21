@@ -1,6 +1,7 @@
 #include "cre_entityAPI.h"
 #include "cre_entityManager.h"
 #include "engine/core/cre_commandBus.h"
+#include "engine/core/cre_logger.h"
 
 #include <assert.h>
 
@@ -8,7 +9,8 @@ Entity entityAPI_ReserveID(EntityRegistry* reg) {
 	return EntityManager_ReserveSlot(reg);
 }
 
-void entityAPI_Clone(CommandBus* restrict bus,
+void entityAPI_Clone(EntityRegistry* reg,
+                    CommandBus* restrict bus,
 					 Entity              dst,
 					 Entity              prototype,
 					 creVec2             position) {
@@ -19,9 +21,11 @@ void entityAPI_Clone(CommandBus* restrict bus,
 		.entityClone = (CommandPayloadEntityClone){
 			.prototype = prototype,
 			.position = position,
-		},
+		}
 	};
 
-	const bool pushed = CommandBus_Push(bus, cmd);
-	assert(pushed && "entityAPI_Clone: CommandBus is full");
+    if (!CommandBus_Push(bus, cmd)) {
+        EntityManager_ReturnReservedSlot(reg, dst);
+        Log(LOG_LVL_ERROR, "entityAPI_Clone: CommandBus is full! Slot returned.");
+    }
 }

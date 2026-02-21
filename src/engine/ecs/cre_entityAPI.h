@@ -9,7 +9,8 @@ typedef struct creVec2 creVec2;
 
 Entity entityAPI_ReserveID(EntityRegistry* reg);
 
-void entityAPI_Clone(CommandBus* restrict bus,
+void entityAPI_Clone(EntityRegistry* reg,
+                     CommandBus* restrict bus,
 					 Entity              dst,
 					 Entity              prototype,
 					 creVec2             position);
