@@ -1,6 +1,5 @@
 #include "game.h"
 #include "engine/core/cre_config.h"
-#include "engine/core/cre_uiHelper.h"
 #include "raylib.h"
 #include "../game_config.h"
 #include "engine/scene/cre_sceneManager.h"

@@ -3,10 +3,8 @@
 #include "engine/scene/cre_sceneManager.h"
 #include "game_scenes.h"
 #include "engine/platform/cre_input.h"
-#include "engine/core/cre_uiHelper.h"
 #include "game_config.h"
 #include "engine/core/cre_config.h"
-#include "engine/core/cre_types.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
 #include "engine/systems/render/cre_renderSystem.h"
@@ -33,9 +31,11 @@ void GameOver_Draw(EntityRegistry* reg, CommandBus* bus) {
     rendererCore_EndWorldMode(); 
     rendererCore_EndWorldRender();
 
-    DrawTextCentered(GAMEOVER_TITLE_TEXT,SCREEN_HEIGHT/2-50,FONT_SIZE_TITLE,(creColor){230, 41, 55, 255}); /*RED*/
+    int titleWidth = MeasureText(GAMEOVER_TITLE_TEXT, FONT_SIZE_TITLE);
+    DrawText(GAMEOVER_TITLE_TEXT, (SCREEN_WIDTH - titleWidth)/2, SCREEN_HEIGHT/2-50, FONT_SIZE_TITLE, RED);
 
-    DrawTextCentered(GAMEOVER_RESTART_TEXT,SCREEN_HEIGHT/2+50,FONT_SIZE_SUBTITLE,(creColor){245, 245, 245, 255}); /*RAYWHITE*/
+    int restartWidth = MeasureText(GAMEOVER_RESTART_TEXT, FONT_SIZE_SUBTITLE);
+    DrawText(GAMEOVER_RESTART_TEXT, (SCREEN_WIDTH - restartWidth)/2, SCREEN_HEIGHT/2+50, FONT_SIZE_SUBTITLE, RAYWHITE);
     
 }
 

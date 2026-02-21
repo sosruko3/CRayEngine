@@ -10,7 +10,7 @@
 #include "engine/ecs/cre_entityRegistry.h"
 
 int main(void) {
-    // Using alloc because EntityRegistry is big.
+    // Using alloc because EntityRegistry is rather big.
     size_t allocSize = (sizeof(EntityRegistry) + 63) & ~63;
     EntityRegistry* reg = aligned_alloc(64,allocSize);
     if (!reg) return -1;

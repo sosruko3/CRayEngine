@@ -80,7 +80,7 @@ void EntityManager_Reset(EntityRegistry* reg) {
     
     Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
 }
-Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
+Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
     assert(reg && "reg is NULL");
     if (reg->free_count == 0) {
         // Registry is null or full

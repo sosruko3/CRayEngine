@@ -43,7 +43,7 @@ void EntityManager_Reset(EntityRegistry* reg);
  * @param initial_flags Initial state flags
  * @return Entity handle, or ENTITY_INVALID if registry is full
  */
-Entity EntityManager_Create(EntityRegistry* reg, int type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags);
+Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags);
 
 /**
  * @brief Destroy an entity, returning its slot to the free list.

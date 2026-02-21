@@ -56,7 +56,6 @@ set(SOURCES
 
     # Core Engine
     src/engine/core/cre_engine.c
-    src/engine/core/cre_uiHelper.c
     src/engine/core/cre_logger.c
     src/engine/core/cre_commandBus.c
     src/engine/scene/cre_sceneManager.c

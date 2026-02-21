@@ -48,6 +48,7 @@ typedef struct Command {
         CommandPayloadAudio       audio;
         CommandPayloadPhysDef     physDef;
         CommandPayloadSpawn       spawn;
+        CommandPayloadEntityClone entityClone;
         CommandPayloadRenderDepth renderDepth;
         alignas(4) uint8_t     raw[48];
     };

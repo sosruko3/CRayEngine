@@ -1,8 +1,11 @@
 #ifndef CRE_COMMANDBUS_DEFS_H
 #define CRE_COMMANDBUS_DEFS_H
 
+#include "engine/core/cre_types.h"
 #include <stdint.h>
 #include <stdbool.h>
+
+typedef struct Entity Entity;
 
 // Command Flags
 #define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
@@ -34,7 +37,8 @@ typedef enum CommandType {
     
     // Entity commands
     CMD_ENTITY_SPAWN = CMD_DOMAIN_ENTITY,
-    CMD_ENTITY_rSPAWN, // rSPAWN is = RESERVEDSPAWN, which needs id parameter.
+    CMD_ENTITY_SPAWN_UNTRACKED, 
+    CMD_ENTITY_CLONE,
     CMD_ENTITY_DESTROY,
     CMD_ENTITY_ADDCOMPONENT,
     CMD_ENTITY_SETPIVOT,
@@ -101,9 +105,14 @@ typedef struct {
 } CommandPayloadAudio;
 
 typedef struct {
-    uint16_t type;
+    uint16_t type; // EntityType, TYPE_PLAYER,TYPE_ZOMBIE etc.
     creVec2 vec2;
 } CommandPayloadSpawn;
+
+typedef struct {
+    Entity prototype;
+    creVec2 position;
+} CommandPayloadEntityClone;
 
 typedef struct {
     float wX;
