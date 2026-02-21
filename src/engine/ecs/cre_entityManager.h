@@ -46,6 +46,17 @@ void EntityManager_Reset(EntityRegistry* reg);
 Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags);
 
 /**
+ * @brief Reserve an entity slot synchronously without initializing component/state data.
+ *
+ * Pops one slot from the free list and returns a handle using current generation.
+ * Reserved slot remains empty until later deferred initialization.
+ *
+ * @param reg Pointer to the EntityRegistry
+ * @return Entity handle, or ENTITY_INVALID if registry is full
+ */
+Entity EntityManager_ReserveSlot(EntityRegistry* reg);
+
+/**
  * @brief Destroy an entity, returning its slot to the free list.
  * 
  * Increments generation to invalidate stale handles.

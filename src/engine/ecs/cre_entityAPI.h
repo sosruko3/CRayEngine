@@ -9,6 +9,11 @@ typedef struct creVec2 creVec2;
 
 Entity entityAPI_ReserveID(EntityRegistry* reg);
 
+void entityAPI_Clone(CommandBus* restrict bus,
+					 Entity              dst,
+					 Entity              prototype,
+					 creVec2             position);
+
 void entityAPI_Spawn(CommandBus* restrict bus, Entity entity, uint16_t type, creVec2 position);
 
 void entityAPI_SpawnUntracked(CommandBus* restrict bus, uint16_t type, creVec2 position);

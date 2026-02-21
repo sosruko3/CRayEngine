@@ -80,6 +80,18 @@ void EntityManager_Reset(EntityRegistry* reg) {
     
     Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
 }
+
+Entity EntityManager_ReserveSlot(EntityRegistry* reg) {
+    assert(reg && "reg is NULL");
+
+    if (reg->free_count == 0) return ENTITY_INVALID;
+
+    const uint32_t index = reg->free_list[--reg->free_count];
+    const uint32_t generation = reg->generations[index];
+
+    return (Entity){ .id = index, .generation = generation };
+}
+
 Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
     assert(reg && "reg is NULL");
     if (reg->free_count == 0) {

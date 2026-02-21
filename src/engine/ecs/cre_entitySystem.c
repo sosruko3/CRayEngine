@@ -56,10 +56,15 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
         Entity entity = cmd->entity;
         switch (cmd->type) {
             case CMD_ENTITY_SPAWN: {
-                uint16_t type = cmd->spawn.type;
-                creVec2 pos = cmd->spawn.vec2;
-                
-                //EntityManager_Create(reg,type,pos,mask,initalflags);
+
+                break;
+            }
+            case CMD_ENTITY_SPAWN_UNTRACKED: {
+
+                break;
+            }
+            case CMD_ENTITY_CLONE: {
+
                 break;
             }
             case CMD_ENTITY_DESTROY: {
@@ -82,7 +87,6 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
 
                 break;
             }
-
             default:
 
                 break;
