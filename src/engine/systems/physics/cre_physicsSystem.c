@@ -172,7 +172,7 @@
         }
     }
 
-    void PhysicsSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
+    void PhysicsSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
         if (!reg || !bus) return;
         
         CommandIterator iter = CommandBus_GetIterator(bus);

@@ -75,7 +75,7 @@ void renderSystem_SetDepthMath(float wX, float wY, float wH, uint8_t shiftBatch,
     g_shiftDepth = shiftDepth;
 }
 
-void renderSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
+void renderSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
     if (!reg || !bus) return;
 
     CommandIterator iter = CommandBus_GetIterator(bus);

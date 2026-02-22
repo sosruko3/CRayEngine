@@ -177,12 +177,18 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
                 assert(reg->active_count <= MAX_ENTITIES);
 
                 reg->is_dispatching_clone_hooks = true;
+#ifndef NDEBUG
+                bus->debug_forbidden_domain = CMD_DOMAIN_ENTITY;
+#endif
                 const uint8_t hook_count = reg->clone_hook_count;
                 for (uint8_t i = 0; i < hook_count; ++i) {
                     OnEntityClonedCallback hook = reg->clone_hooks[i];
                     if (hook == NULL) continue;
                     hook(reg, bus, src, dst);
                 }
+#ifndef NDEBUG
+                bus->debug_forbidden_domain = 0;
+#endif
                 reg->is_dispatching_clone_hooks = false;
 
                 break;
@@ -195,10 +201,14 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
 
                 break;
             }
+            case CMD_ENTITY_REMOVE_COMPONENT: {
+                break;
+            }
             case CMD_ENTITY_SET_PIVOT: {
 
                 break;
             }
+
             case CMD_ENTITY_SET_TYPE: {
 
                 break;

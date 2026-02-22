@@ -22,6 +22,10 @@
 #define CMD_BUFFER_SIZE 16384
 #define CMD_BUFFER_MASK (CMD_BUFFER_SIZE - 1)
 
+#define BUS_PHASE_OPEN 0
+#define BUS_PHASE_SIMULATION 1
+#define BUS_PHASE_RENDER 2
+
 // Compile-time verification: buffer size must be power of 2
 static_assert((CMD_BUFFER_SIZE & CMD_BUFFER_MASK) == 0, 
               "CMD_BUFFER_SIZE must be a power of 2");
@@ -75,6 +79,11 @@ typedef struct CommandBus {
     alignas(64) Command buffer[CMD_BUFFER_SIZE];  // Cache-line aligned
     uint32_t head;  // Write index (free-running)
     uint32_t tail;  // Read index (free-running)
+    uint32_t consumed_end; // Last snapshot boundary consumed by systems
+#ifndef NDEBUG
+    uint8_t current_phase;
+    uint16_t debug_forbidden_domain;
+#endif
 } CommandBus;
 
 // ============================================================================
@@ -116,6 +125,14 @@ void CommandBus_Clear(CommandBus* bus);
  */
 static inline bool CommandBus_Push(CommandBus* restrict bus, Command cmd) {
     assert(bus != NULL && "CommandBus_Push: bus is NULL");
+
+#ifndef NDEBUG
+    const uint16_t domain = (uint16_t)(cmd.type & CMD_DOMAIN_MASK);
+    if (bus->current_phase == BUS_PHASE_RENDER) {
+        assert(domain == CMD_DOMAIN_RENDER || cmd.type == CMD_NONE);
+    }
+    assert(bus->debug_forbidden_domain == 0 || domain != bus->debug_forbidden_domain);
+#endif
     
     // Check if buffer is full (free-running index arithmetic)
     if ((bus->head - bus->tail) >= CMD_BUFFER_SIZE) {
@@ -139,13 +156,16 @@ static inline bool CommandBus_Push(CommandBus* restrict bus, Command cmd) {
  * @param bus Pointer to the CommandBus
  * @return CommandIterator positioned at tail, ending at current head
  */
-static inline CommandIterator CommandBus_GetIterator(const CommandBus* bus) {
+static inline CommandIterator CommandBus_GetIterator(CommandBus* bus) {
     assert(bus != NULL && "CommandBus_GetIterator: bus is NULL");
     
-    return (CommandIterator){
+    CommandIterator iter = (CommandIterator){
         .current = bus->tail,
         .end = bus->head
     };
+
+    bus->consumed_end = iter.end;
+    return iter;
 }
 
 /**

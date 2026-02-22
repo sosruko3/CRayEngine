@@ -16,11 +16,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// ENGINE PHASES    
+// ENGINE PHASES
 static void EnginePhase0_PlatformSync(void) {
     Viewport_Update();
     if (Viewport_wasResized()) {
-        ViewportSize vp = Viewport_Get();
+        ViewportSize vp = Viewport_Get(); 
 
         cameraSystem_UpdateViewportCache(vp);
         rendererCore_RecreateCanvas((int32_t)vp.width,(int32_t)vp.height);
@@ -28,6 +28,12 @@ static void EnginePhase0_PlatformSync(void) {
     }
 }
 static void EnginePhase1_InputAndLogic(EntityRegistry* restrict reg,CommandBus* bus,float dt) {
+    // Note: If you use command bus on phase0 , you need to move these to first part of phase0
+    bus->consumed_end = bus->tail;
+    #ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_OPEN;
+    #endif
+
     Input_Poll(); // Empty right now.
 
     // SceneManager handles input right now due to raylib.
@@ -35,11 +41,19 @@ static void EnginePhase1_InputAndLogic(EntityRegistry* restrict reg,CommandBus* 
 }
 static void EnginePhase2_Simulation(EntityRegistry* restrict  reg,CommandBus* bus,float dt) {
     // AI and Particle systems are not implemented right now.
+    #ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_SIMULATION;
+    #endif
+    
     EntitySystem_Update(reg,bus);
     PhysicsSystem_Update(reg,bus,dt);
-    AnimationSystem_Update(reg,dt);
+    AnimationSystem_Update(reg,bus,dt);
 }
 static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* bus, float dt) {
+    #ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_RENDER;
+    #endif
+
     cameraSystem_Update(reg,bus,dt);
 
     rendererCore_BeginFrame();
@@ -47,7 +61,26 @@ static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* b
     rendererCore_EndFrame();
 }
 static void EnginePhase4_Cleanup(EntityRegistry* restrict reg, CommandBus* bus) {
-    CommandIterator iter = CommandBus_GetIterator(bus);
+    (void)reg;
+    #ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_OPEN;
+    #endif
+
+    uint32_t flush_end = bus->consumed_end;
+
+    #ifndef NDEBUG
+    assert((flush_end - bus->tail) <= (bus->head - bus->tail)
+        && "consumed_end outside [tail..head] range");
+    #endif
+
+    if ((flush_end - bus->tail) > (bus->head - bus->tail)) {
+        flush_end = bus->tail;
+    }
+
+    CommandIterator iter = {
+        .current = bus->tail,
+        .end = flush_end
+    };
     CommandBus_Flush(bus,&iter);
 }
 

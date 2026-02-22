@@ -19,8 +19,8 @@ bool cameraSystem_IsTargetValid(const EntityRegistry* reg, Entity target);
 void cameraSystem_Init(ViewportSize vp);
 void cameraSystem_UpdateViewportCache(ViewportSize vp);
 
-void cameraSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus);
-void cameraSystem_Update(EntityRegistry* reg, const CommandBus* bus, float dt);
+void cameraSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus);
+void cameraSystem_Update(EntityRegistry* reg, CommandBus* bus, float dt);
 
 void cameraSystem_SetPosition(creVec2 position);
 creVec2 cameraSystem_GetPosition(void);

@@ -29,7 +29,7 @@ static bool IsValidAnimEntity(EntityRegistry* reg,Entity entity) {
 // Command Processing (Cold Path)
 // ============================================================================
 
-void AnimationSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
+void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");
     assert(bus && "Bus is mandatory!");
 
@@ -116,11 +116,13 @@ void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float mult
 // The Hot Loop - Pure SoA
 // ============================================================================
 
-void AnimationSystem_Update(EntityRegistry* reg, float dt) {
+void AnimationSystem_Update(EntityRegistry* reg,CommandBus* bus, float dt) {
     assert(reg && "reg is NULL");
 
     // Clamp delta time to prevent spiral of death
     if (dt > 0.05f) dt = 0.05f;
+
+    AnimationSystem_ProcessCommands(reg,bus);
 
     // Cache array pointers for hot loop (12 streams + masks/flags)
     const uint64_t* masks    = reg->component_masks;

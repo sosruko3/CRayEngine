@@ -65,7 +65,7 @@ void cameraSystem_Init(ViewportSize vp) {
     cameraSystem_UpdateViewportCache(vp);
 }
 
-void cameraSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
+void cameraSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");
     assert(bus && "bus is NULL");
 
@@ -80,7 +80,7 @@ void cameraSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus) {
     }
 }
 
-void cameraSystem_Update(EntityRegistry* reg, const CommandBus* bus, float dt) {
+void cameraSystem_Update(EntityRegistry* reg, CommandBus* bus, float dt) {
     assert(reg && "reg is NULL");
     assert(bus && "bus is NULL");
 

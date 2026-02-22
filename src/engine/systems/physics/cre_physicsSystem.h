@@ -67,7 +67,7 @@ void PhysicsSystem_Update(EntityRegistry* reg, CommandBus* bus, float dt);
  * @param reg    Pointer to the EntityRegistry
  * @param bus    Command bus to read from
  */
-void PhysicsSystem_ProcessCommands(EntityRegistry* reg, const CommandBus* bus);
+void PhysicsSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus);
 
 /**
  * @brief Load static geometry into the spatial hash.

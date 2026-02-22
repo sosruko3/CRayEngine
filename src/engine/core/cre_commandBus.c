@@ -11,6 +11,11 @@ void CommandBus_Init(CommandBus* bus) {
     
     bus->head = 0;
     bus->tail = 0;
+    bus->consumed_end = 0;
+#ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_OPEN;
+    bus->debug_forbidden_domain = 0;
+#endif
     
     // Zero out the buffer for clean state
     memset(bus->buffer, 0, sizeof(bus->buffer));
@@ -30,4 +35,9 @@ void CommandBus_Clear(CommandBus* bus) {
     
     bus->head = 0;
     bus->tail = 0;
+    bus->consumed_end = 0;
+#ifndef NDEBUG
+    bus->current_phase = BUS_PHASE_OPEN;
+    bus->debug_forbidden_domain = 0;
+#endif
 }
