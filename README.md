@@ -39,6 +39,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [ ] Post-processing/Shader System
 - [ ] Lighting System
 - [ ] Editor (using Nuklear)
+- [ ] Live coding.
 - [ ] Animation Engine (Procedural Animation)
 - [ ] Modding tools
 - [ ] Refactoring Audio System with miniaudio.

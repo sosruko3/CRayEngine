@@ -5,6 +5,7 @@
 #include "engine/scene/cre_sceneManager.h"
 #include "game_scenes.h"
 #include "engine/ecs/cre_entityManager.h"
+#include "engine/ecs/cre_entitySystem.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/core/cre_logger.h"
 #include "entity_types.h"
@@ -31,6 +32,7 @@ void Game_Init(EntityRegistry* reg, CommandBus* bus) {
     assert (reg || bus);
     s_gameReg = reg; // Check this part.
     renderAPI_SetDepthPreset(bus,DEPTH_PRESET_FLAT);
+    EntitySystem_ClearCloneHooks(reg);
     ResetGameplay(reg, bus);
 }
 void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {

@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-Entity entityAPI_ReserveID(EntityRegistry* reg) {
+Entity entityAPI_ReserveSlot(EntityRegistry* reg) {
 	return EntityManager_ReserveSlot(reg);
 }
 

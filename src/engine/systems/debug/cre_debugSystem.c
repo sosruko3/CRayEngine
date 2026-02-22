@@ -354,7 +354,7 @@ void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
     
     // Frame timing
     creColor fpsColor = (s_avgFrameTime < 16.67) ? (creColor){0, 228, 48, 255}/*GREEN*/ : (s_avgFrameTime < 33.33) ? (creColor){253, 249, 0, 255}/*YELLOW*/: (creColor){230, 41, 55, 255};/*RED*/
-    snprintf(buffer, sizeof(buffer), "Frame: %.2f ms (%.0f FPS)", s_avgFrameTime, 1000.0 / s_avgFrameTime);
+    snprintf(buffer, sizeof(buffer), "Frame: %.4f ms (%.0f FPS)", s_avgFrameTime, 1000.0 / s_avgFrameTime);
     DrawText(buffer, hudX + 10, rowY, 14, (Color){fpsColor.r, fpsColor.g, fpsColor.b, fpsColor.a});
     rowY += rowSpacing;
     

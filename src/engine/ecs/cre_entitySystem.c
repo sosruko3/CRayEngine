@@ -2,47 +2,68 @@
 #include "cre_entityManager.h"
 #include "cre_entityRegistry.h"
 #include "engine/core/cre_commandBus.h"
+#include "engine/core/cre_logger.h"
 
 #include <assert.h>
 #include <stdint.h>
 
-#define MAX_CLONE_HOOKS 8
-
-static OnEntityClonedCallback s_clone_hooks[MAX_CLONE_HOOKS] = { NULL };
-static uint8_t s_clone_hook_count = 0;
-
-bool EntitySystem_SubscribeOnCloned(OnEntityClonedCallback cb) {
+bool EntitySystem_SubscribeOnCloned(EntityRegistry* reg, OnEntityClonedCallback cb) {
+    assert(reg != NULL && "reg is NULL");
     assert(cb != NULL && "Subscribe callback cannot be NULL!");
+    assert(!reg->is_dispatching_clone_hooks && "Cannot subscribe during dispatch loop");
+
+    if (reg == NULL) return false;
     if (cb == NULL) return false;
 
-    for (uint8_t i = 0; i < s_clone_hook_count; ++i) {
-        if (s_clone_hooks[i] == cb) return false;
+    for (uint8_t i = 0; i < reg->clone_hook_count; ++i) {
+        if (reg->clone_hooks[i] == cb) return false;
     }
 
-    if (s_clone_hook_count >= MAX_CLONE_HOOKS) return false;
+    if (reg->clone_hook_count >= MAX_CLONE_HOOKS) {
+        Log(LOG_LVL_ERROR, "EntitySystem_SubscribeOnCloned: Hook capacity exceeded (%u)", MAX_CLONE_HOOKS);
+        assert(false && "EntitySystem_SubscribeOnCloned: Hook capacity exceeded");
+        return false;
+    }
 
-    s_clone_hooks[s_clone_hook_count] = cb;
-    s_clone_hook_count++;
+    reg->clone_hooks[reg->clone_hook_count] = cb;
+    reg->clone_hook_count++;
     return true;
 }
 
-bool EntitySystem_UnsubscribeOnCloned(OnEntityClonedCallback cb) {
+bool EntitySystem_UnsubscribeOnCloned(EntityRegistry* reg, OnEntityClonedCallback cb) {
+    assert(reg != NULL && "reg is NULL");
     assert(cb != NULL && "Unsubscribe callback cannot be NULL!");
+    assert(!reg->is_dispatching_clone_hooks && "Cannot unsubscribe during dispatch loop");
+
+    if (reg == NULL) return false;
     if (cb == NULL) return false;
 
-    for (uint8_t i = 0; i < s_clone_hook_count; ++i) {
-        if (s_clone_hooks[i] != cb) continue;
+    for (uint8_t i = 0; i < reg->clone_hook_count; ++i) {
+        if (reg->clone_hooks[i] != cb) continue;
 
-        for (uint8_t j = i; j + 1 < s_clone_hook_count; ++j) {
-            s_clone_hooks[j] = s_clone_hooks[j + 1];
+        for (uint8_t j = i; j + 1 < reg->clone_hook_count; ++j) {
+            reg->clone_hooks[j] = reg->clone_hooks[j + 1];
         }
 
-        s_clone_hook_count--;
-        s_clone_hooks[s_clone_hook_count] = NULL;
+        reg->clone_hook_count--;
+        reg->clone_hooks[reg->clone_hook_count] = NULL;
         return true;
     }
 
     return false;
+}
+
+void EntitySystem_ClearCloneHooks(EntityRegistry* reg) {
+    assert(reg != NULL && "reg is NULL");
+    assert(!reg->is_dispatching_clone_hooks && "Cannot clear hooks during dispatch loop");
+    if (reg == NULL) return;
+
+    for (uint8_t i = 0; i < MAX_CLONE_HOOKS; ++i) {
+        reg->clone_hooks[i] = NULL;
+    }
+
+    reg->clone_hook_count = 0;
+    reg->is_dispatching_clone_hooks = false;
 }
 
 void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
@@ -155,26 +176,38 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
                 reg->active_count++;
                 assert(reg->active_count <= MAX_ENTITIES);
 
+                reg->is_dispatching_clone_hooks = true;
+                const uint8_t hook_count = reg->clone_hook_count;
+                for (uint8_t i = 0; i < hook_count; ++i) {
+                    OnEntityClonedCallback hook = reg->clone_hooks[i];
+                    if (hook == NULL) continue;
+                    hook(reg, bus, src, dst);
+                }
+                reg->is_dispatching_clone_hooks = false;
+
                 break;
             }
             case CMD_ENTITY_DESTROY: {
 
                 break;
             }
-            case CMD_ENTITY_ADDCOMPONENT: {
+            case CMD_ENTITY_ADD_COMPONENT: {
 
                 break;
             }
-            case CMD_ENTITY_SETPIVOT: {
+            case CMD_ENTITY_SET_PIVOT: {
 
                 break;
             }
-            case CMD_ENTITY_SETTYPE: {
+            case CMD_ENTITY_SET_TYPE: {
 
                 break;
             }
-            case CMD_ENTITY_SETFLAGS: {
+            case CMD_ENTITY_SET_FLAGS: {
 
+                break;
+            }
+            case CMD_ENTITY_RESET: {
                 break;
             }
             default:

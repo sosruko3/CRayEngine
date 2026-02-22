@@ -55,7 +55,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
     Logger_Init();
     Log(LOG_LVL_INFO,"[ENGINE] Engine is Initializing...");
 
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);  // FOR DEBUG
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     Viewport_Init(SCREEN_WIDTH,SCREEN_HEIGHT);
     ViewportSize v = Viewport_Get();
     InitWindow(v.width,v.height,title);

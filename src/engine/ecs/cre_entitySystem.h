@@ -2,17 +2,12 @@
 #define CRE_ENTITYSYSTEM_H
 
 #include <stdbool.h>
-#include "engine/core/cre_types.h"
-
-typedef struct EntityRegistry EntityRegistry;
+#include "cre_entityRegistry.h"
 typedef struct CommandBus CommandBus;
 
-typedef void (*OnEntityClonedCallback)(EntityRegistry* reg,
-									   Entity srcPrototype,
-									   Entity dstNewEntity);
-
-bool EntitySystem_SubscribeOnCloned(OnEntityClonedCallback cb);
-bool EntitySystem_UnsubscribeOnCloned(OnEntityClonedCallback cb);
+bool EntitySystem_SubscribeOnCloned(EntityRegistry* reg, OnEntityClonedCallback cb);
+bool EntitySystem_UnsubscribeOnCloned(EntityRegistry* reg, OnEntityClonedCallback cb);
+void EntitySystem_ClearCloneHooks(EntityRegistry* reg);
 
 void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus);
 

@@ -18,6 +18,16 @@
 #include <stdalign.h>
 #include "engine/core/cre_config.h"
 
+typedef struct EntityRegistry EntityRegistry;
+typedef struct CommandBus CommandBus;
+
+#define MAX_CLONE_HOOKS 8
+
+typedef void (*OnEntityClonedCallback)(const EntityRegistry* reg,
+                                       CommandBus* bus,
+                                       Entity srcPrototype,
+                                       Entity dstNewEntity);
+
 // ============================================================================
 // Component Mask Bits (uint64_t masks[])
 // ============================================================================
@@ -136,6 +146,10 @@ typedef struct EntityRegistry {
     alignas(64) uint32_t free_count;                    ///< Number of free slots
     alignas(64) uint32_t active_count;                  ///< Number of active entities
     alignas(64) uint32_t max_used_bound;                ///< Highest index ever used (optimization hint)
+
+    OnEntityClonedCallback clone_hooks[MAX_CLONE_HOOKS];///< Per-world clone observer hooks
+    uint8_t clone_hook_count;                           ///< Active hook count
+    bool is_dispatching_clone_hooks;                    ///< Dispatch lock guard
 } EntityRegistry;
 
 #endif
