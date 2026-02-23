@@ -69,6 +69,8 @@ void EntityManager_Reset(EntityRegistry* reg) {
     memset(reg->anim_finished,       0, sizeof(reg->anim_finished));
     memset(reg->anim_base_durations, 0, sizeof(reg->anim_base_durations));
 
+    memset(&reg->events,             0, sizeof(EntityEventDispatcher));
+
     // Rebuild free list
     for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
         reg->free_list[i] = (MAX_ENTITIES - 1) - i;
@@ -106,10 +108,7 @@ void EntityManager_ReturnReservedSlot(EntityRegistry* reg, Entity reserved_entit
 
 Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
     assert(reg && "reg is NULL");
-    if (reg->free_count == 0) {
-        // Registry is null or full
-        return ENTITY_INVALID;
-    }
+    if (reg->free_count == 0) return ENTITY_INVALID;
     
     // Pop index from free list
     uint32_t index = reg->free_list[--reg->free_count];
@@ -157,9 +156,7 @@ Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uin
     reg->active_count++;
     
     // Track max used index for loop optimization
-    if (index >= reg->max_used_bound) {
-        reg->max_used_bound = index + 1;
-    }
+    if (index >= reg->max_used_bound) reg->max_used_bound = index + 1;
     
     return (Entity){ .id = index, .generation = gen };
 }

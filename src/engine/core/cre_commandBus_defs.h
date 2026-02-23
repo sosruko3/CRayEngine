@@ -46,6 +46,7 @@ typedef enum CommandType {
     CMD_ENTITY_SET_TYPE,
     CMD_ENTITY_SET_FLAGS,
     CMD_ENTITY_RESET,
+    CMD_ENTITY_CLEAR_FLAGS,
 
     // Animation commands
     CMD_ANIM_PLAY = CMD_DOMAIN_ANIM,
@@ -84,6 +85,10 @@ typedef struct {
     bool value;
 } CommandPayloadB8;
 
+typedef struct {
+    uint64_t value;
+} CommandPayloadU64;
+
 // --- SPECIFIC PAYLOADS ---
 // Used only when a command has a highly unique footprint
 
@@ -105,11 +110,6 @@ typedef struct {
     uint16_t _pad;
     float volume;
 } CommandPayloadAudio;
-
-typedef struct {
-    uint16_t type; // EntityType, TYPE_PLAYER,TYPE_ZOMBIE etc.
-    creVec2 vec2;
-} CommandPayloadSpawn;
 
 typedef struct {
     Entity prototype;

@@ -30,9 +30,9 @@ static void EnginePhase0_PlatformSync(void) {
 static void EnginePhase1_InputAndLogic(EntityRegistry* restrict reg,CommandBus* bus,float dt) {
     // Note: If you use command bus on phase0 , you need to move these to first part of phase0
     bus->consumed_end = bus->tail;
-    #ifndef NDEBUG
+#ifndef NDEBUG
     bus->current_phase = BUS_PHASE_OPEN;
-    #endif
+#endif
 
     Input_Poll(); // Empty right now.
 
@@ -41,18 +41,18 @@ static void EnginePhase1_InputAndLogic(EntityRegistry* restrict reg,CommandBus* 
 }
 static void EnginePhase2_Simulation(EntityRegistry* restrict  reg,CommandBus* bus,float dt) {
     // AI and Particle systems are not implemented right now.
-    #ifndef NDEBUG
+#ifndef NDEBUG
     bus->current_phase = BUS_PHASE_SIMULATION;
-    #endif
+#endif
     
     EntitySystem_Update(reg,bus);
     PhysicsSystem_Update(reg,bus,dt);
     AnimationSystem_Update(reg,bus,dt);
 }
 static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* bus, float dt) {
-    #ifndef NDEBUG
+#ifndef NDEBUG
     bus->current_phase = BUS_PHASE_RENDER;
-    #endif
+#endif
 
     cameraSystem_Update(reg,bus,dt);
 
@@ -62,16 +62,16 @@ static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* b
 }
 static void EnginePhase4_Cleanup(EntityRegistry* restrict reg, CommandBus* bus) {
     (void)reg;
-    #ifndef NDEBUG
+#ifndef NDEBUG
     bus->current_phase = BUS_PHASE_OPEN;
-    #endif
+#endif
 
     uint32_t flush_end = bus->consumed_end;
 
-    #ifndef NDEBUG
+#ifndef NDEBUG
     assert((flush_end - bus->tail) <= (bus->head - bus->tail)
         && "consumed_end outside [tail..head] range");
-    #endif
+#endif
 
     if ((flush_end - bus->tail) > (bus->head - bus->tail)) {
         flush_end = bus->tail;

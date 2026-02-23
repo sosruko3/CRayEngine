@@ -29,7 +29,7 @@ void SceneManager_Init(SceneFactory factory) {
 void SceneManager_Update(EntityRegistry* reg, CommandBus* bus, float dt) {
     if (ctx.isSwitchPending) {
         if (ctx.currentScene.Unload)  ctx.currentScene.Unload(reg, bus);
-        EntitySystem_ClearCloneHooks(reg);
+        EntitySystem_ClearAllHooks(reg);
         
         if (ctx.factory) {
             ctx.currentScene = ctx.factory(ctx.nextState);
@@ -52,7 +52,7 @@ void SceneManager_Shutdown(EntityRegistry* reg, CommandBus* bus) {
     if (ctx.currentScene.Unload) {
         ctx.currentScene.Unload(reg, bus);
     }
-    EntitySystem_ClearCloneHooks(reg);
+    EntitySystem_ClearAllHooks(reg);
 }
 
 void SceneManager_ChangeScene(int nextState) {

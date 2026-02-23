@@ -13,23 +13,14 @@
 #define CRE_ENTITYREGISTRY_H
 
 #include "engine/core/cre_types.h"
+#include "engine/core/cre_config.h"
+#include "cre_entityEvents.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdalign.h>
-#include "engine/core/cre_config.h"
-
-typedef struct EntityRegistry EntityRegistry;
-typedef struct CommandBus CommandBus;
-
-#define MAX_CLONE_HOOKS 8
-
-typedef void (*OnEntityClonedCallback)(const EntityRegistry* reg,
-                                       CommandBus* bus,
-                                       Entity srcPrototype,
-                                       Entity dstNewEntity);
 
 // ============================================================================
-// Component Mask Bits (uint64_t masks[])
+// Component Mask Bits (uint64_t component_masks[])
 // ============================================================================
 // These bits indicate which components an entity possesses.
 
@@ -82,6 +73,7 @@ typedef void (*OnEntityClonedCallback)(const EntityRegistry* reg,
 // ============================================================================
 // Render Order / Batch Constants
 // ============================================================================
+// Move these to somewhere else. This is temporary.
 #define RENDER_LAYER_DEFAULT 0u
 #define RENDER_LAYER_ENEMY   10u
 #define RENDER_LAYER_PLAYER  20u
@@ -147,9 +139,14 @@ typedef struct EntityRegistry {
     alignas(64) uint32_t active_count;                  ///< Number of active entities
     alignas(64) uint32_t max_used_bound;                ///< Highest index ever used (optimization hint)
 
-    OnEntityClonedCallback clone_hooks[MAX_CLONE_HOOKS];///< Per-world clone observer hooks
-    uint8_t clone_hook_count;                           ///< Active hook count
-    bool is_dispatching_clone_hooks;                    ///< Dispatch lock guard
+    alignas(64) EntityEventDispatcher events;           ///< Lifecycle hook dispatcher state
 } EntityRegistry;
+
+static inline bool EntityRegistry_IsAlive(const EntityRegistry* reg, Entity e) {
+    if (!reg) return false;
+    if (e.id >= MAX_ENTITIES) return false;
+    if (!(reg->state_flags[e.id] & FLAG_ACTIVE)) return false;
+    return reg->generations[e.id] == e.generation;
+}
 
 #endif

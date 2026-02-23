@@ -1,9 +1,9 @@
 #ifndef CRE_CONFIG_H
 #define CRE_CONFIG_H
 
-#define GAME_VIRTUAL_HEIGHT 360.0f // Change these values to change resolution
+#define GAME_VIRTUAL_HEIGHT 360.0f // Change these values to change real resolution
 #define TARGET_FRAMERATE 60 
-#define MIN_ZOOM 0.2f
+#define MIN_ZOOM 0.1f
 #define MAX_ZOOM 5.0f
 #define CAMERA_CULL_MARGIN 256.0f
 

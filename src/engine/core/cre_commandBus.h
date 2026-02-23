@@ -47,11 +47,11 @@ typedef struct Command {
         CommandPayloadF32         f32;
         CommandPayloadU16         u16;
         CommandPayloadB8          b8;
+        CommandPayloadU64         u64;
 
         CommandPayloadAnim        anim;
         CommandPayloadAudio       audio;
         CommandPayloadPhysDef     physDef;
-        CommandPayloadSpawn       spawn;
         CommandPayloadEntityClone entityClone;
         CommandPayloadRenderDepth renderDepth;
         alignas(4) uint8_t     raw[48];
