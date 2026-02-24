@@ -129,8 +129,8 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
     if (IsKeyPressed(KEY_Z)) {
         ViewportSize v = Viewport_Get();
         for (int i = 0; i < SPAWN_COUNT; i++) {
-            int x = GetRandomValue((int)(-4 * v.width), (int)(v.width * 4));
-            int y = GetRandomValue((int)(-4 * v.height), (int)(v.height * 4));
+            int x = GetRandomValue((int)(-8 * v.width),  (int)(v.width * 8));
+            int y = GetRandomValue((int)(-8 * v.height), (int)(v.height * 8));
 
             uint64_t compMask = COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
             uint64_t flags = FLAG_ACTIVE | FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);

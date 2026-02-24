@@ -19,8 +19,8 @@ Entity entityAPI_SpawnUntracked(EntityRegistry* reg,
 								creVec2 position);
 
 void entityAPI_Destroy(CommandBus* bus, Entity entity);
-void entityAPI_SetFlags(CommandBus* bus, Entity entity, uint64_t flags);
-void entityAPI_ClearFlags(CommandBus* bus, Entity entity, uint64_t flags);
+void entityAPI_AddFlags(CommandBus* bus, Entity entity, uint64_t flags);
+void entityAPI_RemoveFlags(CommandBus* bus, Entity entity, uint64_t flags);
 void entityAPI_SetType(CommandBus* bus, Entity entity, uint16_t type);
 void entityAPI_SetPivot(CommandBus* bus, Entity entity, creVec2 pivot);
 void entityAPI_AddComponent(CommandBus* bus, Entity entity, uint64_t component_mask);

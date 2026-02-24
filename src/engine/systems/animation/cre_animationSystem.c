@@ -5,6 +5,8 @@
  * The "Baker" pattern: AnimationSystem_Play copies constant animation data
  * from ASSET_ANIMS into registry arrays. The hot loop then reads ONLY from
  * the registry, achieving pure linear memory access with zero lookups.
+ * 
+ * [NOTE] This system will get cleaning refactor, also directional anim feature.
  */
 
 #include "cre_animationSystem.h"
@@ -13,18 +15,8 @@
 #include "atlas_data.h"  // Only used in AnimationSystem_Play (the baker)
 #include "assert.h"
 
-//============================================================================
-// Helper functions
-//============================================================================
-static bool IsValidAnimEntity(EntityRegistry* reg,Entity entity) {
-    uint32_t id = entity.id;
-    uint32_t gen = entity.generation;
-    if (id >= MAX_ENTITIES) return false;
-    if (gen != reg->generations[id]) return false;
-    if (!(reg->component_masks[id] & COMP_ANIMATION)) return false;
-    if (!(reg->state_flags[id] & FLAG_ACTIVE)) return false;
-    return true;
-}
+static void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animID, bool forceReset);
+
 // ============================================================================
 // Command Processing (Cold Path)
 // ============================================================================
@@ -37,11 +29,12 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
     const Command* cmd;
 
     while (CommandBus_Next(bus, &iter, &cmd)) {
-        // this part is kinda fragile, fix later on.
         if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_ANIM) continue;
-        Entity entity = cmd->entity;
-        const uint32_t id = entity.id;
-        if (!IsValidAnimEntity(reg,entity)) continue;
+        if (!EntityRegistry_IsAlive(reg,cmd->entity)) continue;
+        const Entity entity = cmd->entity;
+        const uint32_t id   = entity.id;
+        if (!(reg->component_masks[id] & COMP_ANIMATION)) continue;
+
         switch (cmd->type) {
             case CMD_ANIM_PLAY: {
                 const uint16_t animID = cmd->anim.animID;
@@ -50,7 +43,6 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
                 break;
             }
             case CMD_ANIM_STOP: {
-                // Stop animation: mark finished, keep current frame
                 reg->anim_finished[id] = true;
                 reg->anim_timers[id] = 0.0f;
                 reg->anim_frames[id] = 0;
@@ -64,8 +56,47 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
             reg->state_flags[id] &= ~FLAG_ANIM_PAUSED;
                 break;
             }
-            default:
+            case CMD_ANIM_SET_FRAME: {
+                // Set current frame safely and restart frame timer
+                const uint16_t frame_count = reg->anim_frame_counts[id];
+                uint16_t frame = cmd->u16.value;
 
+                if (frame_count == 0) {
+                    reg->anim_frames[id] = 0;
+                    reg->anim_timers[id] = 0.0f;
+                    reg->anim_finished[id] = true;
+                    break;
+                }
+
+                if (frame >= frame_count) {
+                    frame = (uint16_t)(frame_count - 1u);
+                }
+
+                reg->anim_frames[id] = frame;
+                reg->anim_timers[id] = 0.0f;
+                // Policy: Revive-on-SetFrame so explicit frame seek resumes animation flow.
+                reg->anim_finished[id] = false;
+                break;
+            }
+            case CMD_ANIM_SET_SPEED: {
+                // Set animation speed multiplier (0 = paused)
+                float speed = cmd->f32.value;
+                if (speed < 0.0001f) {
+                    speed = 0.0f;
+                }
+                reg->anim_speeds[id] = speed;
+                break;
+            }
+            case CMD_ANIM_SET_LOOP:  {
+                // Override loop flag and revive if loop is enabled
+                const bool loop = cmd->b8.value;
+                reg->anim_loops[id] = loop;
+                if (loop) {
+                    reg->anim_finished[id] = false;
+                }
+                break;
+            }
+            default:
                 break;
         }
     }
@@ -75,9 +106,21 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
 // The Baker - Copies constant data into registry on animation start
 // ============================================================================
 
-void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animID, bool forceReset) {
+/**
+ * @brief Play an animation on an entity (direct call, bypasses command bus).
+ * 
+ * "The Baker" - looks up ASSET_ANIMS[animID] and copies constant data
+ * (duration, frameCount, startSprite, loop) into the registry's baked arrays.
+ * 
+ * @param reg Pointer to EntityRegistry
+ * @param entityID Entity index
+ * @param animID Animation ID to play
+ * @param forceReset If true, restarts animation even if already playing
+ */
+static void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animID, bool forceReset) {
     assert(reg && "reg is NULL");
     assert(animID < ANIM_COUNT && "Invalid Animation ID! Check your Anim enum.");
+    if (animID >= ANIM_COUNT) return;
 
     // Skip if already playing this animation (unless forced)
     if (!forceReset && 
@@ -95,21 +138,16 @@ void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animI
     reg->anim_frame_counts[entityID]   = def->frameCount;
     reg->anim_start_sprites[entityID]  = def->startSpriteID;
     reg->anim_loops[entityID]          = def->loop;
-
+    
     // Reset dynamic state
     reg->anim_ids[entityID]      = animID;
     reg->anim_frames[entityID]   = 0;
     reg->anim_timers[entityID]   = 0.0f;
+    reg->anim_speeds[entityID]   = 1.0f;
     reg->anim_finished[entityID] = false;
 
     // Set initial sprite immediately
     reg->sprite_ids[entityID] = def->startSpriteID;
-}
-
-void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float multiplier) {
-    assert(reg && "reg is NULL");
-    if (entityID >= MAX_ENTITIES) return;
-    reg->anim_speeds[entityID] = multiplier;
 }
 
 // ============================================================================
@@ -154,8 +192,11 @@ void AnimationSystem_Update(EntityRegistry* reg,CommandBus* bus, float dt) {
         if ( (flags[i] & notrequired_flags)) continue;
  
         // Skip already finished animations
-        if (finished[i]) continue;
-
+        if (finished[i]) {
+            // Draw last frame?
+            if (flags[i] & FLAG_VISIBLE) sprites[i] = start_sprites[i] + frames[i];
+            continue;
+        }
         // Critical safety: prevent infinite loop on invalid duration
         const float duration = base_durations[i];
         if (duration <= 0.0001f) {

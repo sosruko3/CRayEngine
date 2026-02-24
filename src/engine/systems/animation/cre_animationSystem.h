@@ -53,26 +53,4 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus);
  */
 void AnimationSystem_Update(EntityRegistry* reg,CommandBus* bus, float dt);
 
-/**
- * @brief Set animation speed multiplier for an entity.
- * 
- * @param reg Pointer to EntityRegistry
- * @param entityID Entity index
- * @param multiplier Speed multiplier (1.0f = normal, 2.0f = double speed)
- */
-void AnimationSystem_SetSpeed(EntityRegistry* reg, uint32_t entityID, float multiplier);
-
-/**
- * @brief Play an animation on an entity (direct call, bypasses command bus).
- * 
- * "The Baker" - looks up ASSET_ANIMS[animID] and copies constant data
- * (duration, frameCount, startSprite, loop) into the registry's baked arrays.
- * 
- * @param reg Pointer to EntityRegistry
- * @param entityID Entity index
- * @param animID Animation ID to play
- * @param forceReset If true, restarts animation even if already playing
- */
-void AnimationSystem_Play(EntityRegistry* reg, uint32_t entityID, uint16_t animID, bool forceReset);
-
 #endif

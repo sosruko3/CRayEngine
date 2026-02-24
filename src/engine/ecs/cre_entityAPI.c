@@ -69,9 +69,9 @@ void entityAPI_Destroy(CommandBus* bus, Entity entity) {
 	}
 }
 
-void entityAPI_SetFlags(CommandBus* bus, Entity entity, uint64_t flags) {
+void entityAPI_AddFlags(CommandBus* bus, Entity entity, uint64_t flags) {
 	Command cmd = {
-		.type = CMD_ENTITY_SET_FLAGS,
+		.type = CMD_ENTITY_ADD_FLAGS,
 		.entity = entity,
 		.u64 = (CommandPayloadU64){ .value = flags },
 	};
@@ -81,9 +81,9 @@ void entityAPI_SetFlags(CommandBus* bus, Entity entity, uint64_t flags) {
 	}
 }
 
-void entityAPI_ClearFlags(CommandBus* bus, Entity entity, uint64_t flags) {
+void entityAPI_RemoveFlags(CommandBus* bus, Entity entity, uint64_t flags) {
 	Command cmd = {
-		.type = CMD_ENTITY_CLEAR_FLAGS,
+		.type = CMD_ENTITY_REMOVE_FLAGS,
 		.entity = entity,
 		.u64 = (CommandPayloadU64){ .value = flags },
 	};

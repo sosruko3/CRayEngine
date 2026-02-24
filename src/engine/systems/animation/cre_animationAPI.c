@@ -1,7 +1,7 @@
 #include "cre_animationAPI.h"
 #include "engine/core/cre_commandBus.h"
 #include <stdint.h>
-#include <stdbool.h>
+#include <assert.h>
 #include <stdbool.h>
 
 void animAPI_Play(CommandBus* restrict bus, Entity entity,uint16_t animID, bool forceReset) {
@@ -49,7 +49,7 @@ void animAPI_Pause(CommandBus* restrict bus, Entity entity) {
 void animAPI_SetSpeed(CommandBus* restrict bus, Entity entity,float speed) {
     assert(bus != NULL);
     Command cmd = {
-        .type = CMD_ANIM_SETSPEED,
+        .type = CMD_ANIM_SET_SPEED,
         .entity = entity,
         .f32 = { .value = speed }
     };
@@ -59,7 +59,7 @@ void animAPI_SetSpeed(CommandBus* restrict bus, Entity entity,float speed) {
 void animAPI_SetFrame(CommandBus* restrict bus, Entity entity, uint16_t frame) {
     assert(bus != NULL);
     Command cmd = {
-        .type = CMD_ANIM_SETFRAME,
+        .type = CMD_ANIM_SET_FRAME,
         .entity = entity,
         .u16 = { .value = frame }
     };
@@ -69,7 +69,7 @@ void animAPI_SetFrame(CommandBus* restrict bus, Entity entity, uint16_t frame) {
 void animAPI_SetLoop(CommandBus* restrict bus, Entity entity, bool loop) {
     assert(bus != NULL);
     Command cmd = {
-        .type = CMD_ANIM_SETLOOP,
+        .type = CMD_ANIM_SET_LOOP,
         .entity = entity,
         .b8 = {.value = loop }
     };

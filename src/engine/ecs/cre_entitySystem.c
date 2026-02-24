@@ -380,14 +380,14 @@ void EntitySystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
                 reg->types[id] = cmd->u16.value;
                 break;
             }
-            case CMD_ENTITY_SET_FLAGS: { 
+            case CMD_ENTITY_ADD_FLAGS: { 
                 // Change it's name to ADD_FLAGS
                 if (!EntityRegistry_IsAlive(reg, cmd->entity)) break;
                 uint32_t id = cmd->entity.id;
                 reg->state_flags[id] |= cmd->u64.value;
                 break;
             }
-            case CMD_ENTITY_CLEAR_FLAGS: {
+            case CMD_ENTITY_REMOVE_FLAGS: {
                 if (!EntityRegistry_IsAlive(reg, cmd->entity)) break;
                 uint32_t id = cmd->entity.id;
                 reg->state_flags[id] &= ~cmd->u64.value;
