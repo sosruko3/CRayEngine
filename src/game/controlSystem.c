@@ -5,7 +5,7 @@
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/platform/cre_input.h"
 #include "engine/platform/cre_viewport.h"
-#include "engine/systems/animation/cre_animationSystem.h"
+#include "engine/systems/animation/cre_animationAPI.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/core/cre_config.h"
 #include "atlas_data.h"
@@ -199,7 +199,7 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
         cmd.physDef.drag = 0.1f;
         CommandBus_Push(bus,cmd);
 
-        //AnimationSystem_Play(reg, player.id, ANIM_CHARACTER_ZOMBIE_RUN, true);
+        animAPI_Play(bus,player,ANIM_CHARACTER_ZOMBIE_RUN,true);
         ControlSystem_SetCameraTarget(reg, player);
     }
 }

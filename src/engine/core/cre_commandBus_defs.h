@@ -60,6 +60,12 @@ typedef enum CommandType {
 
     // Render commands
     CMD_RENDER_SETDEPTHMATH = CMD_DOMAIN_RENDER,
+    CMD_RENDER_SET_SPRITE,
+    CMD_RENDER_SET_COLOR,
+    CMD_RENDER_SET_VISIBLE,
+    CMD_RENDER_SET_VISUAL_SCALE,
+    CMD_RENDER_SET_ROTATION,
+    CMD_RENDER_SET_LAYER,
     
     CMD_TYPE_COUNT // Render domain would count this as well, fix this.
 } CommandType;
@@ -85,6 +91,10 @@ typedef struct {
 typedef struct {
     bool value;
 } CommandPayloadB8;
+
+typedef struct {
+    uint8_t value;
+} CommandPayloadU8;
 
 typedef struct {
     uint64_t value;
@@ -116,6 +126,10 @@ typedef struct {
     Entity prototype;
     creVec2 position;
 } CommandPayloadEntityClone;
+
+typedef struct {
+    creColor color;
+} CommandPayloadColor;
 
 typedef struct {
     float wX;

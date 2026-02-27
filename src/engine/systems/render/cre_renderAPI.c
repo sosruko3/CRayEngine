@@ -1,6 +1,5 @@
 #include "cre_renderAPI.h"
 #include "engine/core/cre_commandBus.h"
-#include "cre_renderSystem.h"
 #include <assert.h>
 
 void renderAPI_SetDepthSettings(
@@ -51,3 +50,75 @@ void renderAPI_SetDepthPreset(CommandBus* restrict bus, creDepthPreset type) {
             break;
     }
 }   
+
+void renderAPI_SetSprite(CommandBus* restrict bus, Entity entity, uint16_t spriteID) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_SPRITE,
+        .entity = entity,
+        .u16 = { 
+            .value = spriteID 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}
+
+void renderAPI_SetColor(CommandBus* restrict bus, Entity entity, creColor color) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_COLOR,
+        .entity = entity,
+        .color = { 
+            .color = color 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}
+
+void renderAPI_SetVisible(CommandBus* restrict bus, Entity entity, bool visible) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_VISIBLE,
+        .entity = entity,
+        .b8 = { 
+            .value = visible 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}
+
+void renderAPI_SetVisualScale(CommandBus* restrict bus, Entity entity, float scaleX, float scaleY) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_VISUAL_SCALE,
+        .entity = entity,
+        .vec2 = { 
+            .value = (creVec2){scaleX, scaleY } 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}
+
+void renderAPI_SetRotation(CommandBus* restrict bus, Entity entity, float rotation) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_ROTATION,
+        .entity = entity,
+        .f32 = { 
+            .value = rotation 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}
+
+void renderAPI_SetRenderLayer(CommandBus* restrict bus, Entity entity, uint8_t layer) {
+    assert(bus != NULL);
+    Command cmd = {
+        .type = CMD_RENDER_SET_LAYER,
+        .entity = entity,
+        .u8 = { 
+            .value = layer 
+        }
+    };
+    CommandBus_Push(bus, cmd);
+}

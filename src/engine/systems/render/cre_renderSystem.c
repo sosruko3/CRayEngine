@@ -46,7 +46,7 @@ static float g_WeightH = 0.0f;
 #define SORT_DEPTH_PRECISION  100.0f
 #define SORT_DEPTH_MAX        (SORT_MASK_DEPTH)
 
-void renderSystem_SetDepthMath(float wX, float wY, float wH, uint8_t shiftBatch, uint8_t shiftDepth) {
+static void renderSystem_SetDepthMath(float wX, float wY, float wH, uint8_t shiftBatch, uint8_t shiftDepth) {
     assert(isfinite(wX) && isfinite(wY) && isfinite(wH));
 
     assert(shiftDepth < 64U);
@@ -80,10 +80,11 @@ void renderSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
 
     CommandIterator iter = CommandBus_GetIterator(bus);
     const Command* cmd;
-        
+    
     while (CommandBus_Next(bus, &iter, &cmd)) {
         if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_RENDER) continue;
 
+        // Phase 1: Global render commands
         switch (cmd->type) {
             case CMD_RENDER_SETDEPTHMATH: {
                 renderSystem_SetDepthMath(
@@ -93,9 +94,50 @@ void renderSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
                     cmd->renderDepth.shiftBatch,
                     cmd->renderDepth.shiftDepth
                 );
-                break;
+                continue;
             }
-            
+            default:
+                break;
+        }
+
+        // Phase 2: Entity-targeted render commands (triple shield)
+        if (!ENTITY_IS_VALID(cmd->entity)) continue;
+        if (!EntityRegistry_IsAlive(reg, cmd->entity)) continue;
+
+        const uint32_t id = cmd->entity.id;
+        if (!(reg->component_masks[id] & COMP_SPRITE)) continue;
+
+        switch (cmd->type) {
+            case CMD_RENDER_SET_SPRITE:
+                reg->sprite_ids[id] = cmd->u16.value;
+                break;
+
+            case CMD_RENDER_SET_COLOR:
+                reg->colors[id] = cmd->color.color;
+                break;
+
+            case CMD_RENDER_SET_VISIBLE:
+                if (cmd->b8.value) {
+                    reg->state_flags[id] |= FLAG_VISIBLE;
+                } 
+                else {
+                    reg->state_flags[id] &= ~FLAG_VISIBLE;
+                }
+                break;
+
+            case CMD_RENDER_SET_VISUAL_SCALE:
+                reg->visual_scale_x[id] = cmd->vec2.value.x;
+                reg->visual_scale_y[id] = cmd->vec2.value.y;
+                break;
+
+            case CMD_RENDER_SET_ROTATION:
+                reg->rotation[id] = cmd->f32.value;
+                break;
+
+            case CMD_RENDER_SET_LAYER:
+                reg->render_layer[id] = cmd->u8.value;
+                break;
+
             default:
                 break;
         }
@@ -231,7 +273,10 @@ void renderSystem_DrawEntities(EntityRegistry* reg, creRectangle cullRect) {
 
         const uint16_t spriteID = reg->sprite_ids[id];
         creVec2 position = {reg->pos_x[id], reg->pos_y[id]};
-        const creVec2 size = {reg->size_w[id], reg->size_h[id]};
+        const creVec2 size = {
+            reg->size_w[id] * reg->visual_scale_x[id], 
+            reg->size_h[id] * reg->visual_scale_y[id]
+        };
         const float rotation = reg->rotation[id];
         const float pivotX = reg->pivot_x[id];
         const float pivotY = reg->pivot_y[id];

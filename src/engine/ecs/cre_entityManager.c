@@ -39,10 +39,10 @@ void EntityManager_Reset(EntityRegistry* reg) {
     assert(reg && "reg is NULL");
     
     // Clear component_masks and state_flags, but NOT generations!
-    memset(reg->component_masks, 0, sizeof(reg->component_masks));
-    memset(reg->state_flags, 0, sizeof(reg->state_flags));
-    memset(reg->render_layer,0,sizeof(reg->render_layer));
-    memset(reg->batch_ids,   0, sizeof(reg->batch_ids));
+    memset(reg->component_masks,     0, sizeof(reg->component_masks));
+    memset(reg->state_flags,         0, sizeof(reg->state_flags));
+    memset(reg->render_layer,        0,sizeof(reg->render_layer));
+    memset(reg->batch_ids,           0, sizeof(reg->batch_ids));
 
     // Clear data highways
     memset(reg->pos_x,               0, sizeof(reg->pos_x));
@@ -61,6 +61,8 @@ void EntityManager_Reset(EntityRegistry* reg) {
     memset(reg->sprite_ids,          0, sizeof(reg->sprite_ids));
     memset(reg->colors,              0, sizeof(reg->colors));
     memset(reg->types,               0, sizeof(reg->types));
+    memset(reg->visual_scale_x,      0,sizeof(reg->visual_scale_x));
+    memset(reg->visual_scale_y,      0,sizeof(reg->visual_scale_y));
 
     memset(reg->anim_timers,         0, sizeof(reg->anim_timers));
     memset(reg->anim_speeds,         0, sizeof(reg->anim_speeds));
@@ -115,43 +117,45 @@ Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uin
     uint32_t gen = reg->generations[index];
     
     // Set up the entity in SoA arrays
-    reg->component_masks[index] = initial_CompMask;
-    reg->state_flags[index] = initial_flags | FLAG_ACTIVE;
-    reg->types[index] = (uint16_t)type;
-    reg->render_layer[index] = RENDER_LAYER_DEFAULT;
-    reg->batch_ids[index] = RENDER_BATCH_DEFAULT;
+    reg->component_masks[index]= initial_CompMask;
+    reg->state_flags[index]    = initial_flags | FLAG_ACTIVE;
+    reg->types[index]          = (uint16_t)type;
+    reg->render_layer[index]   = RENDER_LAYER_DEFAULT;
+    reg->batch_ids[index]      = RENDER_BATCH_DEFAULT;
     
     // Position
-    reg->pos_x[index] = pos.x;
-    reg->pos_y[index] = pos.y;
+    reg->pos_x[index]          = pos.x;
+    reg->pos_y[index]          = pos.y;
     
     // Velocity (default zero)
-    reg->vel_x[index] = 0.0f;
-    reg->vel_y[index] = 0.0f;
+    reg->vel_x[index]          = 0.0f;
+    reg->vel_y[index]          = 0.0f;
     
     // Size (default 64x64)
-    reg->size_w[index] = 64.0f;
-    reg->size_h[index] = 64.0f;
+    reg->size_w[index]         = 64.0f;
+    reg->size_h[index]         = 64.0f;
 
     // Physics specific
-    reg->inv_mass[index]      = 0.0f;
-    reg->drag[index]          = 0.0f;
-    reg->gravity_scale[index] = 0.0f;
-    reg->material_id[index]   = 0;
+    reg->inv_mass[index]       = 0.0f;
+    reg->drag[index]           = 0.0f;
+    reg->gravity_scale[index]  = 0.0f;
+    reg->material_id[index]    = 0;
 
     // Rotation
-    reg->rotation[index] = 0.0f;
+    reg->rotation[index]       = 0.0f;
     
     // Sprite specific
-    reg->sprite_ids[index] = 0;
-    reg->colors[index] = creBLANK;
-    reg->pivot_x[index] = 0.5f;
-    reg->pivot_y[index] = 0.5f;
+    reg->sprite_ids[index]     = 0;
+    reg->colors[index]         = creBLANK;
+    reg->pivot_x[index]        = 0.5f;
+    reg->pivot_y[index]        = 0.5f;
+    reg->visual_scale_x[index] = 1.0f;
+    reg->visual_scale_y[index] = 1.0f;
     
     // Animations
-    reg->anim_speeds[index] = 1.0f;
-    reg->anim_timers[index] = 0.0f;
-    reg->anim_finished[index] = false;
+    reg->anim_speeds[index]    = 1.0f;
+    reg->anim_timers[index]    = 0.0f;
+    reg->anim_finished[index]  = false;
     
     reg->active_count++;
     

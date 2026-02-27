@@ -117,6 +117,8 @@ typedef struct EntityRegistry {
     alignas(64) creColor colors[MAX_ENTITIES];          ///< Tint color
     alignas(64) float  pivot_x[MAX_ENTITIES];           ///< Pivot_x of sprite
     alignas(64) float  pivot_y[MAX_ENTITIES];           ///< Pivot_y of sprite
+    alignas(64) float  visual_scale_x[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
+    alignas(64) float  visual_scale_y[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
 
     // Animation SoA arrays - Dynamic State (managed by AnimationSystem)
     alignas(64) float    anim_timers[MAX_ENTITIES];     ///< Time accumulator for frame advance

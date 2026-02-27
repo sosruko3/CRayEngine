@@ -7,10 +7,9 @@
 #include <assert.h>
 #include <stdint.h>
 
-static void EntitySystem_CopyPrototype(EntityRegistry* reg,
-                                       uint32_t dst_id,
-                                       uint32_t src_id,
-                                       creVec2 position) {
+static void EntitySystem_CopyPrototype(
+    EntityRegistry* reg, uint32_t dst_id, uint32_t src_id, creVec2 position) {
+        
     reg->pos_x[dst_id] = reg->pos_x[src_id];
     reg->pos_y[dst_id] = reg->pos_y[src_id];
     reg->size_w[dst_id] = reg->size_w[src_id];
