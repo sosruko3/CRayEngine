@@ -1,1 +1,170 @@
 #include "cre_physicsAPI.h"
+#include "engine/core/cre_commandBus.h"
+#include "engine/ecs/cre_entityRegistry.h"
+#include "cre_physics_defs.h"
+#include "engine/core/cre_logger.h"
+#include <assert.h>
+
+void physicsAPI_DefineBody(CommandBus* restrict bus, Entity entity, uint8_t mat_id, float drag, bool is_static) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_DEFINE,
+		.entity = entity,
+		.physDef = {
+			.material_id = mat_id,
+			.flags = is_static ? CMD_PHYS_FLAG_STATIC : 0,
+			.drag = drag,
+		}
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_DefineBody: CommandBus is full!");
+	}
+}
+
+void physicsAPI_TeleportBody(CommandBus* restrict bus, Entity entity, float x, float y) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_TELEPORT,
+		.entity = entity,
+		.vec2 = { .value = (creVec2){ .x = x, .y = y } }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_TeleportBody: CommandBus is full!");
+	}
+}
+
+void physicsAPI_ApplyImpulse(CommandBus* restrict bus, Entity entity, float jx, float jy) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_APPLY_IMPULSE,
+		.entity = entity,
+		.vec2 = { .value = (creVec2){ .x = jx, .y = jy } }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_ApplyImpulse: CommandBus is full!");
+	}
+}
+
+void physicsAPI_SetVelocity(CommandBus* restrict bus, Entity entity, float vx, float vy) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_SET_VELOCITY,
+		.entity = entity,
+		.vec2 = { .value = (creVec2){ .x = vx, .y = vy } }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_SetVelocity: CommandBus is full!");
+	}
+}
+
+void physicsAPI_SetDrag(CommandBus* restrict bus, Entity entity, float drag) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_SET_DRAG,
+		.entity = entity,
+		.f32 = { .value = drag }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_SetDrag: CommandBus is full!");
+	}
+}
+
+void physicsAPI_SetGravityScale(CommandBus* restrict bus, Entity entity, float scale) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_SET_GRAVITY_SCALE,
+		.entity = entity,
+		.f32 = { .value = scale }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_SetGravityScale: CommandBus is full!");
+	}
+}
+
+void physicsAPI_SetMaterial(CommandBus* restrict bus, Entity entity, uint8_t mat_id) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_SET_MATERIAL,
+		.entity = entity,
+		.u8 = { .value = mat_id }
+	};
+
+	if (!CommandBus_Push(bus, cmd)) {
+		Log(LOG_LVL_WARNING, "physicsAPI_SetMaterial: CommandBus is full!");
+	}
+}
+
+void physicsAPI_SetGlobalGravity(CommandBus* restrict bus, float x, float y) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_SET_GRAVITY,
+		.entity = ENTITY_INVALID,
+		.vec2 = { .value = (creVec2){ .x = x, .y = y } }
+	};
+
+	CommandBus_Push(bus, cmd);
+}
+
+void physicsAPI_LoadStaticGeometry(CommandBus* restrict bus) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_LOAD_STATIC,
+		.entity = ENTITY_INVALID,
+	};
+
+	CommandBus_Push(bus, cmd);
+}
+
+void physicsAPI_ResetWorld(CommandBus* restrict bus) {
+	assert(bus != NULL);
+
+	Command cmd = {
+		.type = CMD_PHYS_RESET,
+		.entity = ENTITY_INVALID,
+	};
+
+	CommandBus_Push(bus, cmd);
+}
+
+creVec2 physicsAPI_GetVelocity(const EntityRegistry* reg, Entity entity) {
+	if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+		return (creVec2){.x = 0.0f, .y = 0.0f};
+	}
+
+	const uint32_t id = entity.id;
+    return (creVec2){
+        .x = reg->vel_x[id], 
+        .y = reg->vel_y[id]
+    };
+}
+
+bool physicsAPI_IsSleeping(const EntityRegistry* reg, Entity entity) {
+	if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+		return false;
+	}
+
+	return (reg->state_flags[entity.id] & FLAG_SLEEPING) != 0;
+}
+
+uint8_t physicsAPI_GetMaterial(const EntityRegistry* reg, Entity entity) {
+	if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+		return MAT_DEFAULT;
+	}
+
+	return reg->material_id[entity.id];
+}

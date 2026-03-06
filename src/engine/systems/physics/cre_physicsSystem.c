@@ -42,9 +42,14 @@
     // Clamp coordinates to safe numbers
     // ============================================================================
 
-    static const float PHYS_COORD_MIN = -100000.0f;
-    static const float PHYS_COORD_MAX =  100000.0f;
-    static const float PHYS_SIZE_MAX  =  50000.0f;
+    static const float PHYS_COORD_MIN = -500000.0f;
+    static const float PHYS_COORD_MAX =  500000.0f;
+    static const float PHYS_SIZE_MAX  =  4096.0f;
+    static const float PHYS_VEL_MAX   =  10000.0f;
+    static const float PHYS_IMPULSE_MAX = 10000.0f;
+    static const float PHYS_DRAG_MAX  = 100.0f;
+    static const float PHYS_GRAVITY_SCALE_MAX = 100.0f;
+    static const float PHYS_GRAVITY_MAX = 5000.0f;
 
     static inline float PhysicsSystem_ClampCoord(float val) {
         return fmaxf(PHYS_COORD_MIN, fminf(PHYS_COORD_MAX, val));
@@ -52,6 +57,52 @@
 
     static inline float PhysicsSystem_ClampSize(float val) {
         return fmaxf(0.0f, fminf(PHYS_SIZE_MAX, val));
+    }
+
+    static inline float PhysicsSystem_ClampSigned(float val, float maxAbs) {
+        return fmaxf(-maxAbs, fminf(maxAbs, val));
+    }
+
+    static inline float PhysicsSystem_SanitizeCoord(float value, float fallback) {
+        if (!isfinite(value)) return PhysicsSystem_ClampCoord(fallback);
+        return PhysicsSystem_ClampCoord(value);
+    }
+
+    static inline float PhysicsSystem_SanitizeVelocity(float value, float fallback) {
+        if (!isfinite(value)) return PhysicsSystem_ClampSigned(fallback, PHYS_VEL_MAX);
+        return PhysicsSystem_ClampSigned(value, PHYS_VEL_MAX);
+    }
+
+    static inline float PhysicsSystem_SanitizeImpulse(float value) {
+        if (!isfinite(value)) return 0.0f;
+        return PhysicsSystem_ClampSigned(value, PHYS_IMPULSE_MAX);
+    }
+
+    static inline float PhysicsSystem_SanitizeDrag(float value, float fallback) {
+        if (!isfinite(value)) return fmaxf(0.0f, fminf(PHYS_DRAG_MAX, fallback));
+        return fmaxf(0.0f, fminf(PHYS_DRAG_MAX, value));
+    }
+
+    static inline float PhysicsSystem_SanitizeGravityScale(float value, float fallback) {
+        if (!isfinite(value)) return PhysicsSystem_ClampSigned(fallback, PHYS_GRAVITY_SCALE_MAX);
+        return PhysicsSystem_ClampSigned(value, PHYS_GRAVITY_SCALE_MAX);
+    }
+
+    static inline float PhysicsSystem_SanitizeGravity(float value, float fallback) {
+        if (!isfinite(value)) return PhysicsSystem_ClampSigned(fallback, PHYS_GRAVITY_MAX);
+        return PhysicsSystem_ClampSigned(value, PHYS_GRAVITY_MAX);
+    }
+
+    static inline uint8_t PhysicsSystem_SanitizeMaterialID(uint8_t mat_id) {
+        return (mat_id < PHYS_MAX_MATERIALS) ? mat_id : MAT_DEFAULT;
+    }
+
+    static inline bool PhysicsSystem_ValidatePhysicsTarget(const EntityRegistry* reg, Entity entity, uint32_t* out_id) {
+        if (!EntityRegistry_IsAlive(reg, entity)) return false;
+        const uint32_t id = entity.id;
+        if (!(reg->component_masks[id] & COMP_PHYSICS)) return false;
+        *out_id = id;
+        return true;
     }
 
 
@@ -82,6 +133,7 @@
 
     static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry* reg);    
     static void ConfigureBody(EntityRegistry* reg, uint32_t id, uint8_t mat_id, float drag, bool is_static);
+    static void PhysicsSystem_RecalculateMass(EntityRegistry* reg, uint32_t id);
     static void Phase1_Integration(EntityRegistry* reg, float dt);
     static void Phase2_BroadPhase(EntityRegistry* reg);
     static void Phase3_DetectContacts(EntityRegistry* reg);
@@ -187,25 +239,105 @@
         const Command* cmd;
         
         while (CommandBus_Next(bus, &iter, &cmd)) {
-            const Entity entity = cmd->entity;
-            const uint32_t id = entity.id;
             if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_PHYS) continue;
+            const Entity entity = cmd->entity;
             
             switch (cmd->type) {
                 case CMD_PHYS_DEFINE: {
-                    // Configure physics body from command payload
-                    if (!(EntityRegistry_IsAlive(reg,entity))) break;
-                    if (!(reg->component_masks[id] & COMP_PHYSICS)) break;
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
                     
                     const bool isStatic  = (cmd->physDef.flags & CMD_PHYS_FLAG_STATIC) != 0;
-                    const uint8_t mat_id = cmd->physDef.material_id;
-                    const float dDrag    = cmd->physDef.drag;
-                    ConfigureBody(reg, id, mat_id, dDrag , isStatic);
+                    const uint8_t mat_id = PhysicsSystem_SanitizeMaterialID(cmd->physDef.material_id);
+                    const float dDrag = PhysicsSystem_SanitizeDrag(cmd->physDef.drag, reg->drag[id]);
+                    ConfigureBody(reg, id, mat_id, dDrag, isStatic);
+                    break;
+                }
+
+                case CMD_PHYS_TELEPORT: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+
+                    const float oldX = PhysicsSystem_ClampCoord(reg->pos_x[id]);
+                    const float oldY = PhysicsSystem_ClampCoord(reg->pos_y[id]);
+                    const float width = PhysicsSystem_ClampSize(reg->size_w[id]);
+                    const float height = PhysicsSystem_ClampSize(reg->size_h[id]);
+
+                    const float newX = PhysicsSystem_SanitizeCoord(cmd->vec2.value.x, oldX);
+                    const float newY = PhysicsSystem_SanitizeCoord(cmd->vec2.value.y, oldY);
+
+                    if (reg->state_flags[id] & FLAG_STATIC) {
+                        SpatialHash_RemoveStatic(id, (int)oldX, (int)oldY, (int)width, (int)height);
+                    }
+
+                    reg->pos_x[id] = newX;
+                    reg->pos_y[id] = newY;
+                    reg->vel_x[id] = 0.0f;
+                    reg->vel_y[id] = 0.0f;
+                    reg->state_flags[id] &= ~FLAG_SLEEPING;
+
+                    if (reg->state_flags[id] & FLAG_STATIC) {
+                        SpatialHash_AddStatic(id, (int)newX, (int)newY, (int)width, (int)height);
+                    }
+                    break;
+                }
+
+                case CMD_PHYS_SET_VELOCITY: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+
+                    const float vx = PhysicsSystem_SanitizeVelocity(cmd->vec2.value.x, reg->vel_x[id]);
+                    const float vy = PhysicsSystem_SanitizeVelocity(cmd->vec2.value.y, reg->vel_y[id]);
+                    reg->vel_x[id] = vx;
+                    reg->vel_y[id] = vy;
+                    reg->state_flags[id] &= ~FLAG_SLEEPING;
+                    break;
+                }
+
+                case CMD_PHYS_APPLY_IMPULSE: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+                    if (reg->inv_mass[id] == 0.0f) break;
+
+                    const float jx = PhysicsSystem_SanitizeImpulse(cmd->vec2.value.x);
+                    const float jy = PhysicsSystem_SanitizeImpulse(cmd->vec2.value.y);
+                    reg->vel_x[id] += jx * reg->inv_mass[id];
+                    reg->vel_y[id] += jy * reg->inv_mass[id];
+                    reg->state_flags[id] &= ~FLAG_SLEEPING;
+                    break;
+                }
+
+                case CMD_PHYS_SET_DRAG: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+                    reg->drag[id] = PhysicsSystem_SanitizeDrag(cmd->f32.value, reg->drag[id]);
+                    break;
+                }
+
+                case CMD_PHYS_SET_GRAVITY_SCALE: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+                    reg->gravity_scale[id] = PhysicsSystem_SanitizeGravityScale(cmd->f32.value, reg->gravity_scale[id]);
+                    break;
+                }
+
+                case CMD_PHYS_SET_MATERIAL: {
+                    uint32_t id = 0;
+                    if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id)) break;
+
+                    reg->material_id[id] = PhysicsSystem_SanitizeMaterialID(cmd->u8.value);
+                    PhysicsSystem_RecalculateMass(reg, id);
+                    break;
+                }
+
+                case CMD_PHYS_SET_GRAVITY: {
+                    g_gravity_x = PhysicsSystem_SanitizeGravity(cmd->vec2.value.x, g_gravity_x);
+                    g_gravity_y = PhysicsSystem_SanitizeGravity(cmd->vec2.value.y, g_gravity_y);
                     break;
                 }
                 
                 case CMD_PHYS_LOAD_STATIC: {
-                    // Scan registry and populate static spatial hash
+                    SpatialHash_ClearAll();
                     PhysicsSystem_LoadStaticGeometry(reg);
                     break;
                 }
@@ -225,20 +357,18 @@
 
     static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry* reg) {
         assert(reg && "reg is NULL");
-        
+
         uint32_t staticCount = 0;
         const uint32_t bound = reg->max_used_bound;
-        
+        const float* restrict const p_pos_x = reg->pos_x;
+        const float* restrict const p_pos_y = reg->pos_y;
+        const float* restrict const p_size_w = reg->size_w;
+        const float* restrict const p_size_h = reg->size_h;
+
         for (uint32_t i = 0; i < bound; i++) {
             const uint64_t flags = reg->state_flags[i];
             const uint64_t comps = reg->component_masks[i];
-            float* restrict const p_pos_x = reg->pos_x;
-            float* restrict const p_pos_y = reg->pos_y;
-            float* restrict const p_size_w = reg->size_w;
-            float* restrict const p_size_h = reg->size_h;
-            
-            // Filter: Active + Physics+Sprite + Static (or infinite mass)
-            // If has sprite and/or physics, it works. This is for particles etc.
+
             bool hasPhysics = (comps & COMP_PHYSICS);
             bool hasSprite  = (comps & COMP_SPRITE);
 
@@ -249,9 +379,7 @@
             if (hasPhysics) {
                 if (!isStatic && reg->inv_mass[i] > 0.001f) continue;
             }
-            
-            
-            // Add to static layer
+
             const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
             const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
             const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
@@ -265,7 +393,7 @@
             );
             staticCount++;
         }
-        
+
         Log(LOG_LVL_INFO, "Loaded %u static bodies into spatial hash", staticCount);
     }
 
@@ -324,6 +452,36 @@
         reg->material_id[id] = mat_id;
         reg->drag[id] = drag;
         reg->gravity_scale[id] = 1.0f;
+    }
+
+    static void PhysicsSystem_RecalculateMass(EntityRegistry* reg, uint32_t id) {
+        assert(id < MAX_ENTITIES);
+
+        if (reg->state_flags[id] & FLAG_STATIC) {
+            reg->inv_mass[id] = 0.0f;
+            return;
+        }
+
+        const uint8_t safeMat = PhysicsSystem_SanitizeMaterialID(reg->material_id[id]);
+        reg->material_id[id] = safeMat;
+
+        float density = g_materials[safeMat].density;
+        if (!isfinite(density) || density < 0.00001f) density = 0.0f;
+
+        const uint64_t comps = reg->component_masks[id];
+        float area = 0.0f;
+        if (comps & COMP_COLLISION_AABB) {
+            const float width = PhysicsSystem_ClampSize(reg->size_w[id]);
+            const float height = PhysicsSystem_ClampSize(reg->size_h[id]);
+            area = width * height;
+        } else if (comps & COMP_COLLISION_Circle) {
+            const float diameter = PhysicsSystem_ClampSize(reg->size_w[id]);
+            const float r = diameter * 0.5f;
+            area = 3.14159265f * r * r;
+        }
+
+        const float mass = area * density;
+        reg->inv_mass[id] = (mass > 0.0001f) ? (1.0f / mass) : 1.0f;
     }
 
     // ============================================================================
@@ -485,7 +643,7 @@
             // It is kinda math trick or so.
             bool bad_flags = ((flagsA & target_flags) != target_flags_true);
             bool bad_comps = !(compsA & reqComps);
-            if (bad_flags | bad_comps) continue;;
+            if (bad_flags | bad_comps) continue;
 
             const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
             const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
@@ -774,7 +932,8 @@
         *out_overlap = radius - dist;
         // Normal points from circle to closest point (toward AABB)
         *out_normal = (creVec2){dx / dist, dy / dist};
-        return true;}
+        return true;
+    }
 
     // ============================================================================
     // Collision Response
