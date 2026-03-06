@@ -39,18 +39,27 @@
     #endif
 
     // ============================================================================
-    // NaN/Inf Detection (Debug Builds)
+    // Clamp coordinates to safe numbers
     // ============================================================================
 
-    #define FLOAT_IS_VALID(f) (isfinite(f)) 
-    #define SANITIZE_FLOAT(f) (FLOAT_IS_VALID(f) ? (f) : 0.0f) // Implemented but not used, Keep in mind.
+    static const float PHYS_COORD_MIN = -100000.0f;
+    static const float PHYS_COORD_MAX =  100000.0f;
+    static const float PHYS_SIZE_MAX  =  50000.0f;
+
+    static inline float PhysicsSystem_ClampCoord(float val) {
+        return fmaxf(PHYS_COORD_MIN, fminf(PHYS_COORD_MAX, val));
+    }
+
+    static inline float PhysicsSystem_ClampSize(float val) {
+        return fmaxf(0.0f, fminf(PHYS_SIZE_MAX, val));
+    }
 
 
     // ============================================================================
     // Static Configuration
     // ============================================================================
 
-    /** Global gravity vector (modifiable via PhysicsSystem_SetGravity) */
+    /** Global gravity vector */
     static float g_gravity_x = PHYS_GRAVITY_DEF_X;
     static float g_gravity_y = PHYS_GRAVITY_DEF_Y;
 
@@ -71,6 +80,7 @@
     // Forward Declarations (Internal Helpers)
     // ============================================================================
 
+    static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry* reg);    
     static void ConfigureBody(EntityRegistry* reg, uint32_t id, uint8_t mat_id, float drag, bool is_static);
     static void Phase1_Integration(EntityRegistry* reg, float dt);
     static void Phase2_BroadPhase(EntityRegistry* reg);
@@ -147,23 +157,21 @@
         // -------------------------------------------------------------------------
         // Phase 0: Process Commands (runs once per frame, outside sub-step loop)
         // -------------------------------------------------------------------------
-        if (bus) {
-            PhysicsSystem_ProcessCommands(reg, bus);
-        }
+        PhysicsSystem_ProcessCommands(reg, bus);
         
         const float subDt = dt / (float)PHYS_SUB_STEPS;
         
         // -------------------------------------------------------------------------
         // Sub-Step Loop
         // -------------------------------------------------------------------------
-        for (int step = 0; step < PHYS_SUB_STEPS; step++) {
+        for (int step = 0; step < PHYS_SUB_STEPS; step++) { 
             // Phase 1: Integration (gravity, drag, movement)
             Phase1_Integration(reg, subDt);
             
             // Phase 2: Broad Phase (rebuild dynamic spatial hash)
             Phase2_BroadPhase(reg);
             
-            Phase3_DetectContacts(reg); // Build contact stream. Moved out of solverloop for performance(25ms -> 7ms)
+            Phase3_DetectContacts(reg); // Build contact stream.
             // Phase 3: Collision Solver (split for cache efficiency)
             // Multiple iterations for stability
             for (int iter = 0; iter < PHYS_SOLVER_ITERATIONS; iter++) {
@@ -179,15 +187,20 @@
         const Command* cmd;
         
         while (CommandBus_Next(bus, &iter, &cmd)) {
-            const uint32_t id = cmd->entity.id;
+            const Entity entity = cmd->entity;
+            const uint32_t id = entity.id;
+            if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_PHYS) continue;
             
             switch (cmd->type) {
                 case CMD_PHYS_DEFINE: {
                     // Configure physics body from command payload
-                    if (id >= MAX_ENTITIES) break;
+                    if (!(EntityRegistry_IsAlive(reg,entity))) break;
+                    if (!(reg->component_masks[id] & COMP_PHYSICS)) break;
                     
-                    const bool isStatic = (cmd->physDef.flags & CMD_PHYS_FLAG_STATIC) != 0;
-                    ConfigureBody(reg, id, cmd->physDef.material_id, cmd->physDef.drag, isStatic);
+                    const bool isStatic  = (cmd->physDef.flags & CMD_PHYS_FLAG_STATIC) != 0;
+                    const uint8_t mat_id = cmd->physDef.material_id;
+                    const float dDrag    = cmd->physDef.drag;
+                    ConfigureBody(reg, id, mat_id, dDrag , isStatic);
                     break;
                 }
                 
@@ -210,13 +223,13 @@
         }
     }
 
-    void PhysicsSystem_LoadStaticGeometry(const EntityRegistry* reg) {
+    static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry* reg) {
         assert(reg && "reg is NULL");
         
         uint32_t staticCount = 0;
         const uint32_t bound = reg->max_used_bound;
         
-        for (uint32_t i = 0; i <= bound; i++) {
+        for (uint32_t i = 0; i < bound; i++) {
             const uint64_t flags = reg->state_flags[i];
             const uint64_t comps = reg->component_masks[i];
             float* restrict const p_pos_x = reg->pos_x;
@@ -237,32 +250,23 @@
                 if (!isStatic && reg->inv_mass[i] > 0.001f) continue;
             }
             
+            
             // Add to static layer
+            const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
+            const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
+            const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
+            const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
             SpatialHash_AddStatic(
                 i,
-                (int)p_pos_x[i],
-                (int)p_pos_y[i],
-                (int)p_size_w[i],
-                (int)p_size_h[i]
+                (int)clampedX,
+                (int)clampedY,
+                (int)clampedW,
+                (int)clampedH
             );
             staticCount++;
         }
         
         Log(LOG_LVL_INFO, "Loaded %u static bodies into spatial hash", staticCount);
-    }
-
-    bool PhysicsSystem_SetMaterial(uint8_t id, PhysMaterial mat) {
-        if (id >= PHYS_MAX_MATERIALS) {
-            Log(LOG_LVL_WARNING, "SetMaterial: ID %u exceeds max (%u)", id, PHYS_MAX_MATERIALS);
-            return false;
-        }
-        g_materials[id] = mat;
-        return true;
-    }
-
-    void PhysicsSystem_SetGravity(float x, float y) {
-        g_gravity_x = x;
-        g_gravity_y = y;
     }
 
     // ============================================================================
@@ -311,7 +315,8 @@
             reg->state_flags[id] |= FLAG_STATIC;
         } else {
             const float mass = area * density;
-            reg->inv_mass[id] = (mass > 0.0001f) ? (1.0f / mass) : 0.0f;
+            // default mass = 1.0f
+            reg->inv_mass[id] = (mass > 0.0001f) ? (1.0f / mass) : 1.0f;
             reg->state_flags[id] &= ~FLAG_STATIC;
         }
         
@@ -358,7 +363,7 @@
         // -------------------------------------------------------------------------
         // Apply Gravity,Drag,Integration,Sleep Check in One loop
         // -------------------------------------------------------------------------
-        for (uint32_t i = 0; i <= bound; i++) {
+        for (uint32_t i = 0; i < bound; i++) {
             if (!(flags[i] & FLAG_ACTIVE)) continue;
             if (!(comps[i] & reqComps)) continue;
             if (flags[i] & skipFlags) continue;
@@ -413,7 +418,7 @@
         uint64_t* restrict const p_flags = reg->state_flags;
         uint64_t* restrict const p_comps = reg->component_masks;
         
-        for (uint32_t i = 0; i <= bound; i++) {
+        for (uint32_t i = 0; i < bound; i++) {
             const uint64_t flags = p_flags[i];
             const uint64_t comps = p_comps[i];
 
@@ -421,13 +426,18 @@
             if (!(flags & FLAG_ACTIVE)) continue;
             if (!(comps & reqComps)) continue;
             if (flags & skipFlags) continue;
+
+            const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
+            const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
+            const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
+            const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
             
             SpatialHash_AddDynamic(
                 i,
-                (int)p_pos_x[i],
-                (int)p_pos_y[i],
-                (int)p_size_w[i],
-                (int)p_size_h[i]
+                (int)clampedX,
+                (int)clampedY,
+                (int)clampedW,
+                (int)clampedH
             );
         }
     }
@@ -467,7 +477,7 @@
         // Reset contact stream
         contactCount = 0;
         
-        for (uint32_t i = 0; i <= bound; i++) {
+        for (uint32_t i = 0; i < bound; i++) {
             const uint64_t flagsA = p_flags[i];
             const uint64_t compsA = p_comps[i];
 
@@ -476,13 +486,18 @@
             bool bad_flags = ((flagsA & target_flags) != target_flags_true);
             bool bad_comps = !(compsA & reqComps);
             if (bad_flags | bad_comps) continue;;
+
+            const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
+            const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
+            const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
+            const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
             
             // Query spatial hash for potential colliders
             const int count = SpatialHash_Query(
-                (int)p_pos_x[i],
-                (int)p_pos_y[i],
-                (int)p_size_w[i],
-                (int)p_size_h[i],
+                (int)clampedX,
+                (int)clampedY,
+                (int)clampedW,
+                (int)clampedH,
                 neighbours,
                 PHYS_MAX_NEIGHBOURS
             );

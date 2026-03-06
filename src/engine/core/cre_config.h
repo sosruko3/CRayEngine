@@ -21,7 +21,7 @@
 #define PHYS_SUB_STEPS 4              // Number of physics sub-steps per frame
 #define PHYS_SOLVER_ITERATIONS 16     // Collision solver iterations per sub-step
 #define PHYS_SLEEP_EPSILON 2.0f       // Velocity threshold for sleep (squared internally)
-#define PHYS_SLOP 0.01f               // Penetration allowance before correction
+#define PHYS_SLOP 0.1f               // Penetration allowance before correction
 #define PHYS_CORRECTION_PERCENT 0.5f   // Position correction strength (0.0-1.0)
 #define PHYS_MAX_NEIGHBOURS 128       // Max collision candidates per entity
 

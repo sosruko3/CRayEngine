@@ -10,7 +10,6 @@
 #include "engine/ecs/cre_entityRegistry.h"
 
 int main(void) {
-    // Using alloc because EntityRegistry is rather big.
     size_t regAllocSize = (sizeof(EntityRegistry) + 63) & ~63;
     EntityRegistry* reg = aligned_alloc(64,regAllocSize);
     if (!reg) return -1;
@@ -18,7 +17,7 @@ int main(void) {
     size_t busAllocSize = (sizeof(CommandBus) + 63) & ~63;
     CommandBus* bus = aligned_alloc(64,busAllocSize);
     if (!bus) return -1;
-    
+
     float dt = 0.0166f;
 
     Engine_Init(reg, bus, GAME_TITLE, dirCONFIG);

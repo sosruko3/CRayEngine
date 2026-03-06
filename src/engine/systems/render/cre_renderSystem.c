@@ -205,7 +205,7 @@ static void _Renderer_SyncDecorations(EntityRegistry* reg) {
     const uint64_t reqComps = (COMP_SPRITE);
     const uint64_t notreqComps = (COMP_PHYSICS);
     
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         const uint64_t flags = reg->state_flags[i];
         const uint64_t comps = reg->component_masks[i];
         

@@ -315,7 +315,7 @@ void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
     uint32_t awakeCount = 0;
     
     const uint32_t bound = reg->max_used_bound;
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         uint64_t comps = reg->component_masks[i];
         
@@ -354,7 +354,7 @@ void DebugSystem_RenderStatsHUD(EntityRegistry* reg) {
     
     // Frame timing
     creColor fpsColor = (s_avgFrameTime < 16.67) ? (creColor){0, 228, 48, 255}/*GREEN*/ : (s_avgFrameTime < 33.33) ? (creColor){253, 249, 0, 255}/*YELLOW*/: (creColor){230, 41, 55, 255};/*RED*/
-    snprintf(buffer, sizeof(buffer), "Frame: %.4f ms (%.0f FPS)", s_avgFrameTime, 1000.0 / s_avgFrameTime);
+    snprintf(buffer, sizeof(buffer), "Frame: %.2f ms (%.0f FPS)", s_avgFrameTime, 1000.0 / s_avgFrameTime);
     DrawText(buffer, hudX + 10, rowY, 14, (Color){fpsColor.r, fpsColor.g, fpsColor.b, fpsColor.a});
     rowY += rowSpacing;
     
@@ -433,7 +433,7 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
     int32_t hoveredEntity = -1;
     
     // Find entity under mouse cursor (check collision shapes)
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         uint64_t comps = reg->component_masks[i];
         if (!(flags & FLAG_ACTIVE)) continue;
@@ -627,7 +627,7 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
     maxCount = 1;  // Avoid division by zero
     
     // Count entities in each cell
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         if (!(flags & FLAG_ACTIVE)) continue;
         
@@ -705,7 +705,7 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
     Camera2D cam = cameraSystem_GetInternal();
     
     // Draw entities as colored dots
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         if (!(flags & FLAG_ACTIVE)) continue;
         
@@ -811,7 +811,7 @@ static void RenderVelocityField(EntityRegistry* reg) {
     uint32_t movingCount = 0;
     
     // First pass: find max speed and draw vectors
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         if (!(flags & FLAG_ACTIVE)) continue;
         if (flags & FLAG_STATIC) continue;
@@ -883,7 +883,7 @@ static void RenderCollisionLayers(EntityRegistry* reg) {
     memset(layerCounts, 0, sizeof(layerCounts));
     
     // Draw entities colored by layer
-    for (uint32_t i = 0; i <= bound; i++) {
+    for (uint32_t i = 0; i < bound; i++) {
         uint64_t flags = reg->state_flags[i];
         if (!(flags & FLAG_ACTIVE)) continue;
         if (!(flags & FLAG_VISIBLE)) continue;

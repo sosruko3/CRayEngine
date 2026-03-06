@@ -30,6 +30,10 @@
 #define COMP_PHYSICS          (1ULL << 3)
 #define COMP_COLLISION_Circle (1ULL << 4)
 #define COMP_COLLISION_AABB   (1ULL << 5)
+#define COMP_SOUND            (1ULL << 6)
+#define COMP_AI               (1ULL << 7)
+#define COMP_SHADER           (1ULL << 8)
+
 // Reserve bits 6-31 for future component types
 // Bits 32-63 available for game-specific components
 
@@ -94,7 +98,6 @@
  * refers to the same entity.
  */
 typedef struct EntityRegistry {
-    // --- Hotter Data, closer to the Top ---
     alignas(64) float pos_x[MAX_ENTITIES];              ///< Position X
     alignas(64) float pos_y[MAX_ENTITIES];              ///< Position Y
     alignas(64) float vel_x[MAX_ENTITIES];              ///< Velocity X
@@ -120,14 +123,14 @@ typedef struct EntityRegistry {
     alignas(64) float  visual_scale_x[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
     alignas(64) float  visual_scale_y[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
 
-    // Animation SoA arrays - Dynamic State (managed by AnimationSystem)
+    // Animation SoA arrays - Dynamic State (managed by animationSystem)
     alignas(64) float    anim_timers[MAX_ENTITIES];     ///< Time accumulator for frame advance
     alignas(64) float    anim_speeds[MAX_ENTITIES];     ///< Speed multiplier (1.0f = normal)
     alignas(64) uint16_t anim_ids[MAX_ENTITIES];        ///< Current animation ID (AnimID)
     alignas(64) uint16_t anim_frames[MAX_ENTITIES];     ///< Current frame index
     alignas(64) bool     anim_finished[MAX_ENTITIES];   ///< True if non-looping anim completed
 
-    // Animation SoA arrays - Baked Constants (copied from AnimDef on Play)
+    // Animation SoA arrays - Baked Constants
     alignas(64) float    anim_base_durations[MAX_ENTITIES]; ///< Seconds per frame (from def->defaultSpeed)
     alignas(64) uint16_t anim_frame_counts[MAX_ENTITIES];   ///< Total frames (from def->frameCount)
     alignas(64) uint16_t anim_start_sprites[MAX_ENTITIES];  ///< First sprite ID (from def->startSpriteID)

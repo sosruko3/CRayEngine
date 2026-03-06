@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct Entity Entity;
-
 // Command Flags
 #define CMD_PHYS_FLAG_STATIC  (1 << 0) // Bit 0: Wall/Static
 #define CMD_PHYS_FLAG_SENSOR  (1 << 1) // Bit 1: Trigger (Future proofing)

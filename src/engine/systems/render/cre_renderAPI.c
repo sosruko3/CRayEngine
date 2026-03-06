@@ -122,3 +122,4 @@ void renderAPI_SetRenderLayer(CommandBus* restrict bus, Entity entity, uint8_t l
     };
     CommandBus_Push(bus, cmd);
 }
+

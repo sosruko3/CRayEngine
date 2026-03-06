@@ -30,6 +30,7 @@ void AnimationSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
 
     while (CommandBus_Next(bus, &iter, &cmd)) {
         if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_ANIM) continue;
+        // This assumes every anim commands has entity. Change this if you add some global command.
         if (!EntityRegistry_IsAlive(reg,cmd->entity)) continue;
         const Entity entity = cmd->entity;
         const uint32_t id   = entity.id;
