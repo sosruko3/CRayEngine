@@ -135,7 +135,7 @@ void entityAPI_RemoveComponent(CommandBus* restrict bus, Entity entity, uint64_t
 		.entity = entity,
 		.u64 = (CommandPayloadU64){ .value = component_mask },
 	};
-
+	
 	if (!CommandBus_Push(bus, cmd)) {
 		Log(LOG_LVL_WARNING, "entityAPI_RemoveComponent: CommandBus is full!");
 	}

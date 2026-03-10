@@ -70,6 +70,8 @@
         memset(reg->anim_frames,         0, sizeof(reg->anim_frames));
         memset(reg->anim_finished,       0, sizeof(reg->anim_finished));
         memset(reg->anim_base_durations, 0, sizeof(reg->anim_base_durations));
+        memset(reg->cameras,             0, sizeof(reg->cameras));
+        reg->camera_count = 0;
 
         memset(&reg->events,             0, sizeof(EntityEventDispatcher));
 

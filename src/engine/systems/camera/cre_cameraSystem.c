@@ -2,231 +2,185 @@
 #include "cre_cameraUtils.h"
 #include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_config.h"
+#include "engine/core/cre_types.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include <assert.h>
 #include <math.h>
 
 #define cam_safety_epsilon 0.0001f
 
-typedef struct CameraSystemState {
-    creVec2 position;
-    float zoom;
-    float rotation;
-
-    Entity targetEntity;
-    CameraSystemMode mode;
-    float smoothSpeed;
-
-    float shakeTimer;
-    float shakeIntensity;
-    creVec2 shakeOffset;
-
-    ViewportSize cachedVp;
-    float baseDiagonal;
-} CameraSystemState;
-
-static CameraSystemState s_cameraSystem = {
-    .position = {0.0f, 0.0f},
-    .zoom = 1.0f,
-    .rotation = 0.0f,
-    .targetEntity = ENTITY_INVALID,
-    .mode = CAM_MODE_MANUAL,
-    .smoothSpeed = 10.0f,
-    .shakeTimer = 0.0f,
-    .shakeIntensity = 0.0f,
-    .shakeOffset = {0.0f, 0.0f},
-    .cachedVp = {0.0f, 0.0f, 0.0f},
-    .baseDiagonal = 0.0f
-};
-
-bool cameraSystem_IsTargetValid(const EntityRegistry* reg, Entity target) {
-    if (!ENTITY_IS_VALID(target)) return false;
-    if (target.id >= MAX_ENTITIES) return false;
-    if (reg->generations[target.id] != target.generation) return false;
-    if (!(reg->state_flags[target.id] & FLAG_ACTIVE)) return false;
-    return true;
+CameraComponent cameraSystem_CreateDefault(void) {
+  CameraComponent cam = {0};
+  cam.ownerEntity = ENTITY_INVALID;
+  cam.zoom = 1.0f;
+  cam.rotation = 0.0f;
+  cam.priority = 0;
+  cam.follow.targetEntity = ENTITY_INVALID;
+  cam.follow.smoothSpeed = 10.0f;
+  cam.isActive = false;
+  return cam;
 }
 
-void cameraSystem_UpdateViewportCache(ViewportSize vp) {
-    s_cameraSystem.cachedVp = vp;
-    s_cameraSystem.baseDiagonal = sqrtf((vp.width * vp.width) + (vp.height * vp.height));
+void cameraSystem_Init(EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
+  reg->camera_count = 0;
 }
 
-void cameraSystem_Init(ViewportSize vp) {
-    s_cameraSystem.position = (creVec2){0.0f, 0.0f};
-    s_cameraSystem.zoom = 1.0f;
-    s_cameraSystem.rotation = 0.0f;
-    s_cameraSystem.targetEntity = ENTITY_INVALID;
-    s_cameraSystem.mode = CAM_MODE_MANUAL;
-    s_cameraSystem.smoothSpeed = 10.0f;
-    s_cameraSystem.shakeTimer = 0.0f;
-    s_cameraSystem.shakeIntensity = 0.0f;
-    s_cameraSystem.shakeOffset = (creVec2){0.0f, 0.0f};
-    cameraSystem_UpdateViewportCache(vp);
-}
+void cameraSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
+  CommandIterator iter = CommandBus_GetIterator(bus);
+  const Command *cmd;
 
-void cameraSystem_ProcessCommands(EntityRegistry* reg, CommandBus* bus) {
-    assert(reg && "reg is NULL");
-    assert(bus && "bus is NULL");
-
-    CommandIterator iter = CommandBus_GetIterator(bus);
-    const Command* cmd;
-
-    while (CommandBus_Next(bus, &iter, &cmd)) {
-        switch (cmd->type) {
-            default:
-                break;
-        }
+  while (CommandBus_Next(bus, &iter, &cmd)) {
+    switch (cmd->type) {
+    default:
+      break;
     }
+  }
 }
 
-void cameraSystem_Update(EntityRegistry* reg, CommandBus* bus, float dt) {
-    assert(reg && "reg is NULL");
-    assert(bus && "bus is NULL");
-
-    if (dt > 0.05f) dt = 0.05f;
-    if (dt < 0.0001f) dt = 0.0f;
-
-    cameraSystem_ProcessCommands(reg, bus);
-
-    if (s_cameraSystem.mode == CAM_MODE_FOLLOW) {
-        if (cameraSystem_IsTargetValid(reg, s_cameraSystem.targetEntity)) {
-            const uint32_t id = s_cameraSystem.targetEntity.id;
-            const creVec2 targetPos = { reg->pos_x[id], reg->pos_y[id] };
-            
-            if (s_cameraSystem.smoothSpeed > cam_safety_epsilon) {
-                s_cameraSystem.position = cameraUtils_Lerp(
-                    s_cameraSystem.position,
-                    targetPos,
-                    s_cameraSystem.smoothSpeed,
-                    dt
-                );
-            }
-            else {
-                s_cameraSystem.position = targetPos;
-            }
-        }
-        else {
-            s_cameraSystem.mode = CAM_MODE_MANUAL;
-            s_cameraSystem.targetEntity = ENTITY_INVALID;
-        }
-    }
-
-    if (s_cameraSystem.shakeTimer > cam_safety_epsilon && s_cameraSystem.shakeIntensity > cam_safety_epsilon) {
-        s_cameraSystem.shakeOffset = cameraUtils_RandomShakeOffset(s_cameraSystem.shakeIntensity);
-        s_cameraSystem.shakeTimer -= dt;
-        if (s_cameraSystem.shakeTimer <= cam_safety_epsilon) {
-            s_cameraSystem.shakeTimer = 0.0f;
-            s_cameraSystem.shakeIntensity = 0.0f;
-            s_cameraSystem.shakeOffset = (creVec2){0.0f, 0.0f};
-        }
-    } else {
-        s_cameraSystem.shakeOffset = (creVec2){0.0f, 0.0f};
-    }
-}
-
-void cameraSystem_SetPosition(creVec2 position) {
-    s_cameraSystem.position = position;
-}
-
-creVec2 cameraSystem_GetPosition(void) {
-    return s_cameraSystem.position;
-}
-
-void cameraSystem_SetZoom(float zoom) {
-    if (zoom < MIN_ZOOM) zoom = MIN_ZOOM;
-    if (zoom > MAX_ZOOM) zoom = MAX_ZOOM;
-    s_cameraSystem.zoom = zoom;
-}
-
-float cameraSystem_GetZoom(void) {
-    return s_cameraSystem.zoom;
-}
-
-void cameraSystem_SetRotation(float rotation) {
-    s_cameraSystem.rotation = rotation;
-}
-
-float cameraSystem_GetRotation(void) {
-    return s_cameraSystem.rotation;
-}
-
-void cameraSystem_SetMode(CameraSystemMode mode) {
-    s_cameraSystem.mode = mode;
-}
-
-CameraSystemMode cameraSystem_GetMode(void) {
-    return s_cameraSystem.mode;
-}
-
-void cameraSystem_SetTargetEntity(Entity target) {
-    s_cameraSystem.targetEntity = target;
-}
-
-Entity cameraSystem_GetTargetEntity(void) {
-    return s_cameraSystem.targetEntity;
-}
-
-void cameraSystem_SetSmoothSpeed(float smoothSpeed) {
-    if (smoothSpeed < cam_safety_epsilon) smoothSpeed = 0.0f;
-    s_cameraSystem.smoothSpeed = smoothSpeed;
-}
-
-float cameraSystem_GetSmoothSpeed(void) {
-    return s_cameraSystem.smoothSpeed;
-}
-
-void cameraSystem_StartShake(float duration, float intensity) {
-    if (duration <= cam_safety_epsilon || intensity <= cam_safety_epsilon) return;
-    s_cameraSystem.shakeTimer = duration;
-    s_cameraSystem.shakeIntensity = intensity;
-}
-
-Camera2D cameraSystem_GetInternal(void) {
-    const ViewportSize vp = s_cameraSystem.cachedVp;
-
-    Camera2D cam = {0};
-    cam.offset = (Vector2){ vp.width * 0.5f, vp.height * 0.5f };
-    cam.target = (Vector2){
-        s_cameraSystem.position.x + s_cameraSystem.shakeOffset.x,
-        s_cameraSystem.position.y + s_cameraSystem.shakeOffset.y
-    };
-    cam.zoom = s_cameraSystem.zoom;
-    cam.rotation = s_cameraSystem.rotation;
-    return cam;
-}
-
-creRectangle cameraSystem_GetViewBounds(void) {
-    const ViewportSize vp = s_cameraSystem.cachedVp;
-
-    float viewWidth = vp.width / s_cameraSystem.zoom;
-    float viewHeight = vp.height / s_cameraSystem.zoom;
-
-    creRectangle bounds = {
-        .x = s_cameraSystem.position.x - (viewWidth * 0.5f),
-        .y = s_cameraSystem.position.y - (viewHeight * 0.5f),
-        .width = viewWidth,
-        .height = viewHeight
+static void applyFollowLogic(CameraComponent *cam, EntityRegistry *reg,
+                             float dt, uint32_t ownerId) {
+  if (EntityRegistry_IsAlive(reg, cam->follow.targetEntity)) {
+    const uint32_t targetId = cam->follow.targetEntity.id;
+    const creVec2 desired = {
+        reg->pos_x[targetId] + cam->follow.offset.x,
+        reg->pos_y[targetId] + cam->follow.offset.y,
     };
 
-    if (fabsf(s_cameraSystem.rotation) > cam_safety_epsilon) {
-        float visibleDiagonal = s_cameraSystem.baseDiagonal / s_cameraSystem.zoom;
-        bounds.x = s_cameraSystem.position.x - (visibleDiagonal * 0.5f);
-        bounds.y = s_cameraSystem.position.y - (visibleDiagonal * 0.5f);
-        bounds.width = visibleDiagonal;
-        bounds.height = visibleDiagonal;
+    creVec2 current = {
+        reg->pos_x[ownerId],
+        reg->pos_y[ownerId],
+    };
+
+    creVec2 nextPos = desired;
+    if (cam->follow.smoothSpeed > cam_safety_epsilon) {
+      nextPos = cameraUtils_Lerp(current, desired, cam->follow.smoothSpeed, dt);
     }
 
-    return bounds;
+    reg->pos_x[ownerId] = nextPos.x;
+    reg->pos_y[ownerId] = nextPos.y;
+  } else {
+    cam->follow.enabled = false;
+    cam->follow.targetEntity = ENTITY_INVALID;
+  }
 }
 
-creRectangle cameraSystem_GetCullBounds(void) {
-    creRectangle view = cameraSystem_GetViewBounds();
+static void applyShakeLogic(CameraComponent *cam, float dt) {
+  if (cam->shake.timer > 0) {
+    cam->shake.currentOffset =
+        cameraUtils_RandomShakeOffset(cam->shake.intensity);
+    cam->shake.timer -= dt;
+  } else {
+    cam->shake.timer = 0.0f;
+    cam->shake.intensity = 0.0f;
+    cam->shake.currentOffset = (creVec2){0.0f, 0.0f};
+  }
+}
 
-    return (creRectangle){
-        .x = view.x - CAMERA_CULL_MARGIN,
-        .y = view.y - CAMERA_CULL_MARGIN,
-        .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),
-        .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)
-    };
+void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
+                         ViewportSize vp) {
+  assert(reg && "reg is NULL");
+  assert(bus && "bus is NULL");
+  (void)vp;
+
+  if (dt > 0.05f)
+    dt = 0.05f;
+  if (dt < cam_safety_epsilon)
+    dt = 0.0f;
+
+  cameraSystem_ProcessCommands(reg, bus);
+
+  uint32_t cam_count = reg->camera_count;
+
+  for (uint32_t i = 0; i < cam_count; i++) {
+    CameraComponent *cam = &reg->cameras[i];
+    if (!(EntityRegistry_IsAlive(reg, cam->ownerEntity)))
+      continue;
+
+    Entity ownEntity = cam->ownerEntity;
+    const uint32_t ownerId = ownEntity.id;
+
+    // Follow logic
+    if (cam->follow.enabled)
+      applyFollowLogic(cam, reg, dt, ownerId);
+    // Shake applyShakeLogic
+    cam->shake.currentOffset = (creVec2){0.0f, 0.0f};
+    if (cam->shake.timer > cam_safety_epsilon)
+      applyShakeLogic(cam, dt);
+  }
+}
+
+creRectangle cameraSystem_GetViewBounds(const EntityRegistry *reg,
+                                        const CameraComponent *cam,
+                                        ViewportSize vp) {
+  assert(reg && "reg is NULL");
+  assert(cam && "cam is NULL");
+
+  Entity ownEntity = cam->ownerEntity;
+  if (!(EntityRegistry_IsAlive(reg, ownEntity))) {
+    return (creRectangle){0.0f, 0.0f, 0.0f, 0.0f};
+  }
+
+  float zoom = cam->zoom;
+  if (zoom < MIN_ZOOM)
+    zoom = MIN_ZOOM;
+  if (zoom > MAX_ZOOM)
+    zoom = MAX_ZOOM;
+
+  const uint32_t ownerId = ownEntity.id;
+  const float camX = reg->pos_x[ownerId];
+  const float camY = reg->pos_y[ownerId];
+
+  float viewWidth = vp.width / zoom;
+  float viewHeight = vp.height / zoom;
+
+  creRectangle bounds = {.x = camX - (viewWidth * 0.5f),
+                         .y = camY - (viewHeight * 0.5f),
+                         .width = viewWidth,
+                         .height = viewHeight};
+
+  if (fabsf(cam->rotation) > cam_safety_epsilon) {
+    const float viewportDiagonal =
+        sqrtf((vp.width * vp.width) + (vp.height * vp.height));
+    const float visibleDiagonal = viewportDiagonal / zoom;
+
+    bounds.x = camX - (visibleDiagonal * 0.5f);
+    bounds.y = camY - (visibleDiagonal * 0.5f);
+    bounds.width = visibleDiagonal;
+    bounds.height = visibleDiagonal;
+  }
+
+  return bounds;
+}
+
+creRectangle cameraSystem_GetCullBounds(const EntityRegistry *reg,
+                                        const CameraComponent *cam,
+                                        ViewportSize vp) {
+  creRectangle view = cameraSystem_GetViewBounds(reg, cam, vp);
+
+  return (creRectangle){.x = view.x - CAMERA_CULL_MARGIN,
+                        .y = view.y - CAMERA_CULL_MARGIN,
+                        .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),
+                        .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)};
+}
+
+int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
+
+  int32_t activeIndex = -1;
+  int32_t highestPriority = INT32_MIN;
+
+  for (uint32_t i = 0; i < reg->camera_count; i++) {
+    const CameraComponent *cam = &reg->cameras[i];
+    Entity ownEntity = cam->ownerEntity;
+    if (!cam->isActive || !EntityRegistry_IsAlive(reg, ownEntity))
+      continue;
+
+    if (cam->priority > highestPriority) {
+      highestPriority = cam->priority;
+      activeIndex = (int32_t)i;
+    }
+  }
+
+  return activeIndex;
 }

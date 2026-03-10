@@ -30,10 +30,9 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Command System
 - [x] Viewport System
 - [ ] Profiler System
-- [ ] Audio System(using Raylib)
+- [ ] Audio System(using miniaudio)
 - [ ] Particle System
-- [ ] AI Systems
-- [ ] Raycasting
+- [ ] AI System
 - [ ] Save Manager 
 - [ ] Time System (?)
 - [ ] Post-processing/Shader System
@@ -48,7 +47,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 
 ### Prerequisites
 * **CMake** (3.14+)
-* **C Compiler** (GCC, Clang, or MSVC)
+* **C Compiler** (GCC15, Clang18)
 * **Raylib** (Cmake fetches Raylib automatically)
 * **Python3** (Required for Automated textureAtlas script)
 * **Pip and Pillow**(If not included in Python3)

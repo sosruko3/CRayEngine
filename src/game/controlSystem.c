@@ -31,8 +31,7 @@ void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt) {
     float boundMaxX = cullBounds.x + cullBounds.width;
     float boundMinY = cullBounds.y;
     float boundMaxY = cullBounds.y + cullBounds.height;
-    
-    for (uint32_t i = 0; i < maxBound; i++) {
+    for (uint32_t i = 0; i < maxBound; i++) { 
         if (!(reg->state_flags[i] & FLAG_ACTIVE)) continue;
         
         float posX = reg->pos_x[i];

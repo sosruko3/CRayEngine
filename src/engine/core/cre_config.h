@@ -28,6 +28,7 @@
 #define atlasDir      "atlas.png"
 #define MAX_ENTITIES 16384
 #define MAX_VISIBLE_ENTITIES 8192
+#define MAX_CAMERAS 8
 
 // Will remove these soon.
 #define SCREEN_WIDTH  1920

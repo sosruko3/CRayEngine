@@ -407,6 +407,13 @@ void DebugSystem_Draw(void) {
     // Legacy placeholder - use DebugSystem_RenderPhysicsInsight instead
 }
 
+static const CameraComponent* DebugSystem_GetActiveCameraComponent(const EntityRegistry* reg) {
+    if (!reg) return NULL;
+    int32_t camIndex = cameraSystem_FindActive(reg);
+    if (camIndex < 0 || camIndex >= (int32_t)MAX_CAMERAS) return NULL;
+    return &reg->cameras[camIndex];
+}
+
 // ============================================================================
 // Mouse Hover Entity Inspection
 // ============================================================================
@@ -426,8 +433,9 @@ void DebugSystem_RenderMouseHover(EntityRegistry* reg) {
     creVec2 mouseScreen = {raylibMouseScreen.x * scaleX, raylibMouseScreen.y * scaleY};
     
     // Convert to world space
-    Camera2D cam = cameraSystem_GetInternal();
-    creVec2 mouseWorld = cameraUtils_ScreenToWorld(mouseScreen, cam);
+    const CameraComponent* cam = DebugSystem_GetActiveCameraComponent(reg);
+    if (!cam) return;
+    creVec2 mouseWorld = cameraUtils_ScreenToWorld(mouseScreen, reg, cam, vp);
     
     const uint32_t bound = reg->max_used_bound;
     int32_t hoveredEntity = -1;
@@ -600,7 +608,7 @@ static void RenderSpatialHashHeatmap(EntityRegistry* reg) {
     // We'll sample the world in a grid and count entities in each cell
     
     ViewportSize v = Viewport_Get();
-    Camera2D cam = cameraSystem_GetInternal();
+    Camera2D cam = cameraUtils_GetActiveRaylib(reg, v);
     creVec2 camTarget = {cam.target.x, cam.target.y};
     
     // Calculate visible area
@@ -702,7 +710,7 @@ static void RenderEntityStateOverlay(EntityRegistry* reg) {
     
     // Get viewport for orphan indicators drawn at screen edges
     ViewportSize vp = Viewport_Get();
-    Camera2D cam = cameraSystem_GetInternal();
+    Camera2D cam = cameraUtils_GetActiveRaylib(reg, vp);
     
     // Draw entities as colored dots
     for (uint32_t i = 0; i < bound; i++) {

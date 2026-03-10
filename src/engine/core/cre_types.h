@@ -25,10 +25,10 @@ typedef struct creVec2 {
 } creVec2;
 
 typedef struct creColor {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t a;
+    uint8_t r; // red
+    uint8_t g; // green
+    uint8_t b; // blue
+    uint8_t a; // alpha
 } creColor;
 
 typedef struct creRectangle {

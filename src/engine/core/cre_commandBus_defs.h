@@ -19,6 +19,7 @@
 #define CMD_DOMAIN_ENTITY  0x0200
 #define CMD_DOMAIN_ANIM    0x0300
 #define CMD_DOMAIN_RENDER  0x0400
+#define CMD_DOMAIN_CAMERA  0x0500
 
 // ============================================================================
 // Command Types

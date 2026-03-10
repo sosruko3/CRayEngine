@@ -22,7 +22,6 @@ static void EnginePhase0_PlatformSync(void) {
     if (Viewport_wasResized()) {
         ViewportSize vp = Viewport_Get(); 
 
-        cameraSystem_UpdateViewportCache(vp);
         rendererCore_RecreateCanvas((int32_t)vp.width,(int32_t)vp.height);
         Log(LOG_LVL_INFO,"[ENGINE] Resolution updated to %0.fx%0.f",vp.width,vp.height);
     }
@@ -54,7 +53,7 @@ static void EnginePhase3_RenderState(EntityRegistry* restrict reg, CommandBus* b
     bus->current_phase = BUS_PHASE_RENDER;
 #endif
 
-    cameraSystem_Update(reg,bus,dt);
+    cameraSystem_Update(reg,bus,dt,Viewport_Get());
 
     rendererCore_BeginFrame();
     SceneManager_Draw(reg,bus);
@@ -110,7 +109,7 @@ void Engine_Init(EntityRegistry* reg, CommandBus* bus,const char* title, const c
 
     rendererCore_Init((int32_t)v.width,(int32_t)v.height);
     PhysicsSystem_Init();
-    cameraSystem_Init(Viewport_Get());
+    cameraSystem_Init(reg);
     Log(LOG_LVL_INFO,"[ENGINE] Windows created successfully.");
 }
 void Engine_Run(EntityRegistry* reg, CommandBus* bus,float dt) {

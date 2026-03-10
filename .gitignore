@@ -3,12 +3,15 @@ build/
 cmake-build-*/
 build-win/
 assets_test/
+out/
 
 # IDE
 .vscode/
 .idea/
 *.code-workspace
 .github/
+github/
+.cache/
 
 # OS
 .DS_Store

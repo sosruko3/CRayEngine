@@ -1,8 +1,12 @@
 #ifndef CRE_CAMERAUTILS_H
 #define CRE_CAMERAUTILS_H
 
+#include "raylib.h"
 #include "engine/core/cre_types.h"
-typedef struct Camera2D Camera2D;
+#include "engine/ecs/cre_components.h"
+#include "engine/platform/cre_viewport.h"
+
+typedef struct EntityRegistry EntityRegistry;
 
 /**
  * CRE_Camera_Utils - The "Smart" Camera Toolbox
@@ -39,7 +43,7 @@ creVec2 cameraUtils_RandomShakeOffset(float intensity);
  * @param cam Active camera transform
  * @return Position in world coordinates
  */
-creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, Camera2D cam);
+creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, const EntityRegistry* reg, const CameraComponent* cam, ViewportSize vp);
 
 /**
  * Convert a world position to screen coordinates.
@@ -49,6 +53,8 @@ creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, Camera2D cam);
  * @param cam Active camera transform
  * @return Position in screen/pixel coordinates
  */
-creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, Camera2D cam);
+creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, const EntityRegistry* reg, const CameraComponent* cam, ViewportSize vp);
+
+Camera2D cameraUtils_GetActiveRaylib(const EntityRegistry* reg, ViewportSize vp);
 
 #endif

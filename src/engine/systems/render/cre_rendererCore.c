@@ -145,7 +145,7 @@ void rendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size, 
         size.x * pivot.x,
         size.y * pivot.y
     };
-
+    
     DrawTexturePro(state.currentTexture, R_REC(src), R_REC(dest), R_VEC(origin), rotation, R_COL(tint));
 }
 

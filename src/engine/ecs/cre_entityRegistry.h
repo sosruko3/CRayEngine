@@ -14,6 +14,7 @@
 
 #include "engine/core/cre_types.h"
 #include "engine/core/cre_config.h"
+#include "cre_components.h"
 #include "cre_entityEvents.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -33,6 +34,7 @@
 #define COMP_SOUND            (1ULL << 6)
 #define COMP_AI               (1ULL << 7)
 #define COMP_SHADER           (1ULL << 8)
+#define COMP_CAMERA           (1ULL << 9)
 
 // Reserve bits 6-31 for future component types
 // Bits 32-63 available for game-specific components
@@ -135,6 +137,8 @@ typedef struct EntityRegistry {
     alignas(64) uint16_t anim_frame_counts[MAX_ENTITIES];   ///< Total frames (from def->frameCount)
     alignas(64) uint16_t anim_start_sprites[MAX_ENTITIES];  ///< First sprite ID (from def->startSpriteID)
     alignas(64) bool     anim_loops[MAX_ENTITIES];          ///< Loop flag (from def->loop)
+    alignas(64) CameraComponent cameras[MAX_CAMERAS];
+    alignas(64) uint32_t camera_count;
 
     alignas(64) uint16_t types[MAX_ENTITIES];           ///< Entity type ID
     alignas(64) uint32_t generations[MAX_ENTITIES];     ///< Generation counters
