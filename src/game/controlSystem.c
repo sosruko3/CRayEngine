@@ -6,7 +6,9 @@
 #include "engine/platform/cre_input.h"
 #include "engine/platform/cre_viewport.h"
 #include "engine/systems/animation/cre_animationAPI.h"
+#include "engine/systems/camera/cre_cameraAPI.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
+#include "engine/ecs/cre_components.h"
 #include "engine/core/cre_config.h"
 #include "atlas_data.h"
 #include "engine/core/cre_commandBus.h"
@@ -21,12 +23,17 @@
 #define SCALE_FACTOR 4.0f
 #define ZOOM_RATE_PER_SEC 0.60f
 
-static Entity s_cameraTarget = ENTITY_INVALID;
+static Entity getActiveCameraEntity(const EntityRegistry *reg) {
+    int32_t camIdx = cameraSystem_FindActive(reg);
+    if (camIdx < 0 || camIdx >= (int32_t)MAX_CAMERAS) {
+        return ENTITY_INVALID;
+    }
+    return reg->cameras[camIdx].ownerEntity;
+}
 
-void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt) {
+void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt, creRectangle cullBounds) {
     assert(reg && "reg is NULL");
     uint32_t maxBound = reg->max_used_bound;
-    creRectangle cullBounds = cameraSystem_GetCullBounds();
     float boundMinX = cullBounds.x;
     float boundMaxX = cullBounds.x + cullBounds.width;
     float boundMinY = cullBounds.y;
@@ -64,42 +71,52 @@ void ControlSystem_UpdateLogic(EntityRegistry* reg, float dt) {
     }
 }
 
-void ControlSystem_ChangeZoom(float dt) {
+void ControlSystem_ChangeZoom(EntityRegistry* reg, CommandBus* bus, float dt) {
+    assert(reg && "reg is NULL");
+    assert(bus && "bus is NULL");
     if (dt <= 0.0f) return;
+
+    Entity camEntity = getActiveCameraEntity(reg);
+    if (!EntityRegistry_IsAlive(reg,camEntity)) return;
+
+    int32_t camIdx = cameraSystem_FindActive(reg);
+    float currentZoom = (camIdx >= 0) ? reg->cameras[camIdx].zoom : 1.0f;
 
     if (Input_IsDown(ACTION_PRIMARY)) {
         float zoomScale = expf(ZOOM_RATE_PER_SEC * dt);
-        cameraSystem_SetZoom(cameraSystem_GetZoom() * zoomScale);
+        cameraAPI_SetZoom(bus, camEntity, currentZoom * zoomScale);
     }
     else if (Input_IsDown(ACTION_SECONDARY)) {
         float zoomScale = expf(-ZOOM_RATE_PER_SEC * dt);
-        cameraSystem_SetZoom(cameraSystem_GetZoom() * zoomScale);
+        cameraAPI_SetZoom(bus, camEntity, currentZoom * zoomScale);
     }
 }
 
-void ControlSystem_SetCameraTarget(EntityRegistry* reg, Entity target) {
-    s_cameraTarget = ENTITY_INVALID;
+void ControlSystem_SetCameraTarget(EntityRegistry* reg, CommandBus* bus, Entity target) {
+    assert(reg && "reg is NULL");
+    assert(bus && "bus is NULL");
 
-    if (reg && ENTITY_IS_VALID(target) && target.id < MAX_ENTITIES) {
-        if (reg->generations[target.id] != target.generation) return;
-        s_cameraTarget = target;
-        cameraSystem_SetTargetEntity(target);
-        cameraSystem_SetMode(CAM_MODE_FOLLOW);
+    if (EntityRegistry_IsAlive(reg,target)) {
+        Entity camEntity = getActiveCameraEntity(reg);
+        if (!EntityRegistry_IsAlive(reg,camEntity)) return;
+
+        cameraAPI_SetFollowTarget(bus, camEntity, target, 10.0f,
+                                  (creVec2){0.0f, 0.0f});
 
         creVec2 pos = {reg->pos_x[target.id], reg->pos_y[target.id]};
-        cameraSystem_SetPosition(pos);
+        reg->pos_x[camEntity.id] = pos.x;
+        reg->pos_y[camEntity.id] = pos.y;
     }
 }
 
-void ControlSystem_UpdateSleepState(EntityRegistry* reg) {
+void ControlSystem_UpdateSleepState(EntityRegistry* reg,const CameraComponent* cam) {
     assert(reg && "reg is NULL");
-    if (!ENTITY_IS_VALID(s_cameraTarget)) return;
-    if (s_cameraTarget.id >= MAX_ENTITIES) return;
-    if (!(reg->state_flags[s_cameraTarget.id] & FLAG_ACTIVE)) return;
-    if (reg->generations[s_cameraTarget.id] != s_cameraTarget.generation) return;
+
+    cam = cameraSystem_GetActiveComponent(reg);
+    if (!cam) return;
     
-    float playerX = reg->pos_x[s_cameraTarget.id];
-    float playerY = reg->pos_y[s_cameraTarget.id];
+    float centerX = cam->viewPosition.x;
+    float centerY = cam->viewPosition.y;
     uint32_t maxBound = reg->max_used_bound;
 
     for (uint32_t i = 0; i < maxBound; i++) {
@@ -108,8 +125,8 @@ void ControlSystem_UpdateSleepState(EntityRegistry* reg) {
         if (reg->types[i] == TYPE_PLAYER) continue;
 
         // Distance Check
-        float dx = reg->pos_x[i] - playerX;
-        float dy = reg->pos_y[i] - playerY;
+        float dx = reg->pos_x[i] - centerX;
+        float dy = reg->pos_y[i] - centerY;
         float distSqr = (dx * dx) + (dy * dy);
 
         // Set the Flag
@@ -178,7 +195,7 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry* reg, CommandBus* bus) {
     }
 }
 
-void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
+Entity ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
     assert(reg && "reg is NULL");
     
     uint64_t compMask = COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
@@ -199,7 +216,18 @@ void ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
         CommandBus_Push(bus,cmd);
 
         animAPI_Play(bus,player,ANIM_CHARACTER_ZOMBIE_RUN,true);
-        ControlSystem_SetCameraTarget(reg, player);
     }
+    return player;
 }
 
+Entity ControlSystem_SpawnCamera(EntityRegistry *reg) {
+    Entity camEntity = EntityManager_Create(reg,TYPE_CAMERA,(creVec2){0.0f,0.0f},COMP_CAMERA,FLAG_ACTIVE); 
+    
+    CameraComponent cam = cameraSystem_CreateDefault();
+    cam.ownerEntity = camEntity;
+    cam.isActive = true;
+    cam.zoom = 1.0f;
+
+    reg->cameras[reg->camera_count++] = cam;
+    return camEntity;
+}

@@ -2,6 +2,7 @@
 #include "cre_cameraUtils.h"
 #include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_config.h"
+#include "engine/core/cre_logger.h"
 #include "engine/core/cre_types.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include <assert.h>
@@ -26,12 +27,77 @@ void cameraSystem_Init(EntityRegistry *reg) {
   reg->camera_count = 0;
 }
 
+static int32_t findCameraByOwner(const EntityRegistry *reg, Entity owner) {
+  for (uint32_t i = 0; i < reg->camera_count; i++) {
+    if (ENTITY_MATCH(reg->cameras[i].ownerEntity, owner)) {
+      return (int32_t)i;
+    }
+  }
+  return -1;
+}
+
 void cameraSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
+  if (!reg || !bus)
+    return;
+
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
 
   while (CommandBus_Next(bus, &iter, &cmd)) {
+    if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_CAMERA)
+      continue;
+
+    if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      continue;
+
+    const uint32_t id = cmd->entity.id;
+    if (!(reg->component_masks[id] & COMP_CAMERA))
+      continue;
+
+    const int32_t camIdx = findCameraByOwner(reg, cmd->entity);
+    if (camIdx < 0)
+      continue;
+
+    CameraComponent *cam = &reg->cameras[camIdx];
+
     switch (cmd->type) {
+    case CMD_CAM_SET_ACTIVE:
+      cam->isActive = cmd->b8.value;
+      break;
+
+    case CMD_CAM_SET_PRIORITY:
+      cam->priority = cmd->u16.value;
+      break;
+
+    case CMD_CAM_SET_ZOOM: {
+      if (!isfinite(cmd->f32.value))
+        break;
+
+      float zoom = cmd->f32.value;
+      if (zoom < MIN_ZOOM)
+        zoom = MIN_ZOOM;
+      if (zoom > MAX_ZOOM)
+        zoom = MAX_ZOOM;
+      cam->zoom = zoom;
+      break;
+    }
+
+    case CMD_CAM_SET_ROTATION:
+      cam->rotation = cmd->f32.value;
+      break;
+
+    case CMD_CAM_SET_FOLLOW:
+      cam->follow.targetEntity = cmd->camFollow.targetEntity;
+      cam->follow.smoothSpeed = cmd->camFollow.smoothSpeed;
+      cam->follow.offset = cmd->camFollow.offset;
+      cam->follow.enabled = true;
+      break;
+
+    case CMD_CAM_DISABLE_FOLLOW:
+      cam->follow.enabled = false;
+      cam->follow.targetEntity = ENTITY_INVALID;
+      break;
+
     default:
       break;
     }
@@ -65,18 +131,6 @@ static void applyFollowLogic(CameraComponent *cam, EntityRegistry *reg,
   }
 }
 
-static void applyShakeLogic(CameraComponent *cam, float dt) {
-  if (cam->shake.timer > 0) {
-    cam->shake.currentOffset =
-        cameraUtils_RandomShakeOffset(cam->shake.intensity);
-    cam->shake.timer -= dt;
-  } else {
-    cam->shake.timer = 0.0f;
-    cam->shake.intensity = 0.0f;
-    cam->shake.currentOffset = (creVec2){0.0f, 0.0f};
-  }
-}
-
 void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
                          ViewportSize vp) {
   assert(reg && "reg is NULL");
@@ -103,10 +157,11 @@ void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
     // Follow logic
     if (cam->follow.enabled)
       applyFollowLogic(cam, reg, dt, ownerId);
-    // Shake applyShakeLogic
-    cam->shake.currentOffset = (creVec2){0.0f, 0.0f};
-    if (cam->shake.timer > cam_safety_epsilon)
-      applyShakeLogic(cam, dt);
+
+    // Sync Phase: cache final world position for renderer
+    uint32_t id = cam->ownerEntity.id;
+    cam->viewPosition.x = reg->pos_x[id];
+    cam->viewPosition.y = reg->pos_y[id];
   }
 }
 
@@ -168,7 +223,7 @@ int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
   assert(reg && "reg is NULL");
 
   int32_t activeIndex = -1;
-  int32_t highestPriority = INT32_MIN;
+  int32_t highestPriority = -1;
 
   for (uint32_t i = 0; i < reg->camera_count; i++) {
     const CameraComponent *cam = &reg->cameras[i];
@@ -183,4 +238,27 @@ int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
   }
 
   return activeIndex;
+}
+
+const CameraComponent *
+cameraSystem_GetActiveComponent(const EntityRegistry *reg) {
+  static bool s_warned = false;
+  int32_t camIdx = cameraSystem_FindActive(reg);
+  if (camIdx < 0) {
+    if (!s_warned) {
+      Log(LOG_LVL_WARNING, "No active camera found! Rendering fallback.");
+      s_warned = true;
+    }
+    return NULL;
+  }
+  return &reg->cameras[camIdx];
+}
+
+creRectangle cameraSystem_GetActiveCullBounds(const EntityRegistry *reg,
+                                              const CameraComponent *cam,
+                                              ViewportSize vp) {
+
+  if (!cam)
+    return (creRectangle){0};
+  return cameraSystem_GetCullBounds(reg, cam, vp);
 }

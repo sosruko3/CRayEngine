@@ -54,6 +54,7 @@ typedef struct Command {
         CommandPayloadAudio       audio;
         CommandPayloadPhysDef     physDef;
         CommandPayloadEntityClone entityClone;
+        CommandPayloadCamFollow   camFollow;
         CommandPayloadColor       color;
         CommandPayloadRenderDepth renderDepth;
         alignas(4) uint8_t     raw[48];

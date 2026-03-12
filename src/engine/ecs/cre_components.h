@@ -10,7 +10,8 @@ typedef struct CameraComponent {
 
     float zoom;
     float rotation;
-    int32_t priority;
+    uint16_t priority;
+    uint16_t _priority_pad;
 
     struct {
         creRectangle viewportRect;
@@ -27,11 +28,7 @@ typedef struct CameraComponent {
         uint8_t _pad[3];
     } follow;
 
-    struct {
-        float timer;
-        float intensity;
-        creVec2 currentOffset;
-    } shake;
+    creVec2 viewPosition;
 
     bool isActive;
     uint8_t _pad[3];

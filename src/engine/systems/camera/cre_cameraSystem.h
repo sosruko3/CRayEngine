@@ -19,4 +19,7 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry* reg, const CameraC
 creRectangle cameraSystem_GetCullBounds(const EntityRegistry* reg, const CameraComponent* cam, ViewportSize vp);
 int32_t cameraSystem_FindActive(const EntityRegistry* reg);
 
+const CameraComponent* cameraSystem_GetActiveComponent(const EntityRegistry *reg);
+creRectangle cameraSystem_GetActiveCullBounds(const EntityRegistry *reg,const CameraComponent* cam,  ViewportSize vp);
+
 #endif

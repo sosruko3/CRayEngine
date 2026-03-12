@@ -1,78 +1,84 @@
 #include "game.h"
-#include "engine/core/cre_config.h"
-#include "raylib.h"
-#include "../game_config.h"
-#include "engine/scene/cre_sceneManager.h"
-#include "game_scenes.h"
-#include "engine/ecs/cre_entityManager.h"
-#include "engine/ecs/cre_entitySystem.h"
-#include "engine/ecs/cre_entityRegistry.h"
-#include "engine/core/cre_logger.h"
-#include "entity_types.h"
 #include "controlSystem.h"
-#include "engine/systems/debug/cre_debugSystem.h"
-#include "engine/systems/render/cre_rendererCore.h"
-#include "engine/systems/render/cre_renderSystem.h"
-#include "engine/systems/render/cre_renderAPI.h"
-#include "engine/systems/physics/cre_physicsSystem.h"
-#include "engine/loaders/cre_assetManager.h"
-#include "engine/systems/animation/cre_animationSystem.h"
-#include "engine/platform/cre_viewport.h"
-#include "engine/systems/camera/cre_cameraSystem.h"
+#include "engine/ecs/cre_entityManager.h"
+#include "engine/ecs/cre_entityRegistry.h"
+#include "engine/ecs/cre_entitySystem.h"
 #include "engine/platform/cre_input.h"
+#include "engine/platform/cre_viewport.h"
+#include "engine/scene/cre_sceneManager.h"
+#include "engine/systems/animation/cre_animationSystem.h"
+#include "engine/systems/camera/cre_cameraAPI.h"
+#include "engine/systems/camera/cre_cameraSystem.h"
+#include "engine/systems/debug/cre_debugSystem.h"
+#include "engine/systems/physics/cre_physicsSystem.h"
+#include "engine/systems/render/cre_renderAPI.h"
+#include "engine/systems/render/cre_renderSystem.h"
+#include "engine/systems/render/cre_rendererCore.h"
+#include "game_scenes.h"
 #include <assert.h>
 
-// Global variables
-static EntityRegistry* s_gameReg = NULL; // Store registry pointer for ResetGameplay
-
 // Helper function
- static void ResetGameplay(EntityRegistry* reg, CommandBus* bus);
+static void ResetGameplay(EntityRegistry *reg, CommandBus *bus);
 
-void Game_Init(EntityRegistry* reg, CommandBus* bus) {
-    assert (reg || bus);
-    s_gameReg = reg; // Check this part.
-    renderAPI_SetDepthPreset(bus,DEPTH_PRESET_FLAT);
-    EntitySystem_ClearAllHooks(reg);
-    ResetGameplay(reg, bus);
+void Game_Init(EntityRegistry *reg, CommandBus *bus) {
+  assert(reg && bus);
+  renderAPI_SetDepthPreset(bus, DEPTH_PRESET_FLAT);
+  EntitySystem_ClearAllHooks(reg);
+  ResetGameplay(reg, bus);
 }
-void Game_Update(EntityRegistry* reg, CommandBus* bus,float dt) {
-    ControlSystem_UpdateSleepState(reg);
-    DebugSystem_HandleInput(reg);
-    ControlSystem_HandleDebugSpawning(reg, bus);
-    ControlSystem_UpdateLogic(reg, dt);
-    ControlSystem_ChangeZoom(dt);
+void Game_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
+  ViewportSize vp = Viewport_Get();
+  const CameraComponent *activeCam = cameraSystem_GetActiveComponent(reg);
+  creRectangle cullBounds =
+      cameraSystem_GetActiveCullBounds(reg, activeCam, vp);
 
-    if (Input_IsPressed(ACTION_CONFIRM)) SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
+  ControlSystem_UpdateSleepState(reg, activeCam);
+  DebugSystem_HandleInput(reg);
+  ControlSystem_HandleDebugSpawning(reg, bus);
+  ControlSystem_UpdateLogic(reg, dt, cullBounds);
+  ControlSystem_ChangeZoom(reg, bus, dt);
+
+  if (Input_IsPressed(ACTION_CONFIRM))
+    SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
 }
-void Game_Draw(EntityRegistry* reg, CommandBus* bus) {
-    ClearBackground(DARKGREEN); // Use wrapper for this.
+void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
+  ClearBackground(DARKGREEN); // Use wrapper for this.
 
-    rendererCore_BeginWorldMode(cameraSystem_GetInternal());
-    // WORLD RENDERING:
+  ViewportSize vp = Viewport_Get();
+  const CameraComponent *activeCam = cameraSystem_GetActiveComponent(reg);
+  creRectangle cullBounds =
+      cameraSystem_GetActiveCullBounds(reg, activeCam, vp);
 
-    renderSystem_Draw(reg, bus, cameraSystem_GetCullBounds());
-    DebugSystem_RenderWorldSpace(reg); // World-space debug overlays (inside camera)
-    
-    rendererCore_EndWorldMode(); 
-    rendererCore_EndWorldRender();
-    // UI RENDERING:
-    
-    // Screen-space debug HUD (outside camera)
-    DebugSystem_RenderScreenSpace(reg);
-    DebugSystem_RenderMouseHover(reg);
+  rendererCore_BeginWorldMode(activeCam, vp);
+  // WORLD RENDERING:
 
-    ViewportSize v = Viewport_Get();
-    DrawFPS(v.width*0.02f,v.height*0.02f); // FOR DEBUG
-    uint32_t activeCount = DebugSystem_GetActiveCount(reg); // FOR DEBUG
-    DrawText(TextFormat("Physics time: %.04f ms | Entities: %d",activeCount, activeCount),20,20,20,RED); // FOR DEBUG
+  renderSystem_Draw(reg, bus, cullBounds);
+  DebugSystem_RenderWorldSpace(
+      reg); // World-space debug overlays (inside camera)
+
+  rendererCore_EndWorldMode();
+  rendererCore_EndWorldRender();
+  // UI RENDERING:
+
+  // Screen-space debug HUD (outside camera)
+  DebugSystem_RenderScreenSpace(reg);
+  DebugSystem_RenderMouseHover(reg);
+
+  DrawFPS(vp.width * 0.02f, vp.height * 0.02f);           // FOR DEBUG
+  uint32_t activeCount = DebugSystem_GetActiveCount(reg); // FOR DEBUG
+  DrawText(TextFormat("Physics time: %.04f ms | Entities: %d", activeCount,
+                      activeCount),
+           20, 20, 20, RED); // FOR DEBUG
 }
-void Game_Shutdown(EntityRegistry* reg, CommandBus* bus) {
-    // Cleanup if needed
+void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
+  // Cleanup if needed
 }
-static void ResetGameplay(EntityRegistry* reg, CommandBus* bus) {
-    EntityManager_Reset(reg); // Create an command for this, do not use this directly.
-    
-    ControlSystem_SpawnPlayer(reg,bus);
+static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
+  EntityManager_Reset(reg);
+
+  Entity mainCam = ControlSystem_SpawnCamera(reg);
+
+  Entity player = ControlSystem_SpawnPlayer(reg, bus);
+
+  ControlSystem_SetCameraTarget(reg, bus, player);
 }
-
-

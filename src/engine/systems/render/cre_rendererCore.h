@@ -2,9 +2,12 @@
 #define CRE_RENDERERCORE_H
 
 #include "engine/core/cre_types.h"
-#include "raylib.h"  // For Camera2D
+#include "engine/ecs/cre_components.h"
+#include "engine/platform/cre_viewport.h"
+#include "raylib.h"  // For Texture2D, Shader internals
 #include <stdint.h>
 #include <stdbool.h>
+
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * 2D Renderer Pipeline (Extend Strategy)
@@ -26,8 +29,9 @@ void rendererCore_BeginFrame(void);
 void rendererCore_EndWorldRender(void);
 void rendererCore_EndFrame(void);
 
+
 /* Camera interface (pass-through to Raylib Mode2D) */
-void rendererCore_BeginWorldMode(Camera2D camera);
+void rendererCore_BeginWorldMode(const CameraComponent* cam, ViewportSize vp);
 void rendererCore_EndWorldMode(void);
 
 /* Consolidated sprite draw

@@ -9,12 +9,13 @@
 typedef struct EntityRegistry EntityRegistry;
 
 /**
- * CRE_Camera_Utils - The "Smart" Camera Toolbox
+ * cre_cameraUtils - The "Smart" Camera Toolbox
  * 
  * Math and conversion helpers used by camera systems.
  * No camera state is stored or mutated in this module.
  */
 
+ Camera2D cameraUtils_buildRaylibCam(const CameraComponent *cam, ViewportSize vp);
 /**
  * Smoothly interpolate a position towards a target.
  * Uses exponential decay for smooth deceleration.
@@ -26,14 +27,6 @@ typedef struct EntityRegistry EntityRegistry;
  * @return Interpolated position
  */
 creVec2 cameraUtils_Lerp(creVec2 current, creVec2 target, float speed, float dt);
-
-/**
- * Create randomized camera shake offset.
- * 
- * @param intensity Maximum shake offset in world units
- * @return Offset vector to add to camera target
- */
-creVec2 cameraUtils_RandomShakeOffset(float intensity);
 
 /**
  * Convert a screen position to world coordinates.

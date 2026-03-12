@@ -7,7 +7,8 @@ typedef enum {
     TYPE_BULLET,
     TYPE_FOOD,
     TYPE_WALL,
-    TYPE_PARTICLE
+    TYPE_PARTICLE,
+    TYPE_CAMERA
 } EntityType;
 
 #define L_PLAYER   (1 << TYPE_PLAYER)    // 1

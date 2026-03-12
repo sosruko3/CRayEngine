@@ -70,8 +70,16 @@ typedef enum CommandType {
     CMD_RENDER_SET_VISUAL_SCALE,
     CMD_RENDER_SET_ROTATION,
     CMD_RENDER_SET_LAYER,
+
+    // Camera commands
+    CMD_CAM_SET_ACTIVE = CMD_DOMAIN_CAMERA,
+    CMD_CAM_SET_PRIORITY,
+    CMD_CAM_SET_ZOOM,
+    CMD_CAM_SET_ROTATION,
+    CMD_CAM_SET_FOLLOW,
+    CMD_CAM_DISABLE_FOLLOW,
     
-    CMD_TYPE_COUNT // Render domain would count this as well, fix this.
+    CMD_TYPE_COUNT // Camera domain would count this as well, fix this.
 } CommandType;
 
 // ============================================================================
@@ -130,6 +138,12 @@ typedef struct {
     Entity prototype;
     creVec2 position;
 } CommandPayloadEntityClone;
+
+typedef struct {
+    Entity targetEntity;
+    float smoothSpeed;
+    creVec2 offset;
+} CommandPayloadCamFollow;
 
 typedef struct {
     creColor color;
