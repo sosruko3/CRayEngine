@@ -1,199 +1,207 @@
-    /**
-     * @file cre_entityManager.c
-     * @brief Packed Parallel SoA Entity Manager Implementation
-     */
+/**
+ * @file cre_entityManager.c
+ * @brief Packed Parallel SoA Entity Manager Implementation
+ */
 
-    #include "cre_entityManager.h"
-    #include "cre_entityRegistry.h"
-    #include "engine/core/cre_types.h"
-    #include "engine/core/cre_colors.h"
+#include "cre_entityManager.h"
+#include "cre_entityRegistry.h"
+#include "engine/core/cre_colors.h"
+#include "engine/core/cre_logger.h"
+#include "engine/core/cre_types.h"
+#include <assert.h>
+#include <string.h>
 
-    #include <stdio.h>
-    #include <string.h>
-    #include "engine/core/cre_logger.h"
-    #include <assert.h>
+// ============================================================================
+// Core API Implementation
+// ============================================================================
 
-    // ============================================================================
-    // Core API Implementation
-    // ============================================================================
+void EntityManager_Init(EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
 
-    void EntityManager_Init(EntityRegistry* reg) {
-        assert(reg && "reg is NULL");
-        
-        // Zero everything including generations on first init
-        memset(reg, 0, sizeof(EntityRegistry));
-        
-        // Build free list (stack: high indices at bottom, low at top)
-        for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-            reg->free_list[i] = (MAX_ENTITIES - 1) - i;
-        }
-        
-        reg->free_count = MAX_ENTITIES;
-        reg->active_count = 0;
-        reg->max_used_bound = 0;
-        
-        Log(LOG_LVL_INFO, "Entity Manager Initialized (SoA, %u slots)", MAX_ENTITIES);
-    }
+  // Zero everything including generations on first init
+  memset(reg, 0, sizeof(EntityRegistry));
 
-    void EntityManager_Reset(EntityRegistry* reg) {
-        assert(reg && "reg is NULL");
-        
-        // Clear component_masks and state_flags, but NOT generations!
-        memset(reg->component_masks,     0, sizeof(reg->component_masks));
-        memset(reg->state_flags,         0, sizeof(reg->state_flags));
-        memset(reg->render_layer,        0,sizeof(reg->render_layer));
-        memset(reg->batch_ids,           0, sizeof(reg->batch_ids));
+  // Build free list (stack: high indices at bottom, low at top)
+  for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
+    reg->free_list[i] = (MAX_ENTITIES - 1) - i;
+  }
 
-        // Clear data highways
-        memset(reg->pos_x,               0, sizeof(reg->pos_x));
-        memset(reg->pos_y,               0, sizeof(reg->pos_y));
-        memset(reg->vel_x,               0, sizeof(reg->vel_x));
-        memset(reg->vel_y,               0, sizeof(reg->vel_y));
-        memset(reg->size_w,              0, sizeof(reg->size_w));
-        memset(reg->size_h,              0, sizeof(reg->size_h));
+  reg->free_count = MAX_ENTITIES;
+  reg->active_count = 0;
+  reg->max_used_bound = 0;
 
-        memset(reg->inv_mass,            0, sizeof(reg->inv_mass));
-        memset(reg->drag,                0, sizeof(reg->drag));
-        memset(reg->gravity_scale,       0, sizeof(reg->gravity_scale));
-        memset(reg->material_id,         0, sizeof(reg->material_id));
+  Log(LOG_LVL_INFO, "Entity Manager Initialized (SoA, %u slots)", MAX_ENTITIES);
+}
 
-        memset(reg->rotation,            0, sizeof(reg->rotation));
-        memset(reg->sprite_ids,          0, sizeof(reg->sprite_ids));
-        memset(reg->colors,              0, sizeof(reg->colors));
-        memset(reg->types,               0, sizeof(reg->types));
-        memset(reg->visual_scale_x,      0,sizeof(reg->visual_scale_x));
-        memset(reg->visual_scale_y,      0,sizeof(reg->visual_scale_y));
+void EntityManager_Reset(EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
 
-        memset(reg->anim_timers,         0, sizeof(reg->anim_timers));
-        memset(reg->anim_speeds,         0, sizeof(reg->anim_speeds));
-        memset(reg->anim_ids,            0, sizeof(reg->anim_ids));
-        memset(reg->anim_frames,         0, sizeof(reg->anim_frames));
-        memset(reg->anim_finished,       0, sizeof(reg->anim_finished));
-        memset(reg->anim_base_durations, 0, sizeof(reg->anim_base_durations));
-        memset(reg->cameras,             0, sizeof(reg->cameras));
-        reg->camera_count = 0;
+  // Clear component_masks and state_flags, but NOT generations!
+  memset(reg->component_masks, 0, sizeof(reg->component_masks));
+  memset(reg->state_flags, 0, sizeof(reg->state_flags));
+  memset(reg->render_layer, 0, sizeof(reg->render_layer));
+  memset(reg->batch_ids, 0, sizeof(reg->batch_ids));
 
-        memset(&reg->events,             0, sizeof(EntityEventDispatcher));
+  // Clear data highways
+  memset(reg->pos_x, 0, sizeof(reg->pos_x));
+  memset(reg->pos_y, 0, sizeof(reg->pos_y));
+  memset(reg->vel_x, 0, sizeof(reg->vel_x));
+  memset(reg->vel_y, 0, sizeof(reg->vel_y));
+  memset(reg->size_w, 0, sizeof(reg->size_w));
+  memset(reg->size_h, 0, sizeof(reg->size_h));
 
-        // Rebuild free list
-        for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
-            reg->free_list[i] = (MAX_ENTITIES - 1) - i;
-        }
-        
-        reg->free_count = MAX_ENTITIES;
-        reg->active_count = 0;
-        reg->max_used_bound = 0;
-        
-        Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
-    }
+  memset(reg->inv_mass, 0, sizeof(reg->inv_mass));
+  memset(reg->drag, 0, sizeof(reg->drag));
+  memset(reg->gravity_scale, 0, sizeof(reg->gravity_scale));
+  memset(reg->material_id, 0, sizeof(reg->material_id));
 
-    Entity EntityManager_ReserveSlot(EntityRegistry* reg) {
-        assert(reg && "reg is NULL");
+  memset(reg->rotation, 0, sizeof(reg->rotation));
+  memset(reg->sprite_ids, 0, sizeof(reg->sprite_ids));
+  memset(reg->colors, 0, sizeof(reg->colors));
+  memset(reg->types, 0, sizeof(reg->types));
+  memset(reg->visual_scale_x, 0, sizeof(reg->visual_scale_x));
+  memset(reg->visual_scale_y, 0, sizeof(reg->visual_scale_y));
 
-        if (reg->free_count == 0) return ENTITY_INVALID;
+  memset(reg->anim_timers, 0, sizeof(reg->anim_timers));
+  memset(reg->anim_speeds, 0, sizeof(reg->anim_speeds));
+  memset(reg->anim_ids, 0, sizeof(reg->anim_ids));
+  memset(reg->anim_frames, 0, sizeof(reg->anim_frames));
+  memset(reg->anim_finished, 0, sizeof(reg->anim_finished));
+  memset(reg->anim_base_durations, 0, sizeof(reg->anim_base_durations));
+  memset(reg->cameras, 0, sizeof(reg->cameras));
+  reg->camera_count = 0;
 
-        const uint32_t index = reg->free_list[--reg->free_count];
-        const uint32_t generation = reg->generations[index];
+  memset(&reg->events, 0, sizeof(EntityEventDispatcher));
 
-        return (Entity){ .id = index, .generation = generation };
-    }
+  // Rebuild free list
+  for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
+    reg->free_list[i] = (MAX_ENTITIES - 1) - i;
+  }
 
-    void EntityManager_ReturnReservedSlot(EntityRegistry* reg, Entity reserved_entity) {
-        assert(reg && "reg is NULL");
+  reg->free_count = MAX_ENTITIES;
+  reg->active_count = 0;
+  reg->max_used_bound = 0;
 
-        if (reserved_entity.id >= MAX_ENTITIES) return;
+  Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
+}
 
-        assert(reg->free_count < MAX_ENTITIES && "Double return / Free list overflow!");
+Entity EntityManager_ReserveSlot(EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
 
-        reg->free_list[reg->free_count++] = reserved_entity.id;
+  if (reg->free_count == 0)
+    return ENTITY_INVALID;
 
-        reg->generations[reserved_entity.id]++;
-    }
+  const uint32_t index = reg->free_list[--reg->free_count];
+  const uint32_t generation = reg->generations[index];
 
-    Entity EntityManager_Create(EntityRegistry* reg, uint16_t type, creVec2 pos, uint64_t initial_CompMask, uint64_t initial_flags) {
-        assert(reg && "reg is NULL");
-        if (reg->free_count == 0) return ENTITY_INVALID;
-        
-        // Pop index from free list
-        uint32_t index = reg->free_list[--reg->free_count];
-        uint32_t gen = reg->generations[index];
-        
-        // Set up the entity in SoA arrays
-        reg->component_masks[index]= initial_CompMask;
-        reg->state_flags[index]    = initial_flags | FLAG_ACTIVE;
-        reg->types[index]          = (uint16_t)type;
-        reg->render_layer[index]   = RENDER_LAYER_DEFAULT;
-        reg->batch_ids[index]      = RENDER_BATCH_DEFAULT;
-        
-        // Position
-        reg->pos_x[index]          = pos.x;
-        reg->pos_y[index]          = pos.y;
-        
-        // Velocity (default zero)
-        reg->vel_x[index]          = 0.0f;
-        reg->vel_y[index]          = 0.0f;
-        
-        // Size (default 64x64)
-        reg->size_w[index]         = 64.0f;
-        reg->size_h[index]         = 64.0f;
+  return (Entity){.id = index, .generation = generation};
+}
 
-        // Physics specific
-        reg->inv_mass[index]       = 0.0f;
-        reg->drag[index]           = 0.0f;
-        reg->gravity_scale[index]  = 0.0f;
-        reg->material_id[index]    = 0;
+void EntityManager_ReturnReservedSlot(EntityRegistry *reg,
+                                      Entity reserved_entity) {
+  assert(reg && "reg is NULL");
 
-        // Rotation
-        reg->rotation[index]       = 0.0f;
-        
-        // Sprite specific
-        reg->sprite_ids[index]     = 0;
-        reg->colors[index]         = creBLANK;
-        reg->pivot_x[index]        = 0.5f;
-        reg->pivot_y[index]        = 0.5f;
-        reg->visual_scale_x[index] = 1.0f;
-        reg->visual_scale_y[index] = 1.0f;
-        
-        // Animations
-        reg->anim_speeds[index]    = 1.0f;
-        reg->anim_timers[index]    = 0.0f;
-        reg->anim_finished[index]  = false;
-        
-        reg->active_count++;
-        
-        // Track max used index for loop optimization
-        if (index >= reg->max_used_bound) reg->max_used_bound = index + 1;
-        
-        return (Entity){ .id = index, .generation = gen };
-    }
+  if (reserved_entity.id >= MAX_ENTITIES)
+    return;
 
-    void EntityManager_Destroy(EntityRegistry* reg, Entity e) {
-        assert(reg && "reg is NULL");
-        
-        // Validate handle
-        if (e.id >= MAX_ENTITIES) return;
-        if (!(reg->state_flags[e.id] & FLAG_ACTIVE)) return;
-        if (reg->generations[e.id] != e.generation) return;
-        
-        // Clear the slot
-        reg->component_masks[e.id] = COMP_NONE;
-        reg->state_flags[e.id] = 0;
-        reg->render_layer[e.id] = RENDER_LAYER_DEFAULT;
-        reg->batch_ids[e.id] = RENDER_BATCH_DEFAULT;
-        
-        // Increment generation to invalidate stale handles
-        reg->generations[e.id]++;
-        
-        // Return slot to free list
-        reg->free_list[reg->free_count++] = e.id;
-        reg->active_count--;
-        
-        // Note: We don't shrink max_used_bound here for simplicity.
-        // A more sophisticated implementation could track this.
-    }
+  assert(reg->free_count < MAX_ENTITIES &&
+         "Double return / Free list overflow!");
 
-    void EntityManager_Shutdown(EntityRegistry* reg) {
-        assert(reg && "reg is NULL");
-        memset(reg, 0, sizeof(EntityRegistry));
-        Log(LOG_LVL_INFO, "Entity Manager Shutdown");
-    }
+  reg->free_list[reg->free_count++] = reserved_entity.id;
+
+  reg->generations[reserved_entity.id]++;
+}
+
+Entity EntityManager_Create(EntityRegistry *reg, uint16_t type, creVec2 pos,
+                            uint64_t initial_CompMask, uint64_t initial_flags) {
+  assert(reg && "reg is NULL");
+  if (reg->free_count == 0)
+    return ENTITY_INVALID;
+
+  // Pop index from free list
+  uint32_t index = reg->free_list[--reg->free_count];
+  uint32_t gen = reg->generations[index];
+
+  // Set up the entity in SoA arrays
+  reg->component_masks[index] = initial_CompMask;
+  reg->state_flags[index] = initial_flags | FLAG_ACTIVE;
+  reg->types[index] = (uint16_t)type;
+  reg->render_layer[index] = RENDER_LAYER_DEFAULT;
+  reg->batch_ids[index] = RENDER_BATCH_DEFAULT;
+
+  // Position
+  reg->pos_x[index] = pos.x;
+  reg->pos_y[index] = pos.y;
+
+  // Velocity (default zero)
+  reg->vel_x[index] = 0.0f;
+  reg->vel_y[index] = 0.0f;
+
+  // Size (default 64x64)
+  reg->size_w[index] = 64.0f;
+  reg->size_h[index] = 64.0f;
+
+  // Physics specific
+  reg->inv_mass[index] = 0.0f;
+  reg->drag[index] = 0.0f;
+  reg->gravity_scale[index] = 0.0f;
+  reg->material_id[index] = 0;
+
+  // Rotation
+  reg->rotation[index] = 0.0f;
+
+  // Sprite specific
+  reg->sprite_ids[index] = 0;
+  reg->colors[index] = creBLANK;
+  reg->pivot_x[index] = 0.5f;
+  reg->pivot_y[index] = 0.5f;
+  reg->visual_scale_x[index] = 1.0f;
+  reg->visual_scale_y[index] = 1.0f;
+
+  // Animations
+  reg->anim_speeds[index] = 1.0f;
+  reg->anim_timers[index] = 0.0f;
+  reg->anim_finished[index] = false;
+
+  reg->active_count++;
+
+  // Track max used index for loop optimization
+  if (index >= reg->max_used_bound)
+    reg->max_used_bound = index + 1;
+
+  return (Entity){.id = index, .generation = gen};
+}
+
+void EntityManager_Destroy(EntityRegistry *reg, Entity e) {
+  assert(reg && "reg is NULL");
+
+  // Validate handle
+  if (e.id >= MAX_ENTITIES)
+    return;
+  if (!(reg->state_flags[e.id] & FLAG_ACTIVE))
+    return;
+  if (reg->generations[e.id] != e.generation)
+    return;
+
+  // Clear the slot
+  reg->component_masks[e.id] = COMP_NONE;
+  reg->state_flags[e.id] = 0;
+  reg->render_layer[e.id] = RENDER_LAYER_DEFAULT;
+  reg->batch_ids[e.id] = RENDER_BATCH_DEFAULT;
+
+  // Increment generation to invalidate stale handles
+  reg->generations[e.id]++;
+
+  // Return slot to free list
+  reg->free_list[reg->free_count++] = e.id;
+  reg->active_count--;
+
+  // Note: We don't shrink max_used_bound here for simplicity.
+  // A more sophisticated implementation could track this.
+}
+
+void EntityManager_Shutdown(EntityRegistry *reg) {
+  assert(reg && "reg is NULL");
+  memset(reg, 0, sizeof(EntityRegistry));
+  Log(LOG_LVL_INFO, "Entity Manager Shutdown");
+}
