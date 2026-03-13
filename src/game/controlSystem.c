@@ -203,8 +203,8 @@ Entity ControlSystem_SpawnPlayer(EntityRegistry* reg, CommandBus* bus) {
     
     Entity player = EntityManager_Create(reg, TYPE_PLAYER, (creVec2){100, 200}, compMask, flags);
     if (ENTITY_IS_VALID(player)) {
-        reg->render_layer[player.id] = RENDER_LAYER_PLAYER;
-        reg->batch_ids[player.id] = RENDER_BATCH_PLAYER;
+        reg->render_layer[player.id] = RENDER_LAYER_ENEMY;
+        reg->batch_ids[player.id] = RENDER_BATCH_ENEMY;
         reg->sprite_ids[player.id] = SPR_SOLDIER;
         
         Command cmd;

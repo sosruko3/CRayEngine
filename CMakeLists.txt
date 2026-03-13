@@ -77,6 +77,7 @@ set(SOURCES
     src/engine/systems/physics/cre_spatialHash.c
     src/engine/systems/physics/cre_physicsAPI.c
     src/engine/systems/debug/cre_debugSystem.c
+    src/engine/systems/debug/cre_profilerSystem.c
     # Game
     src/game/game.c
     src/game/game_scenes.c

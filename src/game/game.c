@@ -63,21 +63,13 @@ void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
   // Screen-space debug HUD (outside camera)
   DebugSystem_RenderScreenSpace(reg);
   DebugSystem_RenderMouseHover(reg);
-
-  DrawFPS(vp.width * 0.02f, vp.height * 0.02f);           // FOR DEBUG
-  uint32_t activeCount = DebugSystem_GetActiveCount(reg); // FOR DEBUG
-  DrawText(TextFormat("Physics time: %.04f ms | Entities: %d", activeCount,
-                      activeCount),
-           20, 20, 20, RED); // FOR DEBUG
 }
 void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
   // Cleanup if needed
 }
 static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
   EntityManager_Reset(reg);
-
   Entity mainCam = ControlSystem_SpawnCamera(reg);
-
   Entity player = ControlSystem_SpawnPlayer(reg, bus);
 
   ControlSystem_SetCameraTarget(reg, bus, player);

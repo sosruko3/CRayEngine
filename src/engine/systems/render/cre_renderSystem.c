@@ -301,7 +301,7 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
 void renderSystem_Draw(EntityRegistry *reg, CommandBus *bus,
                        creRectangle view) {
   renderSystem_ProcessCommands(reg, bus);
-  _Renderer_SyncDecorations(reg);
+  //_Renderer_SyncDecorations(reg); Disabled this for temporary.
 
   renderSystem_DrawEntities(reg, view);
 }
