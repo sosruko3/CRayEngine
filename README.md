@@ -29,7 +29,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Camera System (using Raylib)
 - [x] Command System
 - [x] Viewport System
-- [ ] Profiler System
+- [x] Profiler System
 - [ ] Audio System(using miniaudio)
 - [ ] Particle System
 - [ ] AI System
