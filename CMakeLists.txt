@@ -65,6 +65,7 @@ set(SOURCES
     src/engine/ecs/cre_entityAPI.c
     src/engine/ecs/cre_entitySystem.c
     src/engine/loaders/cre_assetManager.c
+    src/engine/systems/audio/cre_audioSystem.c
     src/engine/systems/render/cre_rendererCore.c
     src/engine/systems/render/cre_renderSystem.c
     src/engine/systems/render/cre_renderAPI.c
@@ -106,11 +107,17 @@ endif()
 # --- Dependencies ---
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
 
+# --- Libraries included  ---
+add_library(miniaudio_lib STATIC src/external/miniaudio/miniaudio_impl.c)
+
+# --- Linking miniaudio ---
+target_link_libraries(miniaudio_lib PRIVATE m pthread dl)
+
 # --- Include Directories ---
 target_include_directories(${PROJECT_NAME} PRIVATE src "${GEN_DIR}")
 
 # --- Linking ---
-target_link_libraries(${PROJECT_NAME} raylib m)
+target_link_libraries(${PROJECT_NAME} raylib miniaudio_lib)
 
 
 

@@ -20,6 +20,7 @@
 #define CMD_DOMAIN_ANIM    0x0300
 #define CMD_DOMAIN_RENDER  0x0400
 #define CMD_DOMAIN_CAMERA  0x0500
+#define CMD_DOMAIN_AUDIO   0x0600
 
 // ============================================================================
 // Command Types
@@ -78,6 +79,9 @@ typedef enum CommandType {
     CMD_CAM_SET_ROTATION,
     CMD_CAM_SET_FOLLOW,
     CMD_CAM_DISABLE_FOLLOW,
+
+    // Audio commands
+    CMD_AUDIO_SOMETHING = CMD_DOMAIN_AUDIO,
     
     CMD_TYPE_COUNT // Camera domain would count this as well, fix this.
 } CommandType;
