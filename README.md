@@ -30,7 +30,7 @@ NOTE: I am designing,planning and reviewing while using AI as an helper. AI's jo
 - [x] Command System
 - [x] Viewport System
 - [x] Profiler System
-- [ ] Audio System(using miniaudio)
+- [x] Audio System(using miniaudio)
 - [ ] Particle System
 - [ ] AI System
 - [ ] Save Manager 
