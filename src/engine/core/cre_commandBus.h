@@ -43,20 +43,26 @@ typedef struct Command {
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
     union {
-        CommandPayloadVec2        vec2;
-        CommandPayloadF32         f32;
-        CommandPayloadU16         u16;
-        CommandPayloadB8          b8;
-        CommandPayloadU8          u8;
-        CommandPayloadU64         u64;
+        CommandPayloadVec2         vec2;
+        CommandPayloadF32          f32;
+        CommandPayloadU16          u16;
+        CommandPayloadB8           b8;
+        CommandPayloadU8           u8;
+        CommandPayloadU64          u64;
 
-        CommandPayloadAnim        anim;
-        CommandPayloadAudio       audio;
-        CommandPayloadPhysDef     physDef;
-        CommandPayloadEntityClone entityClone;
-        CommandPayloadCamFollow   camFollow;
-        CommandPayloadColor       color;
-        CommandPayloadRenderDepth renderDepth;
+        CommandPayloadAnim         anim;
+        CommandPayloadPhysDef      physDef;
+        CommandPayloadEntityClone  entityClone;
+        CommandPayloadCamFollow    camFollow;
+        CommandPayloadColor        color;
+        CommandPayloadRenderDepth  renderDepth;
+        CommandPayloadAudioID      audioid;
+        CommandPayloadAudioLoad    audioload;
+        CommandPayloadAudioGroup   audiogroup;
+        CommandPayloadAudioF32     audiof32;
+        CommandPayloadAudioB8      audiob8;
+        CommandPayloadAudioVec2    audiovec2;
+        CommandPayloadAudioOneShot audioshot;
         alignas(4) uint8_t     raw[48];
     };
 } Command;

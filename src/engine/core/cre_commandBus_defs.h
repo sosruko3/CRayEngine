@@ -81,7 +81,25 @@ typedef enum CommandType {
     CMD_CAM_DISABLE_FOLLOW,
 
     // Audio commands
-    CMD_AUDIO_SOMETHING = CMD_DOMAIN_AUDIO,
+    CMD_AUDIO_GROUP_INIT = CMD_DOMAIN_AUDIO,
+    CMD_AUDIO_SET_MASTER_VOLUME,
+    CMD_AUDIO_SET_LISTENER_POSITION,
+    CMD_AUDIO_GROUP_SET_VOLUME,
+    CMD_AUDIO_GROUP_SET_PITCH,
+    CMD_AUDIO_GROUP_SET_PAN,
+    CMD_AUDIO_PLAY_ONESHOT,
+    CMD_AUDIO_SOUND_LOAD,
+    CMD_AUDIO_SOUND_UNLOAD,
+    CMD_AUDIO_SOUND_PLAY,
+    CMD_AUDIO_SOUND_PAUSE,
+    CMD_AUDIO_SOUND_STOP,
+    CMD_AUDIO_SOUND_SET_VOLUME,
+    CMD_AUDIO_SOUND_SET_PITCH,
+    CMD_AUDIO_SOUND_SET_PAN,
+    CMD_AUDIO_SOUND_SET_LOOPING,
+    CMD_AUDIO_SOUND_SET_SPATIALIZATION,
+    CMD_AUDIO_SOUND_SET_POSITION,
+    CMD_AUDIO_SOUND_SET_ATTENUATION,
     
     CMD_TYPE_COUNT // Camera domain would count this as well, fix this.
 } CommandType;
@@ -131,13 +149,6 @@ typedef struct {
     float drag;
 } CommandPayloadPhysDef;
 
-typedef struct { 
-    // Not used yet. Will be implemented after sound system.
-    uint16_t soundID;
-    uint16_t _pad;
-    float volume;
-} CommandPayloadAudio;
-
 typedef struct {
     Entity prototype;
     creVec2 position;
@@ -162,5 +173,43 @@ typedef struct {
     uint8_t _pad[2];
 } CommandPayloadRenderDepth;
 
+typedef struct {
+    AudioID id;
+} CommandPayloadAudioID;
+
+typedef struct {
+    AudioID id;
+    uint16_t sourceID;
+    uint8_t groupID;
+    uint8_t usageType;
+} CommandPayloadAudioLoad;
+
+typedef struct {
+    uint8_t groupID;
+    uint8_t _pad[3];
+    float value;
+} CommandPayloadAudioGroup;
+
+typedef struct {
+    AudioID id;
+    float value;
+} CommandPayloadAudioF32;
+
+typedef struct {
+    AudioID id;
+    bool value;
+    uint8_t _pad[3];
+} CommandPayloadAudioB8;
+
+typedef struct {
+    AudioID id;
+    creVec2 value;
+} CommandPayloadAudioVec2;
+
+typedef struct {
+    uint16_t sourceid;
+    uint8_t  groupid;
+    uint8_t  padding;
+} CommandPayloadAudioOneShot;
 
 #endif

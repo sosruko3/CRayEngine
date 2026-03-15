@@ -66,6 +66,7 @@ set(SOURCES
     src/engine/ecs/cre_entitySystem.c
     src/engine/loaders/cre_assetManager.c
     src/engine/systems/audio/cre_audioSystem.c
+    src/engine/systems/audio/cre_audioAPI.c
     src/engine/systems/render/cre_rendererCore.c
     src/engine/systems/render/cre_renderSystem.c
     src/engine/systems/render/cre_renderAPI.c

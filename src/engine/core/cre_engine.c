@@ -13,6 +13,7 @@
 #include "engine/systems/debug/cre_profilerSystem.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
+#include "engine/systems/audio/cre_audioSystem.h"
 #include "raylib.h"
 #include <stdlib.h>
 
@@ -61,6 +62,8 @@ static void EnginePhase2_Simulation(EntityRegistry *restrict reg,
   PROFILE_START(PROF_ANIMATION);
   AnimationSystem_Update(reg, bus, dt);
   PROFILE_END(PROF_ANIMATION);
+
+  audioSystem_Update(reg,bus);
 }
 static void EnginePhase3_RenderState(EntityRegistry *restrict reg,
                                      CommandBus *bus, float dt) {
@@ -132,6 +135,7 @@ void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
   rendererCore_Init((int32_t)v.width, (int32_t)v.height);
   PhysicsSystem_Init();
   cameraSystem_Init(reg);
+  audioSystem_Init();
   Log(LOG_LVL_INFO, "[ENGINE] Windows created successfully.");
 }
 void Engine_Run(EntityRegistry *reg, CommandBus *bus, float dt) {
@@ -150,6 +154,8 @@ void Engine_Shutdown(EntityRegistry *reg, CommandBus *bus) {
   Log(LOG_LVL_INFO, "[ENGINE] Shutting down...");
   SceneManager_Shutdown(reg, bus);
   EntityManager_Shutdown(reg);
+  audioSystem_Shutdown();
+
   CloseWindow();
 
   // Add failsafes later on.

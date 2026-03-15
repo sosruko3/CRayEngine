@@ -13,6 +13,7 @@
 #include "engine/systems/physics/cre_physicsAPI.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/physics/cre_physics_defs.h"
+#include "engine/systems/audio/cre_audioAPI.h"
 #include "entity_types.h"
 #include "raylib.h"
 #include <assert.h>
@@ -160,6 +161,10 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry *reg, CommandBus *bus) {
 
   if (IsKeyPressed(KEY_Z)) {
     ViewportSize v = Viewport_Get();
+    
+    /// AUDIO SFX TEST
+        audioAPI_PlayOneShot(bus, AUDIO_GROUP_MASTER, AUDIO_SOURCE_TEST_SFX);
+    ///
     for (int i = 0; i < SPAWN_COUNT; i++) {
       int x = GetRandomValue((int)(-8 * v.width), (int)(v.width * 8));
       int y = GetRandomValue((int)(-8 * v.height), (int)(v.height * 8));
@@ -189,6 +194,15 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry *reg, CommandBus *bus) {
                      SET_LAYER(L_ENEMY) |
                      SET_MASK(L_PLAYER | L_BULLET | L_ENEMY);
 
+         /// AUDIO BGM TEST            
+        const AudioID bgmID = audioAPI_AllocateSound();
+        audioAPI_SoundLoad(bus, bgmID, AUDIO_SOURCE_TEST_BGM, AUDIO_GROUP_MASTER, AUDIO_USAGE_STREAM);
+        audioAPI_SoundSetVolume(bus,bgmID,0.5f);
+        audioAPI_SoundSetPitch(bus,bgmID,1.0f);
+        audioAPI_SoundSetPan(bus,bgmID,0.0f);
+        audioAPI_SoundPlay(bus, bgmID);
+        /////
+        
     Entity e = EntityManager_Create(reg, TYPE_ENEMY, (creVec2){400, 400},
                                     compMask, flags);
     if (ENTITY_IS_VALID(e)) {

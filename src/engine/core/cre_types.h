@@ -19,6 +19,11 @@ typedef struct Entity {
 
 #define ENTITY_MATCH(e1, e2) ((e1).id == (e2).id && (e1).generation == (e2).generation)
 
+typedef struct {
+  uint16_t index;
+  uint16_t gen;
+} AudioID;
+
 typedef struct creVec2 {
     float x;
     float y;
