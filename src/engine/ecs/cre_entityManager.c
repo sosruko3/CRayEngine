@@ -124,7 +124,7 @@ Entity EntityManager_Create(EntityRegistry *reg, uint16_t type, creVec2 pos,
 
   // Set up the entity in SoA arrays
   reg->component_masks[index] = initial_CompMask;
-  reg->state_flags[index] = initial_flags | FLAG_ACTIVE;
+  reg->state_flags[index] = initial_flags;
   reg->types[index] = (uint16_t)type;
   reg->render_layer[index] = RENDER_LAYER_DEFAULT;
   reg->batch_ids[index] = RENDER_BATCH_DEFAULT;

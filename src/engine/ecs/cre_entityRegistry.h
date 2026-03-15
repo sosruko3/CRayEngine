@@ -158,4 +158,10 @@ static inline bool EntityRegistry_IsAlive(const EntityRegistry* reg, Entity e) {
     return reg->generations[e.id] == e.generation;
 }
 
+static inline bool EntityRegistry_IsValid(const EntityRegistry* reg, Entity e) {
+    if (!reg) return false;
+    if (e.id >= MAX_ENTITIES) return false;
+    return (reg->generations[e.id] == e.generation);
+}
+
 #endif

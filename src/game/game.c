@@ -15,6 +15,7 @@
 #include "engine/systems/render/cre_renderSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
 #include "game_scenes.h"
+#include "game_prototypes.h"
 #include <assert.h>
 
 // Helper function
@@ -24,6 +25,9 @@ void Game_Init(EntityRegistry *reg, CommandBus *bus) {
   assert(reg && bus);
   renderAPI_SetDepthPreset(bus, DEPTH_PRESET_FLAT);
   EntitySystem_ClearAllHooks(reg);
+  EntityManager_Reset(reg);
+  
+  Prototypes_Init(reg);
   ResetGameplay(reg, bus);
 }
 void Game_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
@@ -68,9 +72,8 @@ void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
   // Cleanup if needed
 }
 static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
-  EntityManager_Reset(reg);
   Entity mainCam = ControlSystem_SpawnCamera(reg);
+  
   Entity player = ControlSystem_SpawnPlayer(reg, bus);
-
   ControlSystem_SetCameraTarget(reg, bus, player);
 }

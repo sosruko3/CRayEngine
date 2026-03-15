@@ -84,6 +84,7 @@ set(SOURCES
     src/game/game.c
     src/game/game_scenes.c
     src/game/controlSystem.c
+    src/game/game_prototypes.c
     src/game/menu.c
     src/game/game_over.c
 )
