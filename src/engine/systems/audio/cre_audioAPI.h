@@ -13,8 +13,11 @@ void audioAPI_GroupInit(CommandBus *restrict bus, uint8_t groupID);
 void audioAPI_SetMasterVolume(CommandBus *restrict bus, float volume);
 void audioAPI_SetListenerPosition(CommandBus *restrict bus, creVec2 position);
 
+// Use between 0.0f and 1.0f for volume value.
 void audioAPI_GroupSetVolume(CommandBus *restrict bus, uint8_t groupID, float volume);
+// Default pitch value = 1.0f, 2.0f is double speed(high) , 0.5f is half-speed(deep)
 void audioAPI_GroupSetPitch(CommandBus *restrict bus, uint8_t groupID, float pitch);
+// Default pan value is 0.0f(center) , -1.0f is fully left , 1.0f is fully right side. 
 void audioAPI_GroupSetPan(CommandBus *restrict bus, uint8_t groupID, float pan);
 
 void audioAPI_PlayOneShot(CommandBus *restrict bus, AudioGroupID groupID, AudioSourceID sourceID);
