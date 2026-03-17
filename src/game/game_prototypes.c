@@ -11,7 +11,7 @@ Entity g_zombiePrototype = (Entity){.id = 1, .generation = 0};
 
 void Prototypes_Init(EntityRegistry *reg) {
   // Zombie prototype
-  uint64_t zombieCompMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_AABB;
+  uint64_t zombieCompMask = COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
   uint64_t zombieFlags =
       FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);
 

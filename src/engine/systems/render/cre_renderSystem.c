@@ -212,27 +212,6 @@ static void _renderSystem_InitBatchTable(void) {
   s_batchTableInitialized = true;
 }
 
-static void _Renderer_SyncDecorations(EntityRegistry *reg) {
-  // IMPORTANT:Move this funtion to somewhere else!!!
-  const uint32_t bound = reg->max_used_bound;
-  const uint64_t reqComps = (COMP_SPRITE);
-  const uint64_t notreqComps = (COMP_PHYSICS);
-
-  for (uint32_t i = 0; i < bound; i++) {
-    const uint64_t flags = reg->state_flags[i];
-    const uint64_t comps = reg->component_masks[i];
-
-    if ((flags & (FLAG_ACTIVE | FLAG_STATIC)) != (FLAG_ACTIVE | FLAG_STATIC))
-      continue;
-    if ((!(comps & reqComps)) || (comps & notreqComps))
-      continue;
-    // Add to static hash if have active+static+sprite but not physics.
-
-    SpatialHash_AddStatic(i, (int)reg->pos_x[i], (int)reg->pos_y[i],
-                          (int)reg->size_w[i], (int)reg->size_h[i]);
-  }
-}
-
 void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
   assert(reg && "reg is NULL");
   _renderSystem_InitBatchTable();

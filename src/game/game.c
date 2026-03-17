@@ -57,13 +57,13 @@ void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
   // WORLD RENDERING:
 
   renderSystem_Draw(reg, bus, cullBounds);
-  DebugSystem_RenderWorldSpace(
-      reg); // World-space debug overlays (inside camera)
-
+  DebugSystem_RenderWorldSpace(reg); 
+  // World-space debug overlays (inside camera)
+  
   rendererCore_EndWorldMode();
   rendererCore_EndWorldRender();
   // UI RENDERING:
-
+  
   // Screen-space debug HUD (outside camera)
   DebugSystem_RenderScreenSpace(reg);
   DebugSystem_RenderMouseHover(reg);

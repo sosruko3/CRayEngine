@@ -444,21 +444,22 @@ void DebugSystem_RenderMouseHover(EntityRegistry *reg) {
 
   // Get mouse position in screen space (convert from Raylib)
   Vector2 raylibMouseScreen = GetMousePosition();
-
-  // Convert screen space (window) to virtual viewport space
-  ViewportSize vp = Viewport_Get();
   float screenW = (float)GetScreenWidth();
   float screenH = (float)GetScreenHeight();
+
+  // Convert window-space mouse to virtual-space for world picking.
+  ViewportSize vp = Viewport_Get();
   float scaleX = (screenW > 0.0f) ? (vp.width / screenW) : 1.0f;
   float scaleY = (screenH > 0.0f) ? (vp.height / screenH) : 1.0f;
-  creVec2 mouseScreen = {raylibMouseScreen.x * scaleX,
-                         raylibMouseScreen.y * scaleY};
+  creVec2 mouseScreenVirtual = {raylibMouseScreen.x * scaleX,
+                                raylibMouseScreen.y * scaleY};
 
   // Convert to world space
   const CameraComponent *cam = DebugSystem_GetActiveCameraComponent(reg);
   if (!cam)
     return;
-  creVec2 mouseWorld = cameraUtils_ScreenToWorld(mouseScreen, reg, cam, vp);
+  creVec2 mouseWorld =
+      cameraUtils_ScreenToWorld(mouseScreenVirtual, reg, cam, vp);
 
   const uint32_t bound = reg->max_used_bound;
   int32_t hoveredEntity = -1;
@@ -550,15 +551,15 @@ void DebugSystem_RenderMouseHover(EntityRegistry *reg) {
   int lineHeight = 14;
 
   // Position tooltip near mouse (offset to avoid cursor overlap)
-  int tooltipX = (int)mouseScreen.x + 15;
-  int tooltipY = (int)mouseScreen.y + 15;
+  int tooltipX = (int)raylibMouseScreen.x + 15;
+  int tooltipY = (int)raylibMouseScreen.y + 15;
 
   // Keep tooltip on screen
-  if (tooltipX + tooltipWidth > (int)vp.width) {
-    tooltipX = (int)mouseScreen.x - tooltipWidth - 5;
+  if (tooltipX + tooltipWidth > (int)screenW) {
+    tooltipX = (int)raylibMouseScreen.x - tooltipWidth - 5;
   }
-  if (tooltipY + tooltipHeight > (int)vp.height) {
-    tooltipY = (int)mouseScreen.y - tooltipHeight - 5;
+  if (tooltipY + tooltipHeight > (int)screenH) {
+    tooltipY = (int)raylibMouseScreen.y - tooltipHeight - 5;
   }
 
   // Draw tooltip background
@@ -616,15 +617,14 @@ void DebugSystem_RenderMouseHover(EntityRegistry *reg) {
 // ============================================================================
 
 static void RenderModeIndicator(void) {
-  ViewportSize vp = Viewport_Get();
-  int vpWidth = (int)vp.width;
-  int vpHeight = (int)vp.height;
+  int screenWidth = GetScreenWidth();
+  int screenHeight = GetScreenHeight();
 
   const char *modeName = s_modeNames[s_currentMode];
   int textWidth = MeasureText(modeName, 20);
 
   // Draw mode name at top center
-  int x = (vpWidth - textWidth) / 2;
+  int x = (screenWidth - textWidth) / 2;
   int y = 10;
 
   DrawRectangle(x - 10, y - 5, textWidth + 20, 30, (Color){20, 20, 30, 200});
@@ -635,7 +635,7 @@ static void RenderModeIndicator(void) {
   // Controls hint at bottom
   const char *hint = "F1: Toggle | F2-F5: Modes | F8: Cycle | TAB: Stats";
   int hintWidth = MeasureText(hint, 12);
-  DrawText(hint, (vpWidth - hintWidth) / 2, vpHeight - 25, 12,
+  DrawText(hint, (screenWidth - hintWidth) / 2, screenHeight - 25, 12,
            (Color){150, 150, 150, 200});
 }
 
@@ -1032,8 +1032,7 @@ static void RenderCollisionLayers(EntityRegistry *reg) {
 // ============================================================================
 
 static void RenderLegendSpatialHash(void) {
-  ViewportSize vp = Viewport_Get();
-  int legendX = (int)vp.width - 180;
+  int legendX = GetScreenWidth() - 180;
   int legendY = 50;
 
   DrawRectangle(legendX - 5, legendY - 5, 175, 80, (Color){20, 20, 30, 200});
@@ -1057,8 +1056,7 @@ static void RenderLegendSpatialHash(void) {
 }
 
 static void RenderLegendEntityState(void) {
-  ViewportSize vp = Viewport_Get();
-  int legendX = (int)vp.width - 160;
+  int legendX = GetScreenWidth() - 160;
   int legendY = 50;
 
   DrawRectangle(legendX - 5, legendY - 5, 155, 100, (Color){20, 20, 30, 200});
@@ -1083,8 +1081,7 @@ static void RenderLegendEntityState(void) {
 }
 
 static void RenderLegendVelocity(void) {
-  ViewportSize vp = Viewport_Get();
-  int legendX = (int)vp.width - 180;
+  int legendX = GetScreenWidth() - 180;
   int legendY = 50;
 
   DrawRectangle(legendX - 5, legendY - 5, 175, 95, (Color){20, 20, 30, 200});
@@ -1110,8 +1107,7 @@ static void RenderLegendVelocity(void) {
 }
 
 static void RenderLegendLayers(void) {
-  ViewportSize vp = Viewport_Get();
-  int legendX = (int)vp.width - 160;
+  int legendX = GetScreenWidth() - 160;
   int legendY = 50;
   int legendHeight = 140;
 
