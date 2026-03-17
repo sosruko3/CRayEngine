@@ -9,7 +9,7 @@ static Texture2D atlasTexture;
 
 // Helper: Convert SpriteMeta to creRectangle for rendering
 static inline creRectangle SpriteMeta_ToRect(const SpriteMeta* meta) {
-    return (creRectangle){ (float)meta->x, (float)meta->y, (float)meta->w, (float)meta->h };
+    return creRectangle{ (float)meta->x, (float)meta->y, (float)meta->w, (float)meta->h };
 }
 
 void Asset_Init(void) {

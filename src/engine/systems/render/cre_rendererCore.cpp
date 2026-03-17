@@ -25,7 +25,7 @@ typedef struct {
   int32_t virtualHeight;
 } cre_RendererCore_State;
 
-static cre_RendererCore_State state = {0};
+static cre_RendererCore_State state = {};
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Internal Helpers
@@ -47,8 +47,8 @@ void rendererCore_RecreateCanvas(int32_t virtualWidth, int32_t virtualHeight) {
 void rendererCore_Init(int32_t virtualWidth, int32_t virtualHeight) {
   state.currentBlendMode = BLEND_ALPHA;
   state.currentFilterMode = -1;
-  state.currentShader = (Shader){0};
-  state.currentTexture = (Texture2D){0};
+  state.currentShader = Shader{};
+  state.currentTexture = Texture2D{};
   rendererCore_RecreateCanvas(virtualWidth, virtualHeight);
   Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth,
       state.virtualHeight);
@@ -57,11 +57,11 @@ void rendererCore_Init(int32_t virtualWidth, int32_t virtualHeight) {
 void rendererCore_Shutdown(void) {
   if (state.canvas.id != 0) {
     UnloadRenderTexture(state.canvas);
-    state.canvas = (RenderTexture2D){0};
+    state.canvas = RenderTexture2D{};
   }
-  state.cachedAtlas = (Texture2D){0};
-  state.currentTexture = (Texture2D){0};
-  state.currentShader = (Shader){0};
+  state.cachedAtlas = Texture2D{};
+  state.currentTexture = Texture2D{};
+  state.currentShader = Shader{};
   state.currentBlendMode = BLEND_ALPHA;
   state.currentFilterMode = -1;
   Log(LOG_LVL_INFO, "RENDERER: Shutdown complete");
@@ -75,7 +75,7 @@ void rendererCore_BeginFrame(void) {
   /* Cache atlas once per frame */
   state.cachedAtlas = Asset_getTexture();
   state.currentTexture = state.cachedAtlas;
-  state.currentShader = (Shader){0};
+  state.currentShader = Shader{};
   state.currentBlendMode = BLEND_ALPHA;
 
   BeginDrawing();
@@ -99,7 +99,7 @@ void rendererCore_EndWorldRender(void) {
                            (float)GetScreenHeight()};
 
   DrawTexturePro(state.canvas.texture, R_REC(srcRect), R_REC(destRect),
-                 (Vector2){0, 0}, 0.0f, R_COL(creBLANK));
+                 Vector2{0, 0}, 0.0f, R_COL(creBLANK));
 }
 void rendererCore_EndFrame(void) { EndDrawing(); }
 
@@ -156,7 +156,7 @@ void rendererCore_SetState(Texture2D *texture, Shader *shader,
   }
 
   state.currentShader =
-      (shader != NULL && shader->id != 0) ? *shader : (Shader){0, NULL};
+      (shader != NULL && shader->id != 0) ? *shader : Shader{0, NULL};
   state.currentBlendMode = blendMode;
 
   BeginBlendMode(state.currentBlendMode);
@@ -172,6 +172,6 @@ void rendererCore_EndBatch(void) {
   EndShaderMode();
   EndBlendMode();
 
-  state.currentShader = (Shader){0};
+  state.currentShader = Shader{};
   state.currentBlendMode = BLEND_ALPHA;
 }

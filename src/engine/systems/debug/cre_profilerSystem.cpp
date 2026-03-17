@@ -16,7 +16,7 @@ typedef struct {
 	char line_buffer[256];
 } ProfilerState;
 
-static ProfilerState s_profiler = {0};
+static ProfilerState s_profiler = {};
 
 static bool Profiler_IsBucketValid(ProfilerBucket bucket) {
 	return bucket >= 0 && bucket < PROF_MAX_BUCKETS;

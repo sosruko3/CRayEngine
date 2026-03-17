@@ -16,7 +16,7 @@ Entity entityAPI_Spawn(EntityRegistry *reg, CommandBus *restrict bus,
 
   Command cmd = {.type = CMD_ENTITY_SPAWN,
                  .entity = reserved,
-                 .entityClone = (CommandPayloadEntityClone){
+                 .entityClone = CommandPayloadEntityClone{
                      .prototype = prototype,
                      .position = position,
                  }};
@@ -38,7 +38,7 @@ Entity entityAPI_SpawnUntracked(EntityRegistry *reg, CommandBus *restrict bus,
 
   Command cmd = {.type = CMD_ENTITY_SPAWN_UNTRACKED,
                  .entity = reserved,
-                 .entityClone = (CommandPayloadEntityClone){
+                 .entityClone = CommandPayloadEntityClone{
                      .prototype = prototype,
                      .position = position,
                  }};
@@ -57,6 +57,7 @@ void entityAPI_Destroy(CommandBus *restrict bus, Entity entity) {
   Command cmd = {
       .type = CMD_ENTITY_DESTROY,
       .entity = entity,
+      .u64 = {},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -69,7 +70,7 @@ void entityAPI_AddFlags(CommandBus *restrict bus, Entity entity,
   Command cmd = {
       .type = CMD_ENTITY_ADD_FLAGS,
       .entity = entity,
-      .u64 = (CommandPayloadU64){.value = flags},
+      .u64 = CommandPayloadU64{.value = flags},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -82,7 +83,7 @@ void entityAPI_RemoveFlags(CommandBus *restrict bus, Entity entity,
   Command cmd = {
       .type = CMD_ENTITY_REMOVE_FLAGS,
       .entity = entity,
-      .u64 = (CommandPayloadU64){.value = flags},
+      .u64 = CommandPayloadU64{.value = flags},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -94,7 +95,7 @@ void entityAPI_SetType(CommandBus *restrict bus, Entity entity, uint16_t type) {
   Command cmd = {
       .type = CMD_ENTITY_SET_TYPE,
       .entity = entity,
-      .u16 = (CommandPayloadU16){.value = type},
+      .u16 = CommandPayloadU16{.value = type},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -107,7 +108,7 @@ void entityAPI_SetPivot(CommandBus *restrict bus, Entity entity,
   Command cmd = {
       .type = CMD_ENTITY_SET_PIVOT,
       .entity = entity,
-      .vec2 = (CommandPayloadVec2){.value = pivot},
+      .vec2 = CommandPayloadVec2{.value = pivot},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -120,7 +121,7 @@ void entityAPI_AddComponent(CommandBus *restrict bus, Entity entity,
   Command cmd = {
       .type = CMD_ENTITY_ADD_COMPONENT,
       .entity = entity,
-      .u64 = (CommandPayloadU64){.value = component_mask},
+      .u64 = CommandPayloadU64{.value = component_mask},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -133,7 +134,7 @@ void entityAPI_RemoveComponent(CommandBus *restrict bus, Entity entity,
   Command cmd = {
       .type = CMD_ENTITY_REMOVE_COMPONENT,
       .entity = entity,
-      .u64 = (CommandPayloadU64){.value = component_mask},
+      .u64 = CommandPayloadU64{.value = component_mask},
   };
 
   if (!CommandBus_Push(bus, cmd)) {
@@ -146,7 +147,7 @@ void entityAPI_Clone(EntityRegistry *reg, CommandBus *restrict bus, Entity dst,
 
   Command cmd = {.type = CMD_ENTITY_CLONE,
                  .entity = dst,
-                 .entityClone = (CommandPayloadEntityClone){
+                 .entityClone = CommandPayloadEntityClone{
                      .prototype = prototype,
                      .position = position,
                  }};

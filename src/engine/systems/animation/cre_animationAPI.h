@@ -1,6 +1,7 @@
 #ifndef CRE_ANIMATIONAPI_H
 #define CRE_ANIMATIONAPI_H
 
+#include "engine/core/cre_types.h"
 #include <stdint.h>
 #include <stdbool.h>
 typedef struct CommandBus CommandBus;

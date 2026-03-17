@@ -94,7 +94,7 @@ Entity EntityManager_ReserveSlot(EntityRegistry *reg) {
   const uint32_t index = reg->free_list[--reg->free_count];
   const uint32_t generation = reg->generations[index];
 
-  return (Entity){.id = index, .generation = generation};
+  return Entity{.id = index, .generation = generation};
 }
 
 void EntityManager_ReturnReservedSlot(EntityRegistry *reg,
@@ -169,7 +169,7 @@ Entity EntityManager_Create(EntityRegistry *reg, uint16_t type, creVec2 pos,
   if (index >= reg->max_used_bound)
     reg->max_used_bound = index + 1;
 
-  return (Entity){.id = index, .generation = gen};
+  return Entity{.id = index, .generation = gen};
 }
 
 void EntityManager_Destroy(EntityRegistry *reg, Entity e) {

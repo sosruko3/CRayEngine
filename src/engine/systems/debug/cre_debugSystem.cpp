@@ -59,7 +59,6 @@ static bool s_statsHudEnabled = true;
 // Frame timing for stats
 static double s_lastFrameTime = 0.0;
 static double s_avgFrameTime = 0.0;
-static double s_physicsTime = 0.0;
 
 // Cached data for legends (computed in world-space, drawn in screen-space)
 static uint16_t s_heatmapMaxCount = 1;
@@ -92,15 +91,15 @@ static const creColor s_layerColors[] = {
 /**
  * @brief Interpolate between two colors.
  */
-static creColor LerpColor(creColor a, creColor b, float t) {
+[[maybe_unused]] static creColor LerpColor(creColor a, creColor b, float t) {
   if (t < 0.0f)
     t = 0.0f;
   if (t > 1.0f)
     t = 1.0f;
-  return (creColor){(unsigned char)(a.r + (b.r - a.r) * t),
-                    (unsigned char)(a.g + (b.g - a.g) * t),
-                    (unsigned char)(a.b + (b.b - a.b) * t),
-                    (unsigned char)(a.a + (b.a - a.a) * t)};
+  return creColor{(unsigned char)(a.r + (b.r - a.r) * t),
+                  (unsigned char)(a.g + (b.g - a.g) * t),
+                  (unsigned char)(a.b + (b.b - a.b) * t),
+                  (unsigned char)(a.a + (b.a - a.a) * t)};
 }
 
 /**
@@ -118,19 +117,19 @@ static creColor GetHeatmapColor(float value, unsigned char alpha) {
   if (value < 0.25f) {
     // Blue to Cyan
     float t = value / 0.25f;
-    result = (creColor){0, (unsigned char)(t * 255), 255, alpha};
+    result = creColor{0, (unsigned char)(t * 255), 255, alpha};
   } else if (value < 0.5f) {
     // Cyan to Green
     float t = (value - 0.25f) / 0.25f;
-    result = (creColor){0, 255, (unsigned char)((1.0f - t) * 255), alpha};
+    result = creColor{0, 255, (unsigned char)((1.0f - t) * 255), alpha};
   } else if (value < 0.75f) {
     // Green to Yellow
     float t = (value - 0.5f) / 0.25f;
-    result = (creColor){(unsigned char)(t * 255), 255, 0, alpha};
+    result = creColor{(unsigned char)(t * 255), 255, 0, alpha};
   } else {
     // Yellow to Red
     float t = (value - 0.75f) / 0.25f;
-    result = (creColor){255, (unsigned char)((1.0f - t) * 255), 0, alpha};
+    result = creColor{255, (unsigned char)((1.0f - t) * 255), 0, alpha};
   }
   return result;
 }
@@ -242,6 +241,8 @@ void DebugSystem_RenderWorldSpace(EntityRegistry *reg) {
 
   // Dispatch to appropriate world-space visualization
   switch (s_currentMode) {
+  case DEBUG_MODE_OFF:
+    break;
   case DEBUG_MODE_SPATIAL_HASH:
     RenderSpatialHashHeatmap(reg);
     break;
@@ -253,6 +254,8 @@ void DebugSystem_RenderWorldSpace(EntityRegistry *reg) {
     break;
   case DEBUG_MODE_COLLISION_LAYERS:
     RenderCollisionLayers(reg);
+    break;
+  case DEBUG_MODE_COUNT:
     break;
   default:
     break;
@@ -286,6 +289,8 @@ void DebugSystem_RenderScreenSpace(EntityRegistry *reg) {
 
     // Render appropriate legend for current mode
     switch (s_currentMode) {
+    case DEBUG_MODE_OFF:
+      break;
     case DEBUG_MODE_SPATIAL_HASH:
       RenderLegendSpatialHash();
       break;
@@ -297,6 +302,8 @@ void DebugSystem_RenderScreenSpace(EntityRegistry *reg) {
       break;
     case DEBUG_MODE_COLLISION_LAYERS:
       RenderLegendLayers();
+      break;
+    case DEBUG_MODE_COUNT:
       break;
     default:
       break;
@@ -351,15 +358,14 @@ void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
   int hudWidth = 280;
   int hudHeight = 200;
 
-  DrawRectangle(hudX, hudY, hudWidth, hudHeight, (Color){20, 20, 30, 220});
-  DrawRectangleLines(hudX, hudY, hudWidth, hudHeight,
-                     (Color){80, 80, 100, 255});
+  DrawRectangle(hudX, hudY, hudWidth, hudHeight, Color{20, 20, 30, 220});
+  DrawRectangleLines(hudX, hudY, hudWidth, hudHeight, Color{80, 80, 100, 255});
 
   // Title
   DrawText("PHYSICS INSIGHT", hudX + 10, hudY + 8, 16,
-           (Color){100, 200, 255, 255});
+           Color{100, 200, 255, 255});
   DrawLine(hudX + 5, hudY + 28, hudX + hudWidth - 5, hudY + 28,
-           (Color){60, 60, 80, 255});
+           Color{60, 60, 80, 255});
 
   // Stats rows
   int rowY = hudY + 35;
@@ -369,13 +375,13 @@ void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
 
   // Frame timing
   creColor fpsColor =
-      (s_avgFrameTime < 16.67)   ? (creColor){0, 228, 48, 255}   /*GREEN*/
-      : (s_avgFrameTime < 33.33) ? (creColor){253, 249, 0, 255}  /*YELLOW*/
-                                 : (creColor){230, 41, 55, 255}; /*RED*/
+      (s_avgFrameTime < 16.67)   ? creColor{0, 228, 48, 255}   /*GREEN*/
+      : (s_avgFrameTime < 33.33) ? creColor{253, 249, 0, 255}  /*YELLOW*/
+                                 : creColor{230, 41, 55, 255}; /*RED*/
   snprintf(buffer, sizeof(buffer), "Frame: %.2f ms (%.0f FPS)", s_avgFrameTime,
            1000.0 / s_avgFrameTime);
   DrawText(buffer, hudX + 10, rowY, 14,
-           (Color){fpsColor.r, fpsColor.g, fpsColor.b, fpsColor.a});
+           Color{fpsColor.r, fpsColor.g, fpsColor.b, fpsColor.a});
   rowY += rowSpacing;
 
   // Entity counts
@@ -385,7 +391,7 @@ void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
   rowY += rowSpacing;
 
   snprintf(buffer, sizeof(buffer), "Physics:  %u", physicsCount);
-  DrawText(buffer, hudX + 10, rowY, 14, (Color){150, 200, 255, 255});
+  DrawText(buffer, hudX + 10, rowY, 14, Color{150, 200, 255, 255});
   rowY += rowSpacing;
 
   // State breakdown with color coding
@@ -407,9 +413,9 @@ void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
 
   // Mode indicator
   DrawLine(hudX + 5, rowY - 2, hudX + hudWidth - 5, rowY - 2,
-           (Color){60, 60, 80, 255});
+           Color{60, 60, 80, 255});
   snprintf(buffer, sizeof(buffer), "Mode: %s", s_modeNames[s_currentMode]);
-  DrawText(buffer, hudX + 10, rowY + 3, 12, (Color){180, 180, 200, 255});
+  DrawText(buffer, hudX + 10, rowY + 3, 12, Color{180, 180, 200, 255});
 }
 
 DebugVisualizationMode DebugSystem_GetMode(void) { return s_currentMode; }
@@ -564,9 +570,9 @@ void DebugSystem_RenderMouseHover(EntityRegistry *reg) {
 
   // Draw tooltip background
   DrawRectangle(tooltipX, tooltipY, tooltipWidth, tooltipHeight,
-                (Color){20, 20, 35, 230});
+                Color{20, 20, 35, 230});
   DrawRectangleLines(tooltipX, tooltipY, tooltipWidth, tooltipHeight,
-                     (Color){100, 180, 255, 255});
+                     Color{100, 180, 255, 255});
 
   // Draw tooltip content
   int textX = tooltipX + padding;
@@ -575,24 +581,25 @@ void DebugSystem_RenderMouseHover(EntityRegistry *reg) {
   // Entity ID (header)
   char idStr[32];
   snprintf(idStr, sizeof(idStr), "Entity ID: %u", id);
-  DrawText(idStr, textX, textY, 14, (Color){100, 200, 255, 255});
+  DrawText(idStr, textX, textY, 14, Color{100, 200, 255, 255});
   textY += lineHeight + 4;
 
   // Position
   char posStr[64];
-  snprintf(posStr, sizeof(posStr), "Pos: (%.1f, %.1f)", px, py);
+  snprintf(posStr, sizeof(posStr), "Pos: (%.1f, %.1f)", (double)px, (double)py);
   DrawText(posStr, textX, textY, 12, WHITE);
   textY += lineHeight;
 
   // Velocity
   char velStr[64];
   float speed = sqrtf(vx * vx + vy * vy);
-  snprintf(velStr, sizeof(velStr), "Vel: (%.1f, %.1f) [%.1f]", vx, vy, speed);
-  DrawText(velStr, textX, textY, 12, (Color){200, 255, 200, 255});
+  snprintf(velStr, sizeof(velStr), "Vel: (%.1f, %.1f) [%.1f]", (double)vx,
+           (double)vy, (double)speed);
+  DrawText(velStr, textX, textY, 12, Color{200, 255, 200, 255});
   textY += lineHeight;
 
   // Flags (may wrap if too long)
-  DrawText("Flags:", textX, textY, 10, (Color){180, 180, 180, 255});
+  DrawText("Flags:", textX, textY, 10, Color{180, 180, 180, 255});
   textY += 12;
 
   // Wrap flags text if needed
@@ -627,16 +634,16 @@ static void RenderModeIndicator(void) {
   int x = (screenWidth - textWidth) / 2;
   int y = 10;
 
-  DrawRectangle(x - 10, y - 5, textWidth + 20, 30, (Color){20, 20, 30, 200});
+  DrawRectangle(x - 10, y - 5, textWidth + 20, 30, Color{20, 20, 30, 200});
   DrawRectangleLines(x - 10, y - 5, textWidth + 20, 30,
-                     (Color){100, 150, 255, 255});
-  DrawText(modeName, x, y, 20, (Color){100, 200, 255, 255});
+                     Color{100, 150, 255, 255});
+  DrawText(modeName, x, y, 20, Color{100, 200, 255, 255});
 
   // Controls hint at bottom
   const char *hint = "F1: Toggle | F2-F5: Modes | F8: Cycle | TAB: Stats";
   int hintWidth = MeasureText(hint, 12);
   DrawText(hint, (screenWidth - hintWidth) / 2, screenHeight - 25, 12,
-           (Color){150, 150, 150, 200});
+           Color{150, 150, 150, 200});
 }
 
 // ============================================================================
@@ -710,9 +717,8 @@ static void RenderSpatialHashHeatmap(EntityRegistry *reg) {
       int screenX = (int)(startX + cx * cellSize);
       int screenY = (int)(startY + cy * cellSize);
 
-      DrawRectangle(
-          screenX, screenY, cellSize, cellSize,
-          (Color){cellColor.r, cellColor.g, cellColor.b, cellColor.a});
+      DrawRectangle(screenX, screenY, cellSize, cellSize,
+                    Color{cellColor.r, cellColor.g, cellColor.b, cellColor.a});
 
       // Draw count text for high-density cells
       if (cellCounts[cy][cx] >= 5) {
@@ -728,12 +734,12 @@ static void RenderSpatialHashHeatmap(EntityRegistry *reg) {
   for (int cx = 0; cx <= cellsX; cx++) {
     int screenX = (int)(startX + cx * cellSize);
     DrawLine(screenX, (int)startY, screenX, (int)(startY + cellsY * cellSize),
-             (Color){gridColor.r, gridColor.g, gridColor.b, gridColor.a});
+             Color{gridColor.r, gridColor.g, gridColor.b, gridColor.a});
   }
   for (int cy = 0; cy <= cellsY; cy++) {
     int screenY = (int)(startY + cy * cellSize);
     DrawLine((int)startX, screenY, (int)(startX + cellsX * cellSize), screenY,
-             (Color){gridColor.r, gridColor.g, gridColor.b, gridColor.a});
+             Color{gridColor.r, gridColor.g, gridColor.b, gridColor.a});
   }
 
   // Cache max count for legend (drawn in screen space)
@@ -781,7 +787,7 @@ static void RenderEntityStateOverlay(EntityRegistry *reg) {
       float boxSize = 100;
       DrawRectangle((int)(camPos.x - boxSize / 2),
                     (int)(camPos.y - boxSize / 2), boxSize, boxSize,
-                    (Color){255, 0, 0, 100});
+                    Color{255, 0, 0, 100});
       DrawRectangleLines((int)(camPos.x - boxSize / 2),
                          (int)(camPos.y - boxSize / 2), boxSize, boxSize,
                          R_COL(colorNaN));
@@ -822,7 +828,7 @@ static void RenderEntityStateOverlay(EntityRegistry *reg) {
         // Draw orphan label
         char orphanStr[64];
         snprintf(orphanStr, sizeof(orphanStr), "ORPHAN [ID:%u] @%.0f,%.0f", i,
-                 px, py);
+                 (double)px, (double)py);
         DrawText(orphanStr, (int)(edgeX - 50), (int)(edgeY - 25), 10,
                  R_COL(colorOrphan));
       }
@@ -856,7 +862,7 @@ static void RenderEntityStateOverlay(EntityRegistry *reg) {
         float nx = vx / speed;
         float ny = vy / speed;
         DrawLine((int)px, (int)py, (int)(px + nx * 8), (int)(py + ny * 8),
-                 (Color){255, 255, 255, 150});
+                 Color{255, 255, 255, 150});
       }
     }
   }
@@ -913,26 +919,26 @@ static void RenderVelocityField(EntityRegistry *reg) {
     creColor vecColor = GetVelocityColor(speed, 200);
 
     // Draw velocity vector
-    DrawLineEx((Vector2){px, py}, (Vector2){endX, endY}, 2.0f,
-               (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a});
+    DrawLineEx(Vector2{px, py}, Vector2{endX, endY}, 2.0f,
+               Color{vecColor.r, vecColor.g, vecColor.b, vecColor.a});
 
     // Draw arrowhead
     float arrowSize = 4.0f;
     float perpX = -ny * arrowSize;
     float perpY = nx * arrowSize;
-    DrawTriangle((Vector2){endX, endY},
-                 (Vector2){endX - nx * arrowSize * 2 + perpX,
-                           endY - ny * arrowSize * 2 + perpY},
-                 (Vector2){endX - nx * arrowSize * 2 - perpX,
-                           endY - ny * arrowSize * 2 - perpY},
-                 (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a});
+    DrawTriangle(Vector2{endX, endY},
+                 Vector2{endX - nx * arrowSize * 2 + perpX,
+                         endY - ny * arrowSize * 2 + perpY},
+                 Vector2{endX - nx * arrowSize * 2 - perpX,
+                         endY - ny * arrowSize * 2 - perpY},
+                 Color{vecColor.r, vecColor.g, vecColor.b, vecColor.a});
 
     // Draw speed text for fast entities
     if (speed > 50.0f) {
       char speedStr[16];
-      snprintf(speedStr, sizeof(speedStr), "%.0f", speed);
+      snprintf(speedStr, sizeof(speedStr), "%.0f", (double)speed);
       DrawText(speedStr, (int)px + 5, (int)py - 15, 10,
-               (Color){vecColor.r, vecColor.g, vecColor.b, vecColor.a});
+               Color{vecColor.r, vecColor.g, vecColor.b, vecColor.a});
     }
   }
 
@@ -1010,13 +1016,11 @@ static void RenderCollisionLayers(EntityRegistry *reg) {
     // Draw small layer indicator
     if (hasCircle) {
       const float radius = w * 0.5f;
-      DrawCircle(
-          (int)(drawX + radius), (int)(drawY + radius), 3,
-          (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+      DrawCircle((int)(drawX + radius), (int)(drawY + radius), 3,
+                 Color{layerColor.r, layerColor.g, layerColor.b, layerColor.a});
     } else {
-      DrawCircle(
-          (int)drawX, (int)drawY, 3,
-          (Color){layerColor.r, layerColor.g, layerColor.b, layerColor.a});
+      DrawCircle((int)drawX, (int)drawY, 3,
+                 Color{layerColor.r, layerColor.g, layerColor.b, layerColor.a});
     }
   }
 
@@ -1035,19 +1039,17 @@ static void RenderLegendSpatialHash(void) {
   int legendX = GetScreenWidth() - 180;
   int legendY = 50;
 
-  DrawRectangle(legendX - 5, legendY - 5, 175, 80, (Color){20, 20, 30, 200});
+  DrawRectangle(legendX - 5, legendY - 5, 175, 80, Color{20, 20, 30, 200});
   DrawText("Spatial Hash Heatmap", legendX, legendY, 14, WHITE);
 
   // Gradient bar
   for (int i = 0; i < 100; i++) {
     float t = i / 99.0f;
     creColor c = GetHeatmapColor(t, 255);
-    DrawRectangle(legendX + i, legendY + 25, 1, 15,
-                  (Color){c.r, c.g, c.b, c.a});
+    DrawRectangle(legendX + i, legendY + 25, 1, 15, Color{c.r, c.g, c.b, c.a});
   }
-  DrawText("Empty", legendX, legendY + 45, 10, (Color){100, 200, 255, 255});
-  DrawText("Dense", legendX + 65, legendY + 45, 10,
-           (Color){255, 100, 100, 255});
+  DrawText("Empty", legendX, legendY + 45, 10, Color{100, 200, 255, 255});
+  DrawText("Dense", legendX + 65, legendY + 45, 10, Color{255, 100, 100, 255});
 
   char statsStr[32];
   snprintf(statsStr, sizeof(statsStr), "Peak: %u entities/cell",
@@ -1059,7 +1061,7 @@ static void RenderLegendEntityState(void) {
   int legendX = GetScreenWidth() - 160;
   int legendY = 50;
 
-  DrawRectangle(legendX - 5, legendY - 5, 155, 100, (Color){20, 20, 30, 200});
+  DrawRectangle(legendX - 5, legendY - 5, 155, 100, Color{20, 20, 30, 200});
   DrawText("Entity States", legendX, legendY, 14, WHITE);
 
   // State colors legend
@@ -1072,11 +1074,11 @@ static void RenderLegendEntityState(void) {
   for (int i = 0; i < 4; i++) {
     int rowY = legendY + 22 + i * 18;
     DrawCircle(legendX + 8, rowY + 6, 6,
-               (Color){stateColors[i].r, stateColors[i].g, stateColors[i].b,
-                       stateColors[i].a});
-    DrawText(stateNames[i], legendX + 22, rowY, 12,
-             (Color){stateColors[i].r, stateColors[i].g, stateColors[i].b,
+               Color{stateColors[i].r, stateColors[i].g, stateColors[i].b,
                      stateColors[i].a});
+    DrawText(stateNames[i], legendX + 22, rowY, 12,
+             Color{stateColors[i].r, stateColors[i].g, stateColors[i].b,
+                   stateColors[i].a});
   }
 }
 
@@ -1084,24 +1086,25 @@ static void RenderLegendVelocity(void) {
   int legendX = GetScreenWidth() - 180;
   int legendY = 50;
 
-  DrawRectangle(legendX - 5, legendY - 5, 175, 95, (Color){20, 20, 30, 200});
+  DrawRectangle(legendX - 5, legendY - 5, 175, 95, Color{20, 20, 30, 200});
   DrawText("Velocity Field", legendX, legendY, 14, WHITE);
 
   // Speed gradient
   for (int i = 0; i < 100; i++) {
     float t = i / 99.0f;
     creColor c = GetHeatmapColor(t, 255);
-    DrawRectangle(legendX + i, legendY + 25, 1, 12,
-                  (Color){c.r, c.g, c.b, c.a});
+    DrawRectangle(legendX + i, legendY + 25, 1, 12, Color{c.r, c.g, c.b, c.a});
   }
-  DrawText("Slow", legendX, legendY + 40, 10, (Color){100, 200, 255, 255});
-  DrawText("Fast", legendX + 70, legendY + 40, 10, (Color){255, 100, 100, 255});
+  DrawText("Slow", legendX, legendY + 40, 10, Color{100, 200, 255, 255});
+  DrawText("Fast", legendX + 70, legendY + 40, 10, Color{255, 100, 100, 255});
 
   char statsStr[48];
-  snprintf(statsStr, sizeof(statsStr), "Max: %.1f u/s", s_velocityMaxSpeed);
+  snprintf(statsStr, sizeof(statsStr), "Max: %.1f u/s",
+           (double)s_velocityMaxSpeed);
   DrawText(statsStr, legendX, legendY + 55, 11, YELLOW);
-  snprintf(statsStr, sizeof(statsStr), "Avg: %.1f u/s", s_velocityAvgSpeed);
-  DrawText(statsStr, legendX, legendY + 70, 11, (Color){200, 200, 200, 255});
+  snprintf(statsStr, sizeof(statsStr), "Avg: %.1f u/s",
+           (double)s_velocityAvgSpeed);
+  DrawText(statsStr, legendX, legendY + 70, 11, Color{200, 200, 200, 255});
   snprintf(statsStr, sizeof(statsStr), "Moving: %u", s_velocityMovingCount);
   DrawText(statsStr, legendX + 85, legendY + 70, 11, GREEN);
 }
@@ -1112,9 +1115,8 @@ static void RenderLegendLayers(void) {
   int legendHeight = 140;
 
   DrawRectangle(legendX - 5, legendY - 5, 155, legendHeight,
-                (Color){20, 20, 30, 200});
-  DrawText("Collision Layers", legendX, legendY, 14,
-           (Color){255, 255, 255, 255});
+                Color{20, 20, 30, 200});
+  DrawText("Collision Layers", legendX, legendY, 14, Color{255, 255, 255, 255});
 
   const char *layerNames[] = {"L_PLAYER", "L_ENEMY",   "L_BULLET", "L_WORLD",
                               "L_PICKUP", "L_TRIGGER", "L_6",      "L_7"};
@@ -1125,12 +1127,12 @@ static void RenderLegendLayers(void) {
       continue;
 
     creColor lc = s_layerColors[i];
-    DrawCircle(legendX + 8, rowY + 6, 5, (Color){lc.r, lc.g, lc.b, lc.a});
+    DrawCircle(legendX + 8, rowY + 6, 5, Color{lc.r, lc.g, lc.b, lc.a});
 
     char layerStr[32];
     snprintf(layerStr, sizeof(layerStr), "%s: %u", layerNames[i],
              s_layerCounts[i]);
-    DrawText(layerStr, legendX + 20, rowY, 11, (Color){lc.r, lc.g, lc.b, lc.a});
+    DrawText(layerStr, legendX + 20, rowY, 11, Color{lc.r, lc.g, lc.b, lc.a});
 
     rowY += 14;
     if (rowY > legendY + legendHeight - 20)

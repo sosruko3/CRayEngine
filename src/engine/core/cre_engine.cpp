@@ -24,8 +24,8 @@ static void EnginePhase0_PlatformSync(void) {
     ViewportSize vp = Viewport_Get();
 
     rendererCore_RecreateCanvas((int32_t)vp.width, (int32_t)vp.height);
-    Log(LOG_LVL_INFO, "[ENGINE] Resolution updated to %0.fx%0.f", vp.width,
-        vp.height);
+    Log(LOG_LVL_INFO, "[ENGINE] Resolution updated to %0.fx%0.f", (double)vp.width,
+        (double)vp.height);
   }
 }
 static void EnginePhase1_InputAndLogic(EntityRegistry *restrict reg,
@@ -115,8 +115,8 @@ void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
   ViewportSize v = Viewport_Get();
   InitWindow(v.width, v.height, title);
   SetTargetFPS(TARGET_FRAMERATE);
-  Log(LOG_LVL_DEBUG, "[ENGINE] Target Resolution: %.0fx%.0f", v.width,
-      v.height);
+  Log(LOG_LVL_DEBUG, "[ENGINE] Target Resolution: %.0fx%.0f", (double)v.width,
+      (double)v.height);
 
   // Clean this configPath later on.
   const char *configPath =

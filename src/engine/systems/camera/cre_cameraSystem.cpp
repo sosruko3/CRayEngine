@@ -11,7 +11,7 @@
 #define cam_safety_epsilon 0.0001f
 
 CameraComponent cameraSystem_CreateDefault(void) {
-  CameraComponent cam = {0};
+  CameraComponent cam = {};
   cam.ownerEntity = ENTITY_INVALID;
   cam.zoom = 1.0f;
   cam.rotation = 0.0f;
@@ -173,7 +173,7 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry *reg,
 
   Entity ownEntity = cam->ownerEntity;
   if (!(EntityRegistry_IsAlive(reg, ownEntity))) {
-    return (creRectangle){0.0f, 0.0f, 0.0f, 0.0f};
+    return creRectangle{0.0f, 0.0f, 0.0f, 0.0f};
   }
 
   float zoom = cam->zoom;
@@ -213,10 +213,10 @@ creRectangle cameraSystem_GetCullBounds(const EntityRegistry *reg,
                                         ViewportSize vp) {
   creRectangle view = cameraSystem_GetViewBounds(reg, cam, vp);
 
-  return (creRectangle){.x = view.x - CAMERA_CULL_MARGIN,
-                        .y = view.y - CAMERA_CULL_MARGIN,
-                        .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),
-                        .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)};
+  return creRectangle{.x = view.x - CAMERA_CULL_MARGIN,
+                      .y = view.y - CAMERA_CULL_MARGIN,
+                      .width = view.width + (CAMERA_CULL_MARGIN * 2.0f),
+                      .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)};
 }
 
 int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
@@ -259,6 +259,6 @@ creRectangle cameraSystem_GetActiveCullBounds(const EntityRegistry *reg,
                                               ViewportSize vp) {
 
   if (!cam)
-    return (creRectangle){0};
+    return creRectangle{};
   return cameraSystem_GetCullBounds(reg, cam, vp);
 }

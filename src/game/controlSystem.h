@@ -24,7 +24,7 @@ void ControlSystem_ChangeZoom(EntityRegistry* reg, CommandBus* bus, float dt);
  * @param reg Pointer to the EntityRegistry
  * @param target Entity handle to follow
  */
-void ControlSystem_SetCameraTarget(EntityRegistry* reg, CommandBus* bus, Entity target);
+void ControlSystem_SetCameraTarget(EntityRegistry* reg, CommandBus* bus, Entity target,Entity camEntity);
 
 /**
  * @brief Update sleep state for entities based on distance from camera target.

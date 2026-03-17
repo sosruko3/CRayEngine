@@ -11,11 +11,11 @@
 
 int main(void) {
     size_t regAllocSize = (sizeof(EntityRegistry) + 63) & ~63;
-    EntityRegistry* reg = aligned_alloc(64,regAllocSize);
+    EntityRegistry* reg = (EntityRegistry*)aligned_alloc(64,regAllocSize);
     if (!reg) return -1;
 
     size_t busAllocSize = (sizeof(CommandBus) + 63) & ~63;
-    CommandBus* bus = aligned_alloc(64,busAllocSize);
+    CommandBus* bus = (CommandBus*)aligned_alloc(64,busAllocSize);
     if (!bus) return -1;
 
     float dt = 0.0166f;

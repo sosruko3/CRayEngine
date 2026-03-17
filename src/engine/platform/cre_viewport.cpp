@@ -5,7 +5,7 @@
 
 #define RESIZE_DEBOUNCE_FRAMES 12
 
-static ViewportSize virtualView = {0};
+static ViewportSize virtualView = {};
 static int resizeTimer = 0;
 static bool s_didResizeThisFrame = false;
 static int s_lastLoggedW = 0;

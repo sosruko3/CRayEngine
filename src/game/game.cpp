@@ -14,8 +14,8 @@
 #include "engine/systems/render/cre_renderAPI.h"
 #include "engine/systems/render/cre_renderSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
-#include "game_scenes.h"
 #include "game_prototypes.h"
+#include "game_scenes.h"
 #include <assert.h>
 
 // Helper function
@@ -26,7 +26,7 @@ void Game_Init(EntityRegistry *reg, CommandBus *bus) {
   renderAPI_SetDepthPreset(bus, DEPTH_PRESET_FLAT);
   EntitySystem_ClearAllHooks(reg);
   EntityManager_Reset(reg);
-  
+
   Prototypes_Init(reg);
   ResetGameplay(reg, bus);
 }
@@ -57,23 +57,24 @@ void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
   // WORLD RENDERING:
 
   renderSystem_Draw(reg, bus, cullBounds);
-  DebugSystem_RenderWorldSpace(reg); 
+  DebugSystem_RenderWorldSpace(reg);
   // World-space debug overlays (inside camera)
-  
+
   rendererCore_EndWorldMode();
   rendererCore_EndWorldRender();
   // UI RENDERING:
-  
+
   // Screen-space debug HUD (outside camera)
   DebugSystem_RenderScreenSpace(reg);
   DebugSystem_RenderMouseHover(reg);
 }
 void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
+  (void)reg;
+  (void)bus;
   // Cleanup if needed
 }
 static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
   Entity mainCam = ControlSystem_SpawnCamera(reg);
-  
   Entity player = ControlSystem_SpawnPlayer(reg, bus);
-  ControlSystem_SetCameraTarget(reg, bus, player);
+  ControlSystem_SetCameraTarget(reg, bus, player,mainCam);
 }

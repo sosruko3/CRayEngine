@@ -93,7 +93,7 @@ void renderAPI_SetVisualScale(CommandBus* restrict bus, Entity entity, float sca
         .type = CMD_RENDER_SET_VISUAL_SCALE,
         .entity = entity,
         .vec2 = { 
-            .value = (creVec2){scaleX, scaleY } 
+            .value = creVec2{scaleX, scaleY } 
         }
     };
     CommandBus_Push(bus, cmd);

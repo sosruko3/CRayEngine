@@ -2,6 +2,7 @@
 #define CRE_ENTITYAPI_H
 
 #include <stdint.h>
+#include "engine/core/cre_types.h"
 
 typedef struct Entity Entity;
 typedef struct CommandBus CommandBus;

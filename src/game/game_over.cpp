@@ -11,10 +11,15 @@
 #include "game_scenes.h"
 
 void GameOver_Init(EntityRegistry *reg, CommandBus *bus) {
+  (void)reg;
+  (void)bus;
   // Optional for game over sound effect or anything
 }
 
 void GameOver_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
+  (void)reg;
+  (void)bus;
+  (void)dt;
   if (Input_IsPressed(ACTION_CONFIRM)) {
     SceneManager_ChangeScene(GAME_STATE_MENU);
   }
@@ -45,5 +50,7 @@ void GameOver_Draw(EntityRegistry *reg, CommandBus *bus) {
 }
 
 void GameOver_Unload(EntityRegistry *reg, CommandBus *bus) {
+  (void)reg;
+  (void)bus;
   // Nothing to clean up yet
 }

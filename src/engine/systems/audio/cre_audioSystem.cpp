@@ -22,15 +22,15 @@ static int s_freeTop = -1;
 
 // This is temporary, will be adding automated version later on.
 static const char *s_sourcePaths[AUDIO_SOURCE_COUNT] = {
-    [AUDIO_SOURCE_TEST_SFX] = "assets/sounds/test_sfx.ogg",
-    [AUDIO_SOURCE_TEST_BGM] = "assets/sounds/test_bgm.ogg"};
+    "assets/sounds/test_sfx.ogg",  // AUDIO_SOURCE_TEST_SFX
+    "assets/sounds/test_bgm.ogg"}; // AUDIO_SOURCE_TEST_BGM
 
 // Matching our flags with miniaudio's flags.
 // Don't try to use two of them at once right now, will fix that later on.
 static const ma_uint32 s_usageFlags[] = {
-    [AUDIO_USAGE_STATIC] = MA_SOUND_FLAG_DECODE,
-    [AUDIO_USAGE_STREAM] = MA_SOUND_FLAG_STREAM,
-    [AUDIO_USAGE_ASYNC] = MA_SOUND_FLAG_ASYNC,
+    MA_SOUND_FLAG_DECODE, // AUDIO_USAGE_STATIC
+    MA_SOUND_FLAG_STREAM, // AUDIO_USAGE_STREAM
+    MA_SOUND_FLAG_ASYNC,   // AUDIO_USAGE_ASYNC
 };
 
 /* Forward declarations for internal wrappers used by public init/update flow.
@@ -263,10 +263,10 @@ static bool audio_ValidateSoundID(AudioID id, uint16_t *outIndex,
 AudioID audioSystem_AllocateID(void) {
     if (s_freeTop < 0) {
         Log(LOG_LVL_ERROR, "[AUDIO] Pool exhausted! No free slots.");
-        return (AudioID){.index = 0, .gen = 0xFFFF};
+        return AudioID{.index = 0, .gen = 0xFFFF};
     }
     uint16_t index = s_freeIndices[s_freeTop--];
-    return (AudioID){.index = index, .gen = s_soundGeneration[index]};
+    return AudioID{.index = index, .gen = s_soundGeneration[index]};
 }
 
 /* Section 4: Static Internal Wrapper API */
@@ -539,8 +539,8 @@ static void audio_SoundSetAttenuation(AudioID id, float min, float max) {
   }
 
   if (min < 0.0f || max < 0.0f || min > max) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid attenuation min=%.3f max=%.3f", min,
-        max);
+    Log(LOG_LVL_WARNING, "[AUDIO] Invalid attenuation min=%.3f max=%.3f", (double)min,
+        (double)max);
     return;
   }
 

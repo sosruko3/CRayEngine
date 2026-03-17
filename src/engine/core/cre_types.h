@@ -2,17 +2,27 @@
 #define CRE_TYPES_H
 #include <stdint.h>
 
+// restrict macro
+#if defined(__cplusplus)
+    #if defined(__clang__) || defined(__GNUC__)
+        #define restrict __restrict__
+    #elif defined(_MSC_VER)
+        #define restrict __restrict
+    #else
+        #define restrict
+    #endif
+#endif
+
 typedef struct Entity {
-    uint64_t id         : 24 ;      ///< Index into the registry arrays
-    uint64_t generation : 24 ;      ///< Generation counter for validation
-    uint64_t unused     : 16 ;
+  uint32_t id;              ///< Index into the registry arrays
+  uint32_t generation;      ///< Generation counter for validation
 } Entity;
 
-// Max for 24bit.
-#define ENTITY_ID_MAX 0xFFFFFF
+// Max for 32 bit
+#define ENTITY_ID_MAX UINT32_MAX
 
 /** Invalid entity sentinel value */
-#define ENTITY_INVALID ((Entity){ .id = ENTITY_ID_MAX, .generation = 0 })
+#define ENTITY_INVALID (Entity{ .id = ENTITY_ID_MAX, .generation = 0 })
 
 /** Check if an entity handle is valid (not the sentinel) */
 #define ENTITY_IS_VALID(e) ((e).id != ENTITY_ID_MAX)

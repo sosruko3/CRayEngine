@@ -14,9 +14,11 @@ typedef struct {
 } SceneManagerContext;
 
 static SceneManagerContext ctx = {
+    .currentScene    = {},
     .activeState     = -1,
+    .nextState       = -1,
     .isSwitchPending = false,
-    .factory = NULL
+    .factory = nullptr
 };
 // Public API
 void SceneManager_Init(SceneFactory factory) {

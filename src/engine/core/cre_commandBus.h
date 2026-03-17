@@ -10,11 +10,6 @@
 #include <stdalign.h>
 
 
-// MSVC needs __restrict instead of restrict
-#if defined(_MSC_VER)
-    #define restrict __restrict
-#endif
-
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -36,9 +31,8 @@ static_assert((CMD_BUFFER_SIZE & CMD_BUFFER_MASK) == 0,
 // ============================================================================
 
 typedef struct Command {
-    uint16_t type;          // CommandType (2 bytes)
-    uint16_t _reserved;     // Padding/future use (2 bytes)
-    uint32_t _reserved2;    // For 8 byte header.
+  // NOTE CHANGED type to uint32_t for temporary. This is for 4 byte aligning. DO NOT FORGET THIS!!!!
+    uint32_t type;          // CommandType (4 bytes)
     Entity entity;          // Target entity(id,generations) (8 bytes)
     
     // Anonymous union - access directly: cmd.move.x, cmd.anim.animID
@@ -168,7 +162,7 @@ static inline bool CommandBus_Push(CommandBus* restrict bus, Command cmd) {
 static inline CommandIterator CommandBus_GetIterator(CommandBus* bus) {
     assert(bus != NULL && "CommandBus_GetIterator: bus is NULL");
     
-    CommandIterator iter = (CommandIterator){
+    CommandIterator iter = CommandIterator{
         .current = bus->tail,
         .end = bus->head
     };

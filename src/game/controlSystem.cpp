@@ -39,6 +39,7 @@ static Entity getActiveCameraEntity(const EntityRegistry *reg) {
 void ControlSystem_UpdateLogic(EntityRegistry *reg, float dt,
                                creRectangle cullBounds) {
   assert(reg && "reg is NULL");
+  (void)dt;
   uint32_t maxBound = reg->max_used_bound;
   float boundMinX = cullBounds.x;
   float boundMaxX = cullBounds.x + cullBounds.width;
@@ -106,21 +107,19 @@ void ControlSystem_ChangeZoom(EntityRegistry *reg, CommandBus *bus, float dt) {
 }
 
 void ControlSystem_SetCameraTarget(EntityRegistry *reg, CommandBus *bus,
-                                   Entity target) {
+                                   Entity target,Entity camEntity) {
   assert(reg && "reg is NULL");
   assert(bus && "bus is NULL");
 
   if (!ENTITY_IS_VALID(target))
     return;
 
-  Entity camEntity = getActiveCameraEntity(reg);
   if (!EntityRegistry_IsAlive(reg, camEntity))
     return;
 
   // Target can be a reserved handle from entityAPI_Spawn and may become alive
   // later in the same frame when EntitySystem consumes commands.
-  cameraAPI_SetFollowTarget(bus, camEntity, target, 10.0f,
-                            (creVec2){0.0f, 0.0f});
+  cameraAPI_SetFollowTarget(bus, camEntity, target, 10.0f, creVec2{0.0f, 0.0f});
 
   // Snap immediately only when target already exists in registry.
   if (EntityRegistry_IsAlive(reg, target)) {
@@ -174,11 +173,11 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry *reg, CommandBus *bus) {
     audioAPI_PlayOneShot(bus, AUDIO_GROUP_MASTER, AUDIO_SOURCE_TEST_SFX);
     ///
     for (int i = 0; i < SPAWN_COUNT; i++) {
-      int x = GetRandomValue((int)(-8 * v.width), (int)(v.width * 8));
-      int y = GetRandomValue((int)(-8 * v.height), (int)(v.height * 8));
+      float x = GetRandomValue((int)(-8 * v.width), (int)(v.width * 8));
+      float y = GetRandomValue((int)(-8 * v.height), (int)(v.height * 8));
 
       Entity zombie =
-          entityAPI_Spawn(reg, bus, g_zombiePrototype, (creVec2){x, y});
+          entityAPI_Spawn(reg, bus, g_zombiePrototype, creVec2{x, y});
       physicsAPI_DefineBody(bus, zombie, MAT_DEFAULT, 2.0f, false);
 
       animAPI_Play(bus, zombie, ANIM_CHARACTER_ZOMBIE_RUN, true);
@@ -200,7 +199,7 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry *reg, CommandBus *bus) {
 Entity ControlSystem_SpawnPlayer(EntityRegistry *reg, CommandBus *bus) {
   assert(reg && "reg is NULL");
   Entity player =
-      entityAPI_Spawn(reg, bus, g_playerPrototype, (creVec2){100, 200});
+      entityAPI_Spawn(reg, bus, g_playerPrototype, creVec2{100, 200});
   physicsAPI_DefineBody(bus, player, MAT_PLAYER, 0.2f, false);
   // animAPI_Play(bus, player, ANIM_CHARACTER_ZOMBIE_RUN, true);
   return player;
@@ -208,7 +207,7 @@ Entity ControlSystem_SpawnPlayer(EntityRegistry *reg, CommandBus *bus) {
 
 Entity ControlSystem_SpawnCamera(EntityRegistry *reg) {
   Entity camEntity = EntityManager_Create(
-      reg, TYPE_CAMERA, (creVec2){100.0f, 200.0f}, COMP_CAMERA, FLAG_ACTIVE);
+      reg, TYPE_CAMERA, creVec2{100.0f, 200.0f}, COMP_CAMERA, FLAG_ACTIVE);
 
   CameraComponent cam = cameraSystem_CreateDefault();
   cam.ownerEntity = camEntity;

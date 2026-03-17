@@ -186,7 +186,7 @@ static int SortKeyCompare(const void *lhs, const void *rhs) {
 
 void renderSystem_RegisterBatch(uint8_t id, Texture2D *tex, Shader *shd,
                                 int32_t blend, int32_t filterMode) {
-  render_state_table[id] = (RenderState){.texture = tex,
+  render_state_table[id] = RenderState{.texture = tex,
                                          .shader = shd,
                                          .blendMode = blend,
                                          .filterMode = filterMode};
@@ -271,7 +271,7 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
     // position.x += size.x * pivotX;
     // position.y += size.y * pivotY;
 
-    rendererCore_DrawSprite(spriteID, position, size, (creVec2){pivotX, pivotY},
+    rendererCore_DrawSprite(spriteID, position, size, creVec2{pivotX, pivotY},
                             rotation, flipX, flipY, color);
   }
   rendererCore_EndBatch();

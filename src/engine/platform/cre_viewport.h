@@ -9,7 +9,6 @@ typedef struct ViewportSize {
     float aspect;
 } ViewportSize;
 
-static void CalculateInternal(int w,int h);
 void Viewport_Init(int initialW,int initialH);
 ViewportSize Viewport_Get(void);
 void Viewport_Update(void);
