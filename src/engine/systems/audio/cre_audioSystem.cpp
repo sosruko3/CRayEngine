@@ -5,9 +5,10 @@
 #include "external/miniaudio/miniaudio.h"
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Section 1: Includes, Constants, and Static Variables */
-#define AUDIO_SOUND_POOL_CAPACITY 256
+constexpr uint16_t AUDIO_SOUND_POOL_CAPACITY = 256;
 
 static ma_engine s_audioEngine;
 static ma_resource_manager s_resourceManager;
@@ -18,7 +19,7 @@ static bool s_soundLoaded[AUDIO_SOUND_POOL_CAPACITY];
 static bool s_groupInitialized[AUDIO_GROUP_COUNT];
 static uint16_t s_soundGeneration[AUDIO_SOUND_POOL_CAPACITY];
 static uint16_t s_freeIndices[AUDIO_SOUND_POOL_CAPACITY];
-static int s_freeTop = -1;
+static int16_t s_freeTop = -1;
 
 // This is temporary, will be adding automated version later on.
 static const char *s_sourcePaths[AUDIO_SOURCE_COUNT] = {
@@ -30,7 +31,7 @@ static const char *s_sourcePaths[AUDIO_SOURCE_COUNT] = {
 static const ma_uint32 s_usageFlags[] = {
     MA_SOUND_FLAG_DECODE, // AUDIO_USAGE_STATIC
     MA_SOUND_FLAG_STREAM, // AUDIO_USAGE_STREAM
-    MA_SOUND_FLAG_ASYNC,   // AUDIO_USAGE_ASYNC
+    MA_SOUND_FLAG_ASYNC,  // AUDIO_USAGE_ASYNC
 };
 
 /* Forward declarations for internal wrappers used by public init/update flow.
@@ -74,7 +75,7 @@ void audioSystem_Init(void) {
   ma_result result = ma_resource_manager_init(&rmConfig, &s_resourceManager);
   if (result != MA_SUCCESS) {
     Log(LOG_LVL_ERROR, "[AUDIO] Resource Manager init failed (err=%d)",
-        (int)result);
+        static_cast<int32_t>(result));
     return;
   }
 
@@ -83,7 +84,8 @@ void audioSystem_Init(void) {
 
   result = ma_engine_init(&engineConfig, &s_audioEngine);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] ma_engine_init failed (err=%d)", (int)result);
+    Log(LOG_LVL_WARNING, "[AUDIO] ma_engine_init failed (err=%d)",
+        static_cast<int32_t>(result));
     ma_resource_manager_uninit(&s_resourceManager);
     return;
   }
@@ -95,10 +97,10 @@ void audioSystem_Init(void) {
   audio_GroupInit(AUDIO_GROUP_UI);
   audio_GroupInit(AUDIO_GROUP_ENV);
 
-  for (int i = 0; i < AUDIO_SOUND_POOL_CAPACITY; i++) {
-    s_freeIndices[++s_freeTop] = (uint16_t)i;
+  for (uint16_t i = 0; i < AUDIO_SOUND_POOL_CAPACITY; i++) {
+    s_freeIndices[++s_freeTop] = i;
     s_soundGeneration[i] = 0;
-}
+  }
 }
 
 void audioSystem_Update(EntityRegistry *reg, CommandBus *bus) {
@@ -120,7 +122,7 @@ void audioSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
 
     switch (cmd->type) {
     case CMD_AUDIO_GROUP_INIT:
-      audio_GroupInit((AudioGroupID)cmd->u8.value);
+      audio_GroupInit(static_cast<AudioGroupID>(cmd->u8.value));
       break;
     case CMD_AUDIO_SET_MASTER_VOLUME:
       audio_SetMasterVolume(cmd->f32.value);
@@ -129,22 +131,20 @@ void audioSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
       audio_ListenerSetPosition(cmd->vec2.value.x, cmd->vec2.value.y);
       break;
     case CMD_AUDIO_GROUP_SET_VOLUME:
-      audio_GroupSetVolume((AudioGroupID)cmd->audiogroup.groupID, cmd->audiogroup.value);
+      audio_GroupSetVolume(cmd->audiogroup.groupID, cmd->audiogroup.value);
       break;
     case CMD_AUDIO_GROUP_SET_PITCH:
-      audio_GroupSetPitch((AudioGroupID)cmd->audiogroup.groupID, cmd->audiogroup.value);
+      audio_GroupSetPitch(cmd->audiogroup.groupID, cmd->audiogroup.value);
       break;
     case CMD_AUDIO_GROUP_SET_PAN:
-      audio_GroupSetPan((AudioGroupID)cmd->audiogroup.groupID, cmd->audiogroup.value);
+      audio_GroupSetPan(cmd->audiogroup.groupID, cmd->audiogroup.value);
       break;
     case CMD_AUDIO_PLAY_ONESHOT:
-      audio_PlayOneShot((AudioSourceID)cmd->audioshot.sourceid,
-                        (AudioGroupID)cmd->audioshot.groupid
-                      );
+      audio_PlayOneShot(cmd->audioshot.sourceid, cmd->audioshot.groupid);
       break;
     case CMD_AUDIO_SOUND_LOAD:
-      audio_SoundLoad(cmd->audioload.id, (AudioSourceID)cmd->audioload.sourceID,
-                      (AudioGroupID)cmd->audioload.groupID,(AudioUsageType)cmd->audioload.usageType);
+      audio_SoundLoad(cmd->audioload.id, cmd->audioload.sourceID,
+                      cmd->audioload.groupID, cmd->audioload.usageType);
       break;
     case CMD_AUDIO_SOUND_UNLOAD:
       audio_SoundUnload(cmd->audioid.id);
@@ -261,12 +261,12 @@ static bool audio_ValidateSoundID(AudioID id, uint16_t *outIndex,
 }
 
 AudioID audioSystem_AllocateID(void) {
-    if (s_freeTop < 0) {
-        Log(LOG_LVL_ERROR, "[AUDIO] Pool exhausted! No free slots.");
-        return AudioID{.index = 0, .gen = 0xFFFF};
-    }
-    uint16_t index = s_freeIndices[s_freeTop--];
-    return AudioID{.index = index, .gen = s_soundGeneration[index]};
+  if (s_freeTop < 0) {
+    Log(LOG_LVL_ERROR, "[AUDIO] Pool exhausted! No free slots.");
+    return AudioID{.index = 0, .gen = 0xFFFF};
+  }
+  uint16_t index = s_freeIndices[s_freeTop--];
+  return AudioID{.index = index, .gen = s_soundGeneration[index]};
 }
 
 /* Section 4: Static Internal Wrapper API */
@@ -342,9 +342,10 @@ static void audio_GroupSetPan(AudioGroupID groupID, float pan) {
   ma_sound_group_set_pan(&s_groups[groupID], pan);
 }
 
-static void audio_PlayOneShot(AudioSourceID sourceID,AudioGroupID groupID) {
+static void audio_PlayOneShot(AudioSourceID sourceID, AudioGroupID groupID) {
   assert(s_audioInitialized && "Audio system is not initalized.");
-  assert(s_groupInitialized[groupID] && "Group must be initialized before use!");
+  assert(s_groupInitialized[groupID] &&
+         "Group must be initialized before use!");
 
   if (sourceID >= AUDIO_SOURCE_COUNT) {
     Log(LOG_LVL_WARNING, "[AUDIO] Invalid source ID: %u", (unsigned)sourceID);
@@ -352,7 +353,8 @@ static void audio_PlayOneShot(AudioSourceID sourceID,AudioGroupID groupID) {
   }
 
   const char *filepath = s_sourcePaths[sourceID];
-  const ma_result result = ma_engine_play_sound(&s_audioEngine, filepath, &s_groups[groupID]);
+  const ma_result result =
+      ma_engine_play_sound(&s_audioEngine, filepath, &s_groups[groupID]);
 
   if (result != MA_SUCCESS) {
     Log(LOG_LVL_WARNING, "[AUDIO] One-shot play failed: %s (err=%d)", filepath,
@@ -360,11 +362,12 @@ static void audio_PlayOneShot(AudioSourceID sourceID,AudioGroupID groupID) {
   }
 }
 
-static void audio_SoundLoad(AudioID id, AudioSourceID sourceID, 
+static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
                             AudioGroupID groupID, AudioUsageType usage) {
   uint16_t slot = 0;
   assert(s_audioInitialized && "Audio system is not initalized.");
-  assert(s_groupInitialized[groupID] && "Group must be initialized before use!");
+  assert(s_groupInitialized[groupID] &&
+         "Group must be initialized before use!");
 
   if (sourceID >= AUDIO_SOURCE_COUNT) {
     Log(LOG_LVL_WARNING, "[AUDIO] Invalid source ID: %u", (unsigned)sourceID);
@@ -384,9 +387,9 @@ static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
 
   const char *filepath = s_sourcePaths[sourceID];
   const ma_uint32 flags = s_usageFlags[(uint32_t)usage];
-  const ma_result result = ma_sound_init_from_file(
-      &s_audioEngine, filepath, flags, &s_groups[groupID], NULL,
-      &s_soundPool[slot]);
+  const ma_result result =
+      ma_sound_init_from_file(&s_audioEngine, filepath, flags,
+                              &s_groups[groupID], NULL, &s_soundPool[slot]);
 
   if (result != MA_SUCCESS) {
     Log(LOG_LVL_WARNING, "[AUDIO] Failed to load sound idx=%u path=%s err=%d",
@@ -539,8 +542,8 @@ static void audio_SoundSetAttenuation(AudioID id, float min, float max) {
   }
 
   if (min < 0.0f || max < 0.0f || min > max) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid attenuation min=%.3f max=%.3f", (double)min,
-        (double)max);
+    Log(LOG_LVL_WARNING, "[AUDIO] Invalid attenuation min=%.3f max=%.3f",
+        (double)min, (double)max);
     return;
   }
 

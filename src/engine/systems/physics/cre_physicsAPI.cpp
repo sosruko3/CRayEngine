@@ -10,14 +10,15 @@ void physicsAPI_DefineBody(CommandBus *restrict bus, Entity entity,
                            uint8_t mat_id, float drag, bool is_static) {
   assert(bus != NULL);
 
-  Command cmd = {
-      .type = CMD_PHYS_DEFINE,
-      .entity = entity,
-      .physDef = {
-          .material_id = mat_id,
-          .flags = is_static ? (uint8_t)CMD_PHYS_FLAG_STATIC : (uint8_t)0,
-          .drag = drag,
-      }};
+  Command cmd = {.type = CMD_PHYS_DEFINE,
+                 .entity = entity,
+                 .physDef = {
+                     .material_id = mat_id,
+                     .flags = is_static
+                                  ? static_cast<uint8_t>(CMD_PHYS_FLAG_STATIC)
+                                  : static_cast<uint8_t>(0),
+                     .drag = drag,
+                 }};
 
   if (!CommandBus_Push(bus, cmd)) {
     Log(LOG_LVL_WARNING, "physicsAPI_DefineBody: CommandBus is full!");

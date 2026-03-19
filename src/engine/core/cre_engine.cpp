@@ -9,11 +9,11 @@
 #include "engine/platform/cre_viewport.h"
 #include "engine/scene/cre_sceneManager.h"
 #include "engine/systems/animation/cre_animationSystem.h"
+#include "engine/systems/audio/cre_audioSystem.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/systems/debug/cre_profilerSystem.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
-#include "engine/systems/audio/cre_audioSystem.h"
 #include "raylib.h"
 #include <stdlib.h>
 
@@ -23,9 +23,9 @@ static void EnginePhase0_PlatformSync(void) {
   if (Viewport_wasResized()) {
     ViewportSize vp = Viewport_Get();
 
-    rendererCore_RecreateCanvas((int32_t)vp.width, (int32_t)vp.height);
-    Log(LOG_LVL_INFO, "[ENGINE] Resolution updated to %0.fx%0.f", (double)vp.width,
-        (double)vp.height);
+    rendererCore_RecreateCanvas(vp.width, vp.height);
+    Log(LOG_LVL_INFO, "[ENGINE] Resolution updated to %0.fx%0.f",
+        (double)vp.width, (double)vp.height);
   }
 }
 static void EnginePhase1_InputAndLogic(EntityRegistry *restrict reg,
@@ -63,7 +63,7 @@ static void EnginePhase2_Simulation(EntityRegistry *restrict reg,
   AnimationSystem_Update(reg, bus, dt);
   PROFILE_END(PROF_ANIMATION);
 
-  audioSystem_Update(reg,bus);
+  audioSystem_Update(reg, bus);
 }
 static void EnginePhase3_RenderState(EntityRegistry *restrict reg,
                                      CommandBus *bus, float dt) {
@@ -113,7 +113,7 @@ void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   Viewport_Init(SCREEN_WIDTH, SCREEN_HEIGHT);
   ViewportSize v = Viewport_Get();
-  InitWindow(v.width, v.height, title);
+  InitWindow(static_cast<int>(v.width), static_cast<int>(v.height), title);
   SetTargetFPS(TARGET_FRAMERATE);
   Log(LOG_LVL_DEBUG, "[ENGINE] Target Resolution: %.0fx%.0f", (double)v.width,
       (double)v.height);
@@ -132,7 +132,7 @@ void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
   EntityManager_Init(reg);
   Asset_Init();
 
-  rendererCore_Init((int32_t)v.width, (int32_t)v.height);
+  rendererCore_Init(v.width, v.height);
   PhysicsSystem_Init();
   cameraSystem_Init(reg);
   audioSystem_Init();

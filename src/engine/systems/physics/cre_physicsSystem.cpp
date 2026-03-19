@@ -12,6 +12,7 @@
  *   - Material-based collision response (friction, restitution)
  */
 #include "cre_physicsSystem.h"
+#include "cre_physics_defs.h"
 #include "cre_spatialHash.h"
 #include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_config.h"
@@ -26,14 +27,6 @@
 // Compile-Time Validation
 // ============================================================================
 
-#if PHYS_SUB_STEPS <= 0
-#error "PHYS_SUB_STEPS must be >= 1"
-#endif
-
-#if PHYS_SOLVER_ITERATIONS <= 0
-#error "PHYS_SOLVER_ITERATIONS must be >= 1"
-#endif
-
 // MSVC needs __restrict instead of restrict (SIMD part)
 #if defined(_MSC_VER)
 #define restrict __restrict
@@ -43,14 +36,14 @@
 // Clamp coordinates to safe numbers
 // ============================================================================
 
-static const float PHYS_COORD_MIN = -500000.0f;
-static const float PHYS_COORD_MAX = 500000.0f;
-static const float PHYS_SIZE_MAX = 4096.0f;
-static const float PHYS_VEL_MAX = 10000.0f;
-static const float PHYS_IMPULSE_MAX = 10000.0f;
-static const float PHYS_DRAG_MAX = 100.0f;
-static const float PHYS_GRAVITY_SCALE_MAX = 100.0f;
-static const float PHYS_GRAVITY_MAX = 5000.0f;
+static constexpr float PHYS_COORD_MIN = -500000.0f;
+static constexpr float PHYS_COORD_MAX = 500000.0f;
+static constexpr float PHYS_SIZE_MAX = 4096.0f;
+static constexpr float PHYS_VEL_MAX = 10000.0f;
+static constexpr float PHYS_IMPULSE_MAX = 10000.0f;
+static constexpr float PHYS_DRAG_MAX = 100.0f;
+static constexpr float PHYS_GRAVITY_SCALE_MAX = 100.0f;
+static constexpr float PHYS_GRAVITY_MAX = 5000.0f;
 
 static inline float PhysicsSystem_ClampCoord(float val) {
   return fmaxf(PHYS_COORD_MIN, fminf(PHYS_COORD_MAX, val));
@@ -221,7 +214,7 @@ void PhysicsSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
   // -------------------------------------------------------------------------
   PhysicsSystem_ProcessCommands(reg, bus);
 
-  const float subDt = dt / (float)PHYS_SUB_STEPS;
+  const float subDt = dt / static_cast<float>(PHYS_SUB_STEPS);
 
   // -------------------------------------------------------------------------
   // Sub-Step Loop
@@ -283,8 +276,9 @@ void PhysicsSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
       const float newY = PhysicsSystem_SanitizeCoord(cmd->vec2.value.y, oldY);
 
       if (reg->state_flags[id] & FLAG_STATIC) {
-        SpatialHash_RemoveStatic(id, (int)oldX, (int)oldY, (int)width,
-                                 (int)height);
+        SpatialHash_RemoveStatic(
+            id, static_cast<int>(oldX), static_cast<int>(oldY),
+            static_cast<int>(width), static_cast<int>(height));
       }
 
       reg->pos_x[id] = newX;
@@ -294,8 +288,9 @@ void PhysicsSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
       reg->state_flags[id] &= ~FLAG_SLEEPING;
 
       if (reg->state_flags[id] & FLAG_STATIC) {
-        SpatialHash_AddStatic(id, (int)newX, (int)newY, (int)width,
-                              (int)height);
+        SpatialHash_AddStatic(id, static_cast<int>(newX),
+                              static_cast<int>(newY), static_cast<int>(width),
+                              static_cast<int>(height));
       }
       break;
     }
@@ -416,8 +411,9 @@ static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry *reg) {
     const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
     const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
     const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
-    SpatialHash_AddStatic(i, (int)clampedX, (int)clampedY, (int)clampedW,
-                          (int)clampedH);
+    SpatialHash_AddStatic(
+        i, static_cast<int>(clampedX), static_cast<int>(clampedY),
+        static_cast<int>(clampedW), static_cast<int>(clampedH));
     staticCount++;
   }
 
@@ -623,8 +619,9 @@ static void Phase2_BroadPhase(EntityRegistry *reg) {
     const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
     const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
 
-    SpatialHash_AddDynamic(i, (int)clampedX, (int)clampedY, (int)clampedW,
-                           (int)clampedH);
+    SpatialHash_AddDynamic(
+        i, static_cast<int>(clampedX), static_cast<int>(clampedY),
+        static_cast<int>(clampedW), static_cast<int>(clampedH));
   }
 }
 
@@ -679,12 +676,13 @@ static void Phase3_DetectContacts(EntityRegistry *reg) {
     const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
 
     // Query spatial hash for potential colliders
-    const int count =
-        SpatialHash_Query((int)clampedX, (int)clampedY, (int)clampedW,
-                          (int)clampedH, neighbours, PHYS_MAX_NEIGHBOURS);
+    const int count = SpatialHash_Query(
+        static_cast<int>(clampedX), static_cast<int>(clampedY),
+        static_cast<int>(clampedW), static_cast<int>(clampedH), neighbours,
+        PHYS_MAX_NEIGHBOURS);
     // Collision Layer/Mask Check
-    const uint32_t layerA = (uint32_t)GET_LAYER(flagsA);
-    const uint32_t maskA = (uint32_t)GET_MASK(flagsA);
+    const uint32_t layerA = GET_LAYER(flagsA);
+    const uint32_t maskA = GET_MASK(flagsA);
 
     // Check against each potential collider
     for (int k = 0; k < count; k++) {
@@ -714,8 +712,8 @@ static void Phase3_DetectContacts(EntityRegistry *reg) {
       // ----------------------------------------------------------------
       // Collision Layer/Mask Check
       // ----------------------------------------------------------------
-      const uint32_t layerB = (uint32_t)GET_LAYER(flagsB);
-      const uint32_t maskB = (uint32_t)GET_MASK(flagsB);
+      const uint32_t layerB = GET_LAYER(flagsB);
+      const uint32_t maskB = GET_MASK(flagsB);
 
       // Check if they should collide (bidirectional mask check)
       if (!((maskA & layerB) || (maskB & layerA)))

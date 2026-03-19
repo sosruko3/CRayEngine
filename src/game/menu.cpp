@@ -27,16 +27,16 @@ void Menu_Draw(EntityRegistry *reg, CommandBus *bus) {
   (void)reg;
   (void)bus;
   int titleWidth = MeasureText(GAME_TITLE, FONT_SIZE_TITLE);
-  DrawText(GAME_TITLE, (SCREEN_WIDTH - titleWidth) / 2, SCREEN_HEIGHT / 2 - 80,
-           FONT_SIZE_TITLE, RED);
+  DrawText(GAME_TITLE, (static_cast<int>(SCREEN_WIDTH) - titleWidth) / 2,
+           static_cast<int>(SCREEN_HEIGHT) / 2 - 80, FONT_SIZE_TITLE, RED);
 
   int startWidth = MeasureText(MENU_START_TEXT, FONT_SIZE_TITLE);
-  DrawText(MENU_START_TEXT, (SCREEN_WIDTH - startWidth) / 2, SCREEN_HEIGHT / 2,
-           FONT_SIZE_TITLE, BLACK);
+  DrawText(MENU_START_TEXT, (static_cast<int>(SCREEN_WIDTH) - startWidth) / 2,
+           static_cast<int>(SCREEN_HEIGHT) / 2, FONT_SIZE_TITLE, BLACK);
 
   int quitWidth = MeasureText(MENU_TO_QUIT, FONT_SIZE_TITLE);
-  DrawText(MENU_TO_QUIT, (SCREEN_WIDTH - quitWidth) / 2, SCREEN_HEIGHT / 2 + 80,
-           FONT_SIZE_TITLE, BLACK);
+  DrawText(MENU_TO_QUIT, (static_cast<int>(SCREEN_WIDTH) - quitWidth) / 2,
+           static_cast<int>(SCREEN_HEIGHT) / 2 + 80, FONT_SIZE_TITLE, BLACK);
 }
 
 void Menu_Unload(EntityRegistry *reg, CommandBus *bus) {

@@ -4,6 +4,7 @@
 #include "engine/ecs/cre_entityManager.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/systems/physics/cre_physicsSystem.h"
+#include "engine/systems/physics/cre_physics_defs.h"
 #include "entity_types.h"
 
 Entity g_playerPrototype = Entity{.id = 0, .generation = 0};
@@ -11,7 +12,8 @@ Entity g_zombiePrototype = Entity{.id = 1, .generation = 0};
 
 void Prototypes_Init(EntityRegistry *reg) {
   // Zombie prototype
-  uint64_t zombieCompMask = COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
+  uint64_t zombieCompMask =
+      COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
   uint64_t zombieFlags =
       FLAG_VISIBLE | SET_LAYER(L_ENEMY) | SET_MASK(L_PLAYER | L_ENEMY);
 
@@ -29,13 +31,13 @@ void Prototypes_Init(EntityRegistry *reg) {
   }
 
   // Player prototype
-  uint64_t playerCompMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_AABB;
+  uint64_t playerCompMask = COMP_SPRITE | COMP_PHYSICS | COMP_COLLISION_Circle;
 
   uint64_t playerFlags = FLAG_VISIBLE | FLAG_ALWAYS_AWAKE |
                          SET_LAYER(L_PLAYER) | SET_MASK(L_ENEMY | L_BULLET);
 
-  g_playerPrototype = EntityManager_Create(
-      reg, TYPE_PLAYER, creVec2{100, 200}, playerCompMask, playerFlags);
+  g_playerPrototype = EntityManager_Create(reg, TYPE_PLAYER, creVec2{100, 200},
+                                           playerCompMask, playerFlags);
   if (ENTITY_IS_VALID(g_playerPrototype)) {
     const uint32_t playerid = g_playerPrototype.id;
     reg->render_layer[playerid] = RENDER_LAYER_ENEMY;

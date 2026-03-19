@@ -5,16 +5,16 @@
 
 /**
  * @brief Index-linked spatial node for dual-layer spatial hash.
- * 
+ *
  * Uses index-based linking (uint32_t nextIdx) instead of raw pointers
  * for cache-friendliness and Data-Oriented Design. Packed to 16 bytes.
  */
 typedef struct SpatialNode {
-    uint32_t entityID;   ///< Entity identifier
-    uint32_t nextIdx;    ///< Index into node pool (UINT32_MAX = null sentinel)
-    int16_t  gridX;      ///< Grid cell X coordinate
-    int16_t  gridY;      ///< Grid cell Y coordinate
-    uint32_t _padding;   ///< Padding to 16 bytes
+  uint32_t entityID; ///< Entity identifier
+  uint32_t nextIdx;  ///< Index into node pool (UINT32_MAX = null sentinel)
+  int32_t gridX;     ///< Grid cell X coordinate
+  int32_t gridY;     ///< Grid cell Y coordinate
+  uint32_t _padding; ///< Padding to 16 bytes
 } SpatialNode;
 
 // ============================================================================
@@ -28,14 +28,15 @@ void SpatialHash_ClearDynamic(void);
 
 /**
  * @brief Adds a dynamic entity to the spatial hash (inv_mass > 0).
- * 
+ *
  * @param entityID Entity identifier
  * @param x World X position
  * @param y World Y position
  * @param width Entity width
  * @param height Entity height
  */
-void SpatialHash_AddDynamic(uint32_t entityID, int x, int y, int width, int height);
+void SpatialHash_AddDynamic(uint32_t entityID, int x, int y, int width,
+                            int height);
 
 // ============================================================================
 // Static Layer API (persistent until removed)
@@ -43,29 +44,31 @@ void SpatialHash_AddDynamic(uint32_t entityID, int x, int y, int width, int heig
 
 /**
  * @brief Adds a static entity to the spatial hash (inv_mass <= 0).
- * 
+ *
  * Static entities persist until explicitly removed.
- * 
+ *
  * @param entityID Entity identifier
  * @param x World X position
  * @param y World Y position
  * @param width Entity width
  * @param height Entity height
  */
-void SpatialHash_AddStatic(uint32_t entityID, int x, int y, int width, int height);
+void SpatialHash_AddStatic(uint32_t entityID, int x, int y, int width,
+                           int height);
 
 /**
  * @brief Removes a static entity from the spatial hash.
- * 
+ *
  * Unlinks from all buckets the entity occupies and recycles nodes.
- * 
+ *
  * @param entityID Entity identifier
  * @param x World X position
  * @param y World Y position
  * @param width Entity width
  * @param height Entity height
  */
-void SpatialHash_RemoveStatic(uint32_t entityID, int x, int y, int width, int height);
+void SpatialHash_RemoveStatic(uint32_t entityID, int x, int y, int width,
+                              int height);
 
 // ============================================================================
 // Full Clear API (scene transitions)
@@ -84,7 +87,7 @@ void SpatialHash_ClearAll(void);
  * @brief Queries both static and dynamic layers for entities in the given area.
  * Warning: Not up to date.
  * Results are deduplicated via linear scan.
- * 
+ *
  * @param x World X position
  * @param y World Y position
  * @param width Query area width
@@ -93,6 +96,7 @@ void SpatialHash_ClearAll(void);
  * @param maxResults Maximum number of results to return
  * @return Number of unique entities found
  */
-int SpatialHash_Query(int x, int y, int width, int height, uint32_t* results, int maxResults);
+int SpatialHash_Query(int x, int y, int width, int height, uint32_t *results,
+                      int maxResults);
 
 #endif

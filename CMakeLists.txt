@@ -5,6 +5,8 @@ endif()
 
 project(CRayEngine VERSION 0.9 LANGUAGES C CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -115,6 +117,7 @@ target_link_libraries(miniaudio_lib PRIVATE m pthread dl)
 
 # --- Include Directories ---
 target_include_directories(${PROJECT_NAME} PRIVATE src "${GEN_DIR}")
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE src/external/raylib/src)
 
 # --- Linking ---
 target_link_libraries(${PROJECT_NAME} raylib miniaudio_lib)
@@ -127,23 +130,23 @@ file(COPY ${CMAKE_SOURCE_DIR}/src/game/config/settings.cfg DESTINATION ${CMAKE_B
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Build Type is Debug: Enabling Strict C++20 Warnings & Sanitizers")
-  
+
   if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX:vla /permissive-)
   else()
-    target_compile_options(${PROJECT_NAME} PRIVATE 
-        -Wall -Wextra -Wpedantic -Wshadow 
-        -Werror=vla -Wdouble-promotion -Wnull-dereference 
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wall -Wextra -Wpedantic -Wshadow
+        -Werror=vla -Wdouble-promotion -Wnull-dereference
         -Wimplicit-fallthrough -Wundef -Wformat=2
-        -fsanitize=address,undefined 
-        -fno-omit-frame-pointer 
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
         -Wshadow -Wswitch-enum
         -Wundef -Wformat=2
-        -Wconversion -Wsign-conversion  
-        # step3= -Wold-style-cast -Wcast-qual    
+        -Wconversion -Wsign-conversion
+        -Wold-style-cast -Wcast-qual
         # step4, might need to remove "-Werror=vla" for this = -Werror
     )
-    
+
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address,undefined)
   endif()
 endif()

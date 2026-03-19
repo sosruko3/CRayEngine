@@ -6,7 +6,6 @@
 #include "engine/platform/cre_input.h"
 #include "engine/platform/cre_viewport.h"
 #include "engine/scene/cre_sceneManager.h"
-#include "engine/systems/animation/cre_animationSystem.h"
 #include "engine/systems/camera/cre_cameraAPI.h"
 #include "engine/systems/camera/cre_cameraSystem.h"
 #include "engine/systems/debug/cre_debugSystem.h"
@@ -66,7 +65,6 @@ void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
 
   // Screen-space debug HUD (outside camera)
   DebugSystem_RenderScreenSpace(reg);
-  DebugSystem_RenderMouseHover(reg);
 }
 void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
   (void)reg;
@@ -76,5 +74,5 @@ void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
 static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
   Entity mainCam = ControlSystem_SpawnCamera(reg);
   Entity player = ControlSystem_SpawnPlayer(reg, bus);
-  ControlSystem_SetCameraTarget(reg, bus, player,mainCam);
+  ControlSystem_SetCameraTarget(reg, bus, player, mainCam);
 }

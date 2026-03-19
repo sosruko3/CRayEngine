@@ -53,7 +53,7 @@ Camera2D cameraUtils_GetActiveRaylib(const EntityRegistry *reg,
     return out;
 
   int32_t idx = cameraSystem_FindActive(reg);
-  if (idx < 0 || idx >= (int32_t)MAX_CAMERAS)
+  if (idx < 0 || idx >= static_cast<int16_t>(MAX_CAMERAS))
     return out;
 
   return cameraUtils_buildRaylibCam(&reg->cameras[idx], vp);

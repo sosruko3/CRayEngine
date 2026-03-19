@@ -4,30 +4,30 @@
 #include "engine/core/cre_types.h"
 #include <stdint.h>
 
-typedef struct EntityRegistry EntityRegistry;
-typedef struct CommandBus CommandBus;
+struct EntityRegistry;
+struct CommandBus;
 
-typedef enum {
+enum AudioSourceID : uint16_t {
   AUDIO_SOURCE_TEST_SFX = 0,
   AUDIO_SOURCE_TEST_BGM = 1,
   AUDIO_SOURCE_COUNT
-} AudioSourceID;
+};
 
-typedef enum {
+enum AudioUsageType : uint8_t {
   AUDIO_USAGE_STATIC = 0,
   AUDIO_USAGE_STREAM = 1,
   AUDIO_USAGE_ASYNC = 2,
   AUDIO_USAGE_COUNT
-} AudioUsageType;
+};
 
-typedef enum {
+enum AudioGroupID : uint8_t {
   AUDIO_GROUP_MASTER = 0,
   AUDIO_GROUP_BGM,
   AUDIO_GROUP_SFX,
   AUDIO_GROUP_UI,
   AUDIO_GROUP_ENV,
-  AUDIO_GROUP_COUNT = 16
-} AudioGroupID;
+  AUDIO_GROUP_COUNT
+};
 
 void audioSystem_Init(void);
 void audioSystem_Shutdown(void);

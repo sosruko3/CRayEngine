@@ -21,8 +21,8 @@ typedef struct {
   Shader currentShader;
   int32_t currentBlendMode;
   int32_t currentFilterMode;
-  int32_t virtualWidth;
-  int32_t virtualHeight;
+  float virtualWidth;
+  float virtualHeight;
 } cre_RendererCore_State;
 
 static cre_RendererCore_State state = {};
@@ -31,11 +31,12 @@ static cre_RendererCore_State state = {};
  * Internal Helpers
  * ─────────────────────────────────────────────────────────────────────────────
  */
-void rendererCore_RecreateCanvas(int32_t virtualWidth, int32_t virtualHeight) {
+void rendererCore_RecreateCanvas(float virtualWidth, float virtualHeight) {
   if (state.canvas.id != 0) {
     UnloadRenderTexture(state.canvas);
   }
-  state.canvas = LoadRenderTexture(virtualWidth, virtualHeight);
+  state.canvas = LoadRenderTexture(static_cast<int32_t>(virtualWidth),
+                                   static_cast<int32_t>(virtualHeight));
   SetTextureFilter(state.canvas.texture, TEXTURE_FILTER_POINT);
   state.virtualWidth = virtualWidth;
   state.virtualHeight = virtualHeight;
@@ -44,7 +45,7 @@ void rendererCore_RecreateCanvas(int32_t virtualWidth, int32_t virtualHeight) {
  * Lifecycle
  * ─────────────────────────────────────────────────────────────────────────────
  */
-void rendererCore_Init(int32_t virtualWidth, int32_t virtualHeight) {
+void rendererCore_Init(float virtualWidth, float virtualHeight) {
   state.currentBlendMode = BLEND_ALPHA;
   state.currentFilterMode = -1;
   state.currentShader = Shader{};
@@ -91,12 +92,12 @@ void rendererCore_EndWorldRender(void) {
 
   /* Upscale virtual canvas to physical window (no global flip) */
   creRectangle srcRect = {
-      0.0f, 0.0f, (float)state.canvas.texture.width,
-      -(float)state.canvas.texture.height /* reads "downwards" */
+      0.0f, 0.0f, static_cast<float>(state.canvas.texture.width),
+      static_cast<float>(-state.canvas.texture.height) /* reads "downwards" */
   };
 
-  creRectangle destRect = {0.0f, 0.0f, (float)GetScreenWidth(),
-                           (float)GetScreenHeight()};
+  creRectangle destRect = {0.0f, 0.0f, static_cast<float>(GetScreenWidth()),
+                           static_cast<float>(GetScreenHeight())};
 
   DrawTexturePro(state.canvas.texture, R_REC(srcRect), R_REC(destRect),
                  Vector2{0, 0}, 0.0f, R_COL(creBLANK));
@@ -108,7 +109,7 @@ void rendererCore_EndFrame(void) { EndDrawing(); }
  * ─────────────────────────────────────────────────────────────────────────────
  */
 void rendererCore_BeginWorldMode(const CameraComponent *cam, ViewportSize vp) {
-  Camera2D rayCam = cameraUtils_buildRaylibCam(cam,vp);
+  Camera2D rayCam = cameraUtils_buildRaylibCam(cam, vp);
   BeginMode2D(rayCam);
 }
 
@@ -121,7 +122,8 @@ void rendererCore_EndWorldMode(void) { EndMode2D(); }
 void rendererCore_DrawSprite(uint32_t spriteID, creVec2 position, creVec2 size,
                              creVec2 pivot, float rotation, bool flipX,
                              bool flipY, creColor tint) {
-  creRectangle srcRect = Asset_getRect((int)spriteID);
+  // remove this static_cast<int> after fixing spriteids type.
+  creRectangle srcRect = Asset_getRect(static_cast<int>(spriteID));
 
   float srcW = flipX ? -srcRect.width : srcRect.width;
   float srcH = flipY ? -srcRect.height

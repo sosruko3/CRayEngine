@@ -1,55 +1,57 @@
 #include "cre_input.h"
 #include "engine/core/cre_logger.h"
 #include "raylib.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-static int keyBindings[ACTION_COUNT];
+// Fix naming inconsistencies in this file too.
+// Haven't decided what would be the prefix.
+static int32_t keyBindings[ACTION_COUNT];
 
-typedef struct {
+struct ActionMapping {
+  // Do we really need pointers?
   const char *name;
   GameAction action;
-} ActionMapping;
-
-static const ActionMapping actionTable[] = {
-    {"UP", ACTION_UP},
-    {"DOWN", ACTION_DOWN},
-    {"LEFT", ACTION_LEFT},
-    {"RIGHT", ACTION_RIGHT},
-    {"CONFIRM", ACTION_CONFIRM},
-    {"BACK", ACTION_BACK},
-    {"PAUSE", ACTION_PAUSE},
-    {"PRIMARY", ACTION_PRIMARY},
-    {"SECONDARY", ACTION_SECONDARY},
-    {NULL, (GameAction)0} //
 };
 
-typedef struct {
+static constexpr ActionMapping actionTable[] = {{"UP", ACTION_UP},
+                                                {"DOWN", ACTION_DOWN},
+                                                {"LEFT", ACTION_LEFT},
+                                                {"RIGHT", ACTION_RIGHT},
+                                                {"CONFIRM", ACTION_CONFIRM},
+                                                {"BACK", ACTION_BACK},
+                                                {"PAUSE", ACTION_PAUSE},
+                                                {"PRIMARY", ACTION_PRIMARY},
+                                                {"SECONDARY", ACTION_SECONDARY},
+                                                {nullptr, ACTION_INVALID}};
+
+struct KeyMapping {
   const char *name;
   int key;
-} KeyMapping;
+};
 
-static const KeyMapping keyTable[] = {{"SPACE", KEY_SPACE},
-                                      {"ENTER", KEY_ENTER},
-                                      {"ESCAPE", KEY_ESCAPE},
-                                      {"UP", KEY_UP},
-                                      {"DOWN", KEY_DOWN},
-                                      {"LEFT", KEY_LEFT},
-                                      {"RIGHT", KEY_RIGHT},
-                                      {"TAB", KEY_TAB},
-                                      {"SHIFT", KEY_LEFT_SHIFT},
-                                      {"LEFT_SHIFT", KEY_LEFT_SHIFT},
-                                      {"CONTROL", KEY_LEFT_CONTROL},
-                                      {"LEFT_CONTROL", KEY_LEFT_CONTROL},
-                                      {NULL, (GameAction)0}};
+static constexpr KeyMapping keyTable[] = {{"SPACE", KEY_SPACE},
+                                          {"ENTER", KEY_ENTER},
+                                          {"ESCAPE", KEY_ESCAPE},
+                                          {"UP", KEY_UP},
+                                          {"DOWN", KEY_DOWN},
+                                          {"LEFT", KEY_LEFT},
+                                          {"RIGHT", KEY_RIGHT},
+                                          {"TAB", KEY_TAB},
+                                          {"SHIFT", KEY_LEFT_SHIFT},
+                                          {"LEFT_SHIFT", KEY_LEFT_SHIFT},
+                                          {"CONTROL", KEY_LEFT_CONTROL},
+                                          {"LEFT_CONTROL", KEY_LEFT_CONTROL},
+                                          {nullptr, KEY_NULL}};
 
 // Find action ID from String
 GameAction GetActionFromStr(const char *str) {
-  for (int i = 0; actionTable[i].name != NULL; i++) {
+  for (int i = 0; actionTable[i].name != nullptr; i++) {
     if (strcmp(str, actionTable[i].name) == 0)
       return actionTable[i].action;
   }
-  return (GameAction)-1;
+  return ACTION_INVALID;
 }
 
 // Find Key ID from String
@@ -58,13 +60,13 @@ int GetKeyFromStr(const char *str) {
     char c = str[0];
     if (c >= 'a' && c <= 'z')
       c -= 32;
-    return (int)c;
+    return static_cast<int>(c);
   }
-  for (int i = 0; keyTable[i].name != NULL; i++) {
+  for (int i = 0; keyTable[i].name != nullptr; i++) {
     if (strcmp(str, keyTable[i].name) == 0)
       return keyTable[i].key;
   }
-  return 0;
+  return KEY_NULL;
 }
 
 void Input_LoadConfig(const char *filename) {
@@ -77,18 +79,18 @@ void Input_LoadConfig(const char *filename) {
   char line[128];
   while (fgets(line, sizeof(line), file)) {
     char *actionName = strtok(line, " =\n\r\t");
-    char *keyName = strtok(NULL, " =\n\r\t");
+    char *keyName = strtok(nullptr, " =\n\r\t");
 
     // safety check
     if (!actionName || !keyName)
       continue;
 
     GameAction action = GetActionFromStr(actionName);
-    if (action == (GameAction)-1)
+    if (action == ACTION_INVALID)
       continue;
 
     int key = GetKeyFromStr(keyName);
-    if (key == 0)
+    if (key == KEY_NULL)
       continue;
 
     Input_Remap(action, key);
@@ -119,28 +121,15 @@ void Input_Init(const char *configPath) {
 }
 
 bool Input_IsPressed(GameAction action) {
-  int key = keyBindings[action];
+  int32_t key = keyBindings[action];
   return IsKeyPressed(key);
 }
 
 bool Input_IsDown(GameAction action) {
-  int key = keyBindings[action];
+  int32_t key = keyBindings[action];
   return IsKeyDown(key);
 }
 
-void Input_Remap(GameAction action, int key) { keyBindings[action] = key; }
+void Input_Remap(GameAction action, int32_t key) { keyBindings[action] = key; }
 
-void Input_Poll(void) {
-  // CURRENTLY: Raylib handles polling internally in
-  // EndDrawing/WindowShouldClose. So we don't strictly need code here.
-
-  // FUTURE PROOFING:
-  // 1. If you add Gamepad support, you might check connections here.
-  // 2. If you add an Input Recording system (Replay), you would record the keys
-  // here.
-  // 3. If you switch to SDL2 later, you would put SDL_PollEvent here.
-
-  // For now, leave it empty or add a comment.
-  // PollInputEvents(); // Optional: Explicitly poll if not using standard
-  // Raylib loop
-}
+void Input_Poll(void) {}

@@ -6,26 +6,25 @@
 #include <stdint.h>
 
 // Command Flags
-#define CMD_PHYS_FLAG_STATIC (1 << 0) // Bit 0: Wall/Static
-#define CMD_PHYS_FLAG_SENSOR (1 << 1) // Bit 1: Trigger (Future proofing)
-#define CMD_PHYS_FLAG_BULLET (1 << 2) // Bit 2: CCD/Fast Mover (Future proofing)
+constexpr uint8_t CMD_PHYS_FLAG_STATIC = (1 << 0); // Bit 0: Wall/Static
 
 // Animation Command Flags
-#define ANIM_FLAG_FORCE_RESET (1 << 0)   // Bit 0: 1 = Force restart
-#define ANIM_FLAG_LOOP_OVERRIDE (1 << 1) // Bit 1: 1 = Force loop (example)
+constexpr uint8_t ANIM_FLAG_FORCE_RESET = (1 << 0); // Bit 0: 1 = Force restart
+constexpr uint8_t ANIM_FLAG_LOOP_OVERRIDE =
+    (1 << 1); // Bit 1: 1 = Force loop (example)
 
-#define CMD_DOMAIN_MASK 0xFF00
-#define CMD_DOMAIN_PHYS 0x0100
-#define CMD_DOMAIN_ENTITY 0x0200
-#define CMD_DOMAIN_ANIM 0x0300
-#define CMD_DOMAIN_RENDER 0x0400
-#define CMD_DOMAIN_CAMERA 0x0500
-#define CMD_DOMAIN_AUDIO 0x0600
+constexpr uint32_t CMD_DOMAIN_MASK = 0xFF00U;
+constexpr uint32_t CMD_DOMAIN_PHYS = 0x0100U;
+constexpr uint32_t CMD_DOMAIN_ENTITY = 0x0200U;
+constexpr uint32_t CMD_DOMAIN_ANIM = 0x0300U;
+constexpr uint32_t CMD_DOMAIN_RENDER = 0x0400U;
+constexpr uint32_t CMD_DOMAIN_CAMERA = 0x0500U;
+constexpr uint32_t CMD_DOMAIN_AUDIO = 0x0600U;
 
 // ============================================================================
 // Command Types
 // ============================================================================
-
+// Use enum classes here.
 typedef enum CommandType {
   CMD_NONE = 0,
   // Physics commands
@@ -98,9 +97,7 @@ typedef enum CommandType {
   CMD_AUDIO_SOUND_SET_LOOPING,
   CMD_AUDIO_SOUND_SET_SPATIALIZATION,
   CMD_AUDIO_SOUND_SET_POSITION,
-  CMD_AUDIO_SOUND_SET_ATTENUATION,
-
-  CMD_TYPE_COUNT // Camera domain would count this as well, fix this.
+  CMD_AUDIO_SOUND_SET_ATTENUATION
 } CommandType;
 
 // ============================================================================
@@ -144,6 +141,7 @@ typedef struct {
 typedef struct {
   uint8_t material_id; // e.g., MAT_WOOF
   uint8_t flags;       // e.g., static,
+  // renomed 2 bytes of _padding
   float drag;
 } CommandPayloadPhysDef;
 
@@ -167,7 +165,8 @@ typedef struct {
   float wY;
   float wH;
   uint8_t shiftBatch;
-  uint8_t shiftDepth; // removed 2 bytes of _padding
+  uint8_t shiftDepth;
+  // removed 2 bytes of _padding
 } CommandPayloadRenderDepth;
 
 typedef struct {
@@ -176,13 +175,14 @@ typedef struct {
 
 typedef struct {
   AudioID id;
-  uint16_t sourceID;
-  uint8_t groupID;
-  uint8_t usageType;
+  AudioSourceID sourceID;
+  AudioGroupID groupID;
+  AudioUsageType usageType;
 } CommandPayloadAudioLoad;
 
 typedef struct {
-  uint8_t groupID; // removed 3 bytes of _padding
+  AudioGroupID groupID;
+  // removed 3 bytes of _padding
   float value;
 } CommandPayloadAudioGroup;
 
@@ -193,7 +193,8 @@ typedef struct {
 
 typedef struct {
   AudioID id;
-  bool value; // removed 3 byte of _padding
+  bool value;
+  // removed 3 byte of _padding
 } CommandPayloadAudioB8;
 
 typedef struct {
@@ -202,8 +203,9 @@ typedef struct {
 } CommandPayloadAudioVec2;
 
 typedef struct {
-  uint16_t sourceid;
-  uint8_t groupid; // removed 1 byte of _padding
+  AudioSourceID sourceid;
+  AudioGroupID groupid;
+  // removed 1 byte of _padding
 } CommandPayloadAudioOneShot;
 
 #endif

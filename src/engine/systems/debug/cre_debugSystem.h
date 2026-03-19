@@ -1,21 +1,16 @@
 /**
  * @file cre_debugSystem.h
- * @brief Physics Insight Debug Visualization Suite
+ * @brief Physics Insight Debug Alarms + Stats HUD
  *
  * Professional developer tools for visualizing physics engine internals.
  * Designed for high-performance (16,000+ entities) without allocations.
  *
- * Visualization Modes:
- *   1. Spatial Hash Heatmap  - Cell density hotspots
- *   2. Entity State Overlay  - Sleep/Wake/Culled/Static states
- *   3. Velocity Field        - Momentum vectors and energy
- *   4. Collision Layers      - Layer/Mask group visualization
- *   5. Stats HUD             - Real-time performance metrics
+ * Visualization:
+ *   1. Alarm Overlay - Data corruption and orphan entity detection
+ *   2. Stats HUD     - Real-time ECS and frame telemetry
  *
  * Controls:
  *   F1        - Toggle debug overlay on/off
- *   F2-F5     - Switch visualization modes (1-4)
- *   F8        - Cycle through modes
  *   TAB       - Toggle stats HUD (always available)
  */
 #ifndef DEBUGSYSTEM_H
@@ -33,10 +28,7 @@ typedef struct CommandBus CommandBus;
 
 typedef enum {
   DEBUG_MODE_OFF = 0,
-  DEBUG_MODE_SPATIAL_HASH,     // 1: Cell density heatmap
-  DEBUG_MODE_ENTITY_STATE,     // 2: Sleep/Wake/Culled overlay
-  DEBUG_MODE_VELOCITY_FIELD,   // 3: Velocity vectors + energy
-  DEBUG_MODE_COLLISION_LAYERS, // 4: Layer/Mask groups
+  DEBUG_MODE_ALARMS,
   DEBUG_MODE_COUNT
 } DebugVisualizationMode;
 
@@ -50,12 +42,10 @@ typedef enum {
 void DebugSystem_Init(void);
 
 /**
- * @brief Handle debug input (mode switching, spawning).
+ * @brief Handle debug input.
  *
  * Key bindings:
  *   F1      - Toggle debug overlay
- *   F2-F5   - Select visualization mode
- *   F8      - Cycle modes
  *   TAB     - Toggle stats HUD
  *
  * @param reg Entity registry
@@ -73,7 +63,7 @@ uint32_t DebugSystem_GetActiveCount(EntityRegistry *reg);
  * @brief Render world-space debug visualizations.
  *
  * Call this INSIDE BeginWorldMode/EndWorldMode for proper camera transform.
- * Renders: entity states, velocity vectors, spatial hash overlay, etc.
+ * Renders: alarm overlay (NaN/Inf and orphan detection).
  *
  * @param reg Entity registry (read-only access)
  */
@@ -83,7 +73,7 @@ void DebugSystem_RenderWorldSpace(EntityRegistry *reg);
  * @brief Render screen-space HUD elements.
  *
  * Call this AFTER EndWorldMode for proper screen positioning.
- * Renders: stats HUD, mode indicator, legends.
+ * Renders: stats HUD.
  *
  * @param reg Entity registry (read-only access)
  */
@@ -130,15 +120,5 @@ bool DebugSystem_IsEnabled(void);
  * @brief Legacy draw function (placeholder).
  */
 void DebugSystem_Draw(void);
-
-/**
- * @brief Render mouse hover tooltip for entity inspection.
- *
- * Shows entity details (ID, position, velocity, flags) when mouse
- * hovers over an entity's AABB. Call in screen-space after EndWorldMode.
- *
- * @param reg Entity registry (read-only access)
- */
-void DebugSystem_RenderMouseHover(EntityRegistry *reg);
 
 #endif // DEBUGSYSTEM_H

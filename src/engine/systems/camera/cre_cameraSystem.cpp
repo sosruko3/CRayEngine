@@ -28,9 +28,10 @@ void cameraSystem_Init(EntityRegistry *reg) {
 }
 
 static int32_t findCameraByOwner(const EntityRegistry *reg, Entity owner) {
+  // Feeling like i can handle this part better. Without static_cast.
   for (uint32_t i = 0; i < reg->camera_count; i++) {
     if (ENTITY_MATCH(reg->cameras[i].ownerEntity, owner)) {
-      return (int32_t)i;
+      return static_cast<int32_t>(i);
     }
   }
   return -1;
@@ -233,7 +234,7 @@ int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
 
     if (cam->priority > highestPriority) {
       highestPriority = cam->priority;
-      activeIndex = (int32_t)i;
+      activeIndex = static_cast<int16_t>(i);
     }
   }
 

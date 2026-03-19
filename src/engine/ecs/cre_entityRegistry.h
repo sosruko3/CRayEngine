@@ -1,7 +1,7 @@
 /**
  * @file cre_entityRegistry.h
  * @brief Packed Parallel Structure of Arrays (SoA) Entity System
- * 
+ *
  * Data-Oriented Design entity registry with:
  * - 64-byte aligned arrays for cache efficiency
  * - Generational indices for safe entity handles
@@ -12,29 +12,29 @@
 #ifndef CRE_ENTITYREGISTRY_H
 #define CRE_ENTITYREGISTRY_H
 
-#include "engine/core/cre_types.h"
-#include "engine/core/cre_config.h"
 #include "cre_components.h"
 #include "cre_entityEvents.h"
-#include <stdint.h>
-#include <stdbool.h>
+#include "engine/core/cre_config.h"
+#include "engine/core/cre_types.h"
 #include <stdalign.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 // ============================================================================
 // Component Mask Bits (uint64_t component_masks[])
 // ============================================================================
 // These bits indicate which components an entity possesses.
 
-#define COMP_NONE             (0ULL)
-#define COMP_SPRITE           (1ULL << 1)
-#define COMP_ANIMATION        (1ULL << 2)
-#define COMP_PHYSICS          (1ULL << 3)
+#define COMP_NONE (0ULL)
+#define COMP_SPRITE (1ULL << 1)
+#define COMP_ANIMATION (1ULL << 2)
+#define COMP_PHYSICS (1ULL << 3)
 #define COMP_COLLISION_Circle (1ULL << 4)
-#define COMP_COLLISION_AABB   (1ULL << 5)
-#define COMP_SOUND            (1ULL << 6)
-#define COMP_AI               (1ULL << 7)
-#define COMP_SHADER           (1ULL << 8)
-#define COMP_CAMERA           (1ULL << 9)
+#define COMP_COLLISION_AABB (1ULL << 5)
+#define COMP_SOUND (1ULL << 6)
+#define COMP_AI (1ULL << 7)
+#define COMP_SHADER (1ULL << 8)
+#define COMP_CAMERA (1ULL << 9)
 
 // Reserve bits 6-31 for future component types
 // Bits 32-63 available for game-specific components
@@ -48,45 +48,47 @@
 // Bits 48-63: Reserved for future use
 
 // --- Behavioral Flags (Bits 0-15) ---
-#define FLAG_ACTIVE        (1ULL << 0)  ///< Is this slot in use?
-#define FLAG_VISIBLE       (1ULL << 1)  ///< Should renderer draw it?
-#define FLAG_ALWAYS_AWAKE  (1ULL << 2)  ///< Never enters sleep state
-#define FLAG_SLEEPING      (1ULL << 3)  ///< Currently sleeping (skip physics)
-#define FLAG_CULLED        (1ULL << 4)  ///< Outside camera view, skip rendering
-#define FLAG_PERSISTENT    (1ULL << 5)  ///< Survives scene transitions
-#define FLAG_STATIC        (1ULL << 6)  ///< Static in physics.
-#define FLAG_ANIM_PAUSED   (1ULL << 7)  ///< Entity's animation is paused.
+#define FLAG_ACTIVE (1ULL << 0)       ///< Is this slot in use?
+#define FLAG_VISIBLE (1ULL << 1)      ///< Should renderer draw it?
+#define FLAG_ALWAYS_AWAKE (1ULL << 2) ///< Never enters sleep state
+#define FLAG_SLEEPING (1ULL << 3)     ///< Currently sleeping (skip physics)
+#define FLAG_CULLED (1ULL << 4)       ///< Outside camera view, skip rendering
+#define FLAG_PERSISTENT (1ULL << 5)   ///< Survives scene transitions
+#define FLAG_STATIC (1ULL << 6)       ///< Static in physics.
+#define FLAG_ANIM_PAUSED (1ULL << 7)  ///< Entity's animation is paused.
 #define CLONE_FLAGS_SCRUB_MASK (FLAG_ACTIVE | FLAG_CULLED | FLAG_SLEEPING)
 // Bits 8-15 reserved for future engine flags
 
 // --- Collision Layer/Mask (64-bit version) ---
 #define LAYER_SHIFT 16ULL
-#define MASK_SHIFT  32ULL
-#define LAYER_MASK_VAL 0xFFFFULL 
-#define LAYER_BITS     (LAYER_MASK_VAL << LAYER_SHIFT)
-#define MASK_BITS      (LAYER_MASK_VAL << MASK_SHIFT)
+#define MASK_SHIFT 32ULL
+#define LAYER_MASK_VAL 0xFFFFULL
+#define LAYER_BITS (LAYER_MASK_VAL << LAYER_SHIFT)
+#define MASK_BITS (LAYER_MASK_VAL << MASK_SHIFT)
 
 // Macros for collision layer/mask manipulation
-#define SET_LAYER(l)     (((uint64_t)(l)) << LAYER_SHIFT)
+#define SET_LAYER(l) (static_cast<uint64_t>(l) << LAYER_SHIFT)
 #define GET_LAYER(flags) (((flags) >> LAYER_SHIFT) & 0xFFFFULL)
-#define SET_MASK(m)      (((uint64_t)(m)) << MASK_SHIFT)
-#define GET_MASK(flags)  (((flags) >> MASK_SHIFT) & 0xFFFFULL)
+#define SET_MASK(m) (static_cast<uint64_t>(m) << MASK_SHIFT)
+#define GET_MASK(flags) (((flags) >> MASK_SHIFT) & 0xFFFFULL)
 
 // Clear and set helpers
-#define CLEAR_LAYER(flags) ((flags) & ~(0xFFFFULL << LAYER_SHIFT))
-#define CLEAR_MASK(flags)  ((flags) & ~(0xFFFFULL << MASK_SHIFT))
+#define CLEAR_LAYER(flags)                                                     \
+  static_cast<uint32_t>(flags) & ~(0xFFFFULL << LAYER_SHIFT)
+#define CLEAR_MASK(flags)                                                      \
+  (static_cast<uint32_t>(flags) & ~(0xFFFFULL << MASK_SHIFT)
 
 // ============================================================================
 // Render Order / Batch Constants
 // ============================================================================
 // Move these to somewhere else. This is temporary.
 #define RENDER_LAYER_DEFAULT 0u
-#define RENDER_LAYER_ENEMY   10u
-#define RENDER_LAYER_PLAYER  20u
+#define RENDER_LAYER_ENEMY 10u
+#define RENDER_LAYER_PLAYER 20u
 
 #define RENDER_BATCH_DEFAULT 0u
-#define RENDER_BATCH_PLAYER  1u
-#define RENDER_BATCH_ENEMY   2u
+#define RENDER_BATCH_PLAYER 1u
+#define RENDER_BATCH_ENEMY 2u
 
 // ============================================================================
 // Entity Registry (Packed Parallel SoA)
@@ -94,74 +96,94 @@
 
 /**
  * @brief The core data structure holding all entity data in SoA layout.
- * 
+ *
  * All arrays are 64-byte aligned for optimal cache line usage and SIMD.
  * Data is stored in "parallel" arrays - same index across all arrays
  * refers to the same entity.
  */
 typedef struct EntityRegistry {
-    alignas(64) float pos_x[MAX_ENTITIES];              ///< Position X
-    alignas(64) float pos_y[MAX_ENTITIES];              ///< Position Y
-    alignas(64) float vel_x[MAX_ENTITIES];              ///< Velocity X
-    alignas(64) float vel_y[MAX_ENTITIES];              ///< Velocity Y
+  alignas(64) float pos_x[MAX_ENTITIES]; ///< Position X
+  alignas(64) float pos_y[MAX_ENTITIES]; ///< Position Y
+  alignas(64) float vel_x[MAX_ENTITIES]; ///< Velocity X
+  alignas(64) float vel_y[MAX_ENTITIES]; ///< Velocity Y
 
-    alignas(64) uint64_t component_masks[MAX_ENTITIES]; ///< Component presence bits
-    alignas(64) uint64_t state_flags[MAX_ENTITIES];     ///< Behavioral flags + collision data
-    alignas(64) uint8_t render_layer[MAX_ENTITIES];     ///< Render_layer
-    alignas(64) uint8_t batch_ids[MAX_ENTITIES];        ///< Render batch lookup index
-    
-    alignas(64) float size_w[MAX_ENTITIES];             ///< Size width
-    alignas(64) float size_h[MAX_ENTITIES];             ///< Size height
-    alignas(64) uint8_t material_id[MAX_ENTITIES];      ///< Material ID for physics.
-    alignas(64) float drag[MAX_ENTITIES];               ///< Air resistance etc. for physics.
-    alignas(64) float inv_mass[MAX_ENTITIES];           ///< Physics Mass
-    alignas(64) float gravity_scale[MAX_ENTITIES];      ///< Gravity Scales
-    alignas(64) float rotation[MAX_ENTITIES];           ///< Rotation in degrees
+  alignas(64) uint64_t
+      component_masks[MAX_ENTITIES]; ///< Component presence bits
+  alignas(64) uint64_t
+      state_flags[MAX_ENTITIES]; ///< Behavioral flags + collision data
+  alignas(64) uint8_t render_layer[MAX_ENTITIES]; ///< Render_layer
+  alignas(64) uint8_t batch_ids[MAX_ENTITIES];    ///< Render batch lookup index
 
-    alignas(64) uint16_t sprite_ids[MAX_ENTITIES];      ///< Sprite/texture ID
-    alignas(64) creColor colors[MAX_ENTITIES];          ///< Tint color
-    alignas(64) float  pivot_x[MAX_ENTITIES];           ///< Pivot_x of sprite
-    alignas(64) float  pivot_y[MAX_ENTITIES];           ///< Pivot_y of sprite
-    alignas(64) float  visual_scale_x[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
-    alignas(64) float  visual_scale_y[MAX_ENTITIES];     ///< Visual Scale of Entity(def. 1.0f)
+  alignas(64) float size_w[MAX_ENTITIES];        ///< Size width
+  alignas(64) float size_h[MAX_ENTITIES];        ///< Size height
+  alignas(64) uint8_t material_id[MAX_ENTITIES]; ///< Material ID for physics.
+  alignas(64) float drag[MAX_ENTITIES]; ///< Air resistance etc. for physics.
+  alignas(64) float inv_mass[MAX_ENTITIES];      ///< Physics Mass
+  alignas(64) float gravity_scale[MAX_ENTITIES]; ///< Gravity Scales
+  alignas(64) float rotation[MAX_ENTITIES];      ///< Rotation in degrees
 
-    // Animation SoA arrays - Dynamic State (managed by animationSystem)
-    alignas(64) float    anim_timers[MAX_ENTITIES];     ///< Time accumulator for frame advance
-    alignas(64) float    anim_speeds[MAX_ENTITIES];     ///< Speed multiplier (1.0f = normal)
-    alignas(64) uint16_t anim_ids[MAX_ENTITIES];        ///< Current animation ID (AnimID)
-    alignas(64) uint16_t anim_frames[MAX_ENTITIES];     ///< Current frame index
-    alignas(64) bool     anim_finished[MAX_ENTITIES];   ///< True if non-looping anim completed
+  // change sprite_ids to uint32_t
+  alignas(64) uint16_t sprite_ids[MAX_ENTITIES];  ///< Sprite/texture ID
+  alignas(64) creColor colors[MAX_ENTITIES];      ///< Tint color
+  alignas(64) float pivot_x[MAX_ENTITIES];        ///< Pivot_x of sprite
+  alignas(64) float pivot_y[MAX_ENTITIES];        ///< Pivot_y of sprite
+  alignas(64) float visual_scale_x[MAX_ENTITIES]; ///< Visual Scale of
+                                                  ///< Entity(def. 1.0f)
+  alignas(64) float visual_scale_y[MAX_ENTITIES]; ///< Visual Scale of
+                                                  ///< Entity(def. 1.0f)
 
-    // Animation SoA arrays - Baked Constants
-    alignas(64) float    anim_base_durations[MAX_ENTITIES]; ///< Seconds per frame (from def->defaultSpeed)
-    alignas(64) uint16_t anim_frame_counts[MAX_ENTITIES];   ///< Total frames (from def->frameCount)
-    alignas(64) uint16_t anim_start_sprites[MAX_ENTITIES];  ///< First sprite ID (from def->startSpriteID)
-    alignas(64) bool     anim_loops[MAX_ENTITIES];          ///< Loop flag (from def->loop)
-    alignas(64) CameraComponent cameras[MAX_CAMERAS];
-    alignas(64) uint32_t camera_count;
+  // Animation SoA arrays - Dynamic State (managed by animationSystem)
+  alignas(64) float anim_timers[MAX_ENTITIES]; ///< Time accumulator for frame
+                                               ///< advance
+  alignas(
+      64) float anim_speeds[MAX_ENTITIES]; ///< Speed multiplier (1.0f = normal)
+  alignas(
+      64) uint16_t anim_ids[MAX_ENTITIES]; ///< Current animation ID (AnimID)
+  alignas(64) uint16_t anim_frames[MAX_ENTITIES]; ///< Current frame index
+  alignas(64) bool anim_finished[MAX_ENTITIES];   ///< True if non-looping anim
+                                                  ///< completed
 
-    alignas(64) uint16_t types[MAX_ENTITIES];           ///< Entity type ID
-    alignas(64) uint32_t generations[MAX_ENTITIES];     ///< Generation counters
-    alignas(64) uint32_t free_list[MAX_ENTITIES];       ///< Stack of free indices
+  // Animation SoA arrays - Baked Constants
+  alignas(
+      64) float anim_base_durations[MAX_ENTITIES]; ///< Seconds per frame (from
+                                                   ///< def->defaultSpeed)
+  alignas(64) uint16_t
+      anim_frame_counts[MAX_ENTITIES]; ///< Total frames (from def->frameCount)
+  alignas(64) uint16_t
+      anim_start_sprites[MAX_ENTITIES];      ///< First sprite ID (from
+                                             ///< def->startSpriteID)
+  alignas(64) bool anim_loops[MAX_ENTITIES]; ///< Loop flag (from def->loop)
+  alignas(64) CameraComponent cameras[MAX_CAMERAS];
+  alignas(64) uint32_t camera_count;
 
-    alignas(64) uint32_t free_count;                    ///< Number of free slots
-    alignas(64) uint32_t active_count;                  ///< Number of active entities
-    alignas(64) uint32_t max_used_bound;                ///< Highest index ever used (optimization hint)
+  alignas(64) uint16_t types[MAX_ENTITIES];       ///< Entity type ID
+  alignas(64) uint32_t generations[MAX_ENTITIES]; ///< Generation counters
+  alignas(64) uint32_t free_list[MAX_ENTITIES];   ///< Stack of free indices
 
-    alignas(64) EntityEventDispatcher events;           ///< Lifecycle hook dispatcher state
+  alignas(64) uint32_t free_count;   ///< Number of free slots
+  alignas(64) uint32_t active_count; ///< Number of active entities
+  alignas(64) uint32_t
+      max_used_bound; ///< Highest index ever used (optimization hint)
+
+  alignas(64) EntityEventDispatcher events; ///< Lifecycle hook dispatcher state
 } EntityRegistry;
 
-static inline bool EntityRegistry_IsAlive(const EntityRegistry* reg, Entity e) {
-    if (!reg) return false;
-    if (e.id >= MAX_ENTITIES) return false;
-    if (!(reg->state_flags[e.id] & FLAG_ACTIVE)) return false;
-    return reg->generations[e.id] == e.generation;
+static inline bool EntityRegistry_IsAlive(const EntityRegistry *reg, Entity e) {
+  if (!reg)
+    return false;
+  if (e.id >= MAX_ENTITIES)
+    return false;
+  if (!(reg->state_flags[e.id] & FLAG_ACTIVE))
+    return false;
+  return reg->generations[e.id] == e.generation;
 }
 
-static inline bool EntityRegistry_IsValid(const EntityRegistry* reg, Entity e) {
-    if (!reg) return false;
-    if (e.id >= MAX_ENTITIES) return false;
-    return (reg->generations[e.id] == e.generation);
+static inline bool EntityRegistry_IsValid(const EntityRegistry *reg, Entity e) {
+  if (!reg)
+    return false;
+  if (e.id >= MAX_ENTITIES)
+    return false;
+  return (reg->generations[e.id] == e.generation);
 }
 
 #endif

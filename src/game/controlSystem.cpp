@@ -30,7 +30,7 @@
 
 static Entity getActiveCameraEntity(const EntityRegistry *reg) {
   int32_t camIdx = cameraSystem_FindActive(reg);
-  if (camIdx < 0 || camIdx >= (int32_t)MAX_CAMERAS) {
+  if (camIdx < 0 || camIdx >= static_cast<int32_t>(MAX_CAMERAS)) {
     return ENTITY_INVALID;
   }
   return reg->cameras[camIdx].ownerEntity;
@@ -107,7 +107,7 @@ void ControlSystem_ChangeZoom(EntityRegistry *reg, CommandBus *bus, float dt) {
 }
 
 void ControlSystem_SetCameraTarget(EntityRegistry *reg, CommandBus *bus,
-                                   Entity target,Entity camEntity) {
+                                   Entity target, Entity camEntity) {
   assert(reg && "reg is NULL");
   assert(bus && "bus is NULL");
 
@@ -173,11 +173,16 @@ void ControlSystem_HandleDebugSpawning(EntityRegistry *reg, CommandBus *bus) {
     audioAPI_PlayOneShot(bus, AUDIO_GROUP_MASTER, AUDIO_SOURCE_TEST_SFX);
     ///
     for (int i = 0; i < SPAWN_COUNT; i++) {
-      float x = GetRandomValue((int)(-8 * v.width), (int)(v.width * 8));
-      float y = GetRandomValue((int)(-8 * v.height), (int)(v.height * 8));
+      int x = GetRandomValue(static_cast<int>(-8 * v.width),
+                             static_cast<int>(v.width * 8));
+      int y = GetRandomValue(static_cast<int>(-8 * v.height),
+                             static_cast<int>(v.height * 8));
 
-      Entity zombie =
-          entityAPI_Spawn(reg, bus, g_zombiePrototype, creVec2{x, y});
+      Entity zombie = entityAPI_Spawn(
+          reg, bus, g_zombiePrototype,
+          creVec2{static_cast<float>(x), static_cast<float>(y)});
+      // not a beautiful solution but it works. Will be handling these casts
+      // later on.
       physicsAPI_DefineBody(bus, zombie, MAT_DEFAULT, 2.0f, false);
 
       animAPI_Play(bus, zombie, ANIM_CHARACTER_ZOMBIE_RUN, true);

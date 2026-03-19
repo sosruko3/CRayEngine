@@ -4,11 +4,13 @@
 #include "cre_types.h"
 #include "raylib.h"
 
-// creVec2 -> Vector2
-#define R_VEC(v) (Vector2{ (v).x, (v).y })
-// creColor -> Color
-#define R_COL(c) (Color{ (c).r, (c).g, (c).b, (c).a })
-// creRectangle -> Rectangle
-#define R_REC(r) (Rectangle{ (r).x, (r).y, (r).width, (r).height })
+[[nodiscard]] inline Vector2 R_VEC(creVec2 v) { return Vector2{v.x, v.y}; }
 
+[[nodiscard]] inline Color R_COL(creColor c) {
+  return Color{c.r, c.g, c.b, c.a};
+}
+
+[[nodiscard]] inline Rectangle R_REC(creRectangle r) {
+  return Rectangle{r.x, r.y, r.width, r.height};
+}
 #endif

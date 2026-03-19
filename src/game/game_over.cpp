@@ -41,12 +41,15 @@ void GameOver_Draw(EntityRegistry *reg, CommandBus *bus) {
   rendererCore_EndWorldRender();
 
   int titleWidth = MeasureText(GAMEOVER_TITLE_TEXT, FONT_SIZE_TITLE);
-  DrawText(GAMEOVER_TITLE_TEXT, (SCREEN_WIDTH - titleWidth) / 2,
-           SCREEN_HEIGHT / 2 - 50, FONT_SIZE_TITLE, RED);
+  DrawText(GAMEOVER_TITLE_TEXT,
+           (static_cast<int>(SCREEN_WIDTH) - titleWidth) / 2,
+           static_cast<int>(SCREEN_HEIGHT) / 2 - 50, FONT_SIZE_TITLE, RED);
 
   int restartWidth = MeasureText(GAMEOVER_RESTART_TEXT, FONT_SIZE_SUBTITLE);
-  DrawText(GAMEOVER_RESTART_TEXT, (SCREEN_WIDTH - restartWidth) / 2,
-           SCREEN_HEIGHT / 2 + 50, FONT_SIZE_SUBTITLE, RAYWHITE);
+  DrawText(GAMEOVER_RESTART_TEXT,
+           (static_cast<int>(SCREEN_WIDTH) - restartWidth) / 2,
+           static_cast<int>(SCREEN_HEIGHT) / 2 + 50, FONT_SIZE_SUBTITLE,
+           RAYWHITE);
 }
 
 void GameOver_Unload(EntityRegistry *reg, CommandBus *bus) {

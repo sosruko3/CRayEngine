@@ -4,12 +4,12 @@
 #include "stdbool.h"
 
 typedef struct ViewportSize {
-    float width;
-    float height;
-    float aspect;
+  float width;
+  float height;
+  float aspect;
 } ViewportSize;
 
-void Viewport_Init(int initialW,int initialH);
+void Viewport_Init(float initialW, float initialH);
 ViewportSize Viewport_Get(void);
 void Viewport_Update(void);
 

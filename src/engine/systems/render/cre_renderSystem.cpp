@@ -5,19 +5,21 @@
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/loaders/cre_assetManager.h"
 #include "engine/systems/physics/cre_spatialHash.h"
+#include <algorithm>
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef uint64_t SortKey;
 
-typedef struct RenderState {
+struct RenderState {
   Texture2D *texture;
   Shader *shader;
   int32_t blendMode;
   int32_t filterMode;
-} RenderState;
+};
 
 static RenderState render_state_table[256];
 static Texture2D s_defaultTexture;
@@ -31,20 +33,21 @@ static float g_WeightX = 0.0f;
 static float g_WeightY = 0.0f;
 static float g_WeightH = 0.0f;
 
-#define SORT_BITS_LAYER 8
-#define SORT_BITS_BATCH 8
-#define SORT_BITS_DEPTH 24
-#define SORT_BITS_ID 24
+constexpr uint32_t SORT_BITS_LAYER = 8U;
+constexpr uint32_t SORT_BITS_BATCH = 8U;
+constexpr uint32_t SORT_BITS_DEPTH = 24U;
+constexpr uint32_t SORT_BITS_ID = 24U;
 
-#define SORT_MASK_LAYER ((1ULL << SORT_BITS_LAYER) - 1) // 0xFF
-#define SORT_MASK_BATCH ((1ULL << SORT_BITS_BATCH) - 1) // 0xFF
-#define SORT_MASK_DEPTH ((1ULL << SORT_BITS_DEPTH) - 1) // 0xFFFFFF
-#define SORT_MASK_ID ((1ULL << SORT_BITS_ID) - 1)       // 0xFFFFFF
+constexpr uint64_t SORT_MASK_LAYER = ((1ULL << SORT_BITS_LAYER) - 1); // 0xFF
+constexpr uint64_t SORT_MASK_BATCH = ((1ULL << SORT_BITS_BATCH) - 1); // 0xFF
+constexpr uint64_t SORT_MASK_DEPTH =
+    ((1ULL << SORT_BITS_DEPTH) - 1);                            // 0xFFFFFF
+constexpr uint64_t SORT_MASK_ID = ((1ULL << SORT_BITS_ID) - 1); // 0xFFFFFF
 
 // Depth settings
-#define SORT_DEPTH_BIAS 100000.0f
-#define SORT_DEPTH_PRECISION 100.0f
-#define SORT_DEPTH_MAX (SORT_MASK_DEPTH)
+constexpr float SORT_DEPTH_BIAS = 100000.0f;
+constexpr float SORT_DEPTH_PRECISION = 100.0f;
+constexpr uint32_t SORT_DEPTH_MAX = static_cast<uint32_t>(SORT_MASK_DEPTH);
 
 static void renderSystem_SetDepthMath(float wX, float wY, float wH,
                                       uint8_t shiftBatch, uint8_t shiftDepth) {
@@ -52,8 +55,8 @@ static void renderSystem_SetDepthMath(float wX, float wY, float wH,
 
   assert(shiftDepth < 64U);
   assert(shiftBatch < 64U);
-  assert((uint32_t)shiftDepth + SORT_BITS_DEPTH <= 64U);
-  assert((uint32_t)shiftBatch + SORT_BITS_BATCH <= 64U);
+  assert(static_cast<uint32_t>(shiftDepth) + SORT_BITS_DEPTH <= 64U);
+  assert(static_cast<uint32_t>(shiftBatch) + SORT_BITS_BATCH <= 64U);
 
   const uint64_t idMask = SORT_MASK_ID;
   const uint64_t depthMask = SORT_MASK_DEPTH << shiftDepth;
@@ -147,49 +150,39 @@ void renderSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
 
 static inline SortKey PackSortKey(uint8_t layer, uint8_t batchID,
                                   uint32_t depth, uint32_t entityID) {
-  const uint64_t layerPart = (((uint64_t)layer) & SORT_MASK_LAYER)
+  const uint64_t layerPart = (static_cast<uint64_t>(layer) & SORT_MASK_LAYER)
                              << g_shiftLayer;
-  const uint64_t batchPart = (((uint64_t)batchID) & SORT_MASK_BATCH)
+  const uint64_t batchPart = (static_cast<uint64_t>(batchID) & SORT_MASK_BATCH)
                              << g_shiftBatch;
-  const uint64_t depthPart = (((uint64_t)depth) & SORT_MASK_DEPTH)
+  const uint64_t depthPart = (static_cast<uint64_t>(depth) & SORT_MASK_DEPTH)
                              << g_shiftDepth;
-  const uint64_t entityPart = ((uint64_t)entityID) & SORT_MASK_ID;
-  return (SortKey)(layerPart | batchPart | depthPart | entityPart);
+  const uint64_t entityPart = (static_cast<uint64_t>(entityID) & SORT_MASK_ID);
+  return static_cast<SortKey>(layerPart | batchPart | depthPart | entityPart);
 }
 
 static inline uint32_t UnpackEntityID(SortKey key) {
-  return (uint32_t)(key & SORT_MASK_ID);
+  return static_cast<uint32_t>(key & SORT_MASK_ID);
 }
 
 static inline uint8_t UnpackBatchID(SortKey key) {
-  return (uint8_t)((key >> g_shiftBatch) & SORT_MASK_BATCH);
+  return static_cast<uint8_t>((key >> g_shiftBatch) & SORT_MASK_BATCH);
 }
 
 static inline uint32_t QuantizeDepth(float y) {
   const float quantized = (y + SORT_DEPTH_BIAS) * SORT_DEPTH_PRECISION;
   if (quantized <= 0.0f)
     return 0U;
-  if (quantized >= (float)SORT_DEPTH_MAX)
-    return (uint32_t)SORT_DEPTH_MAX;
-  return (uint32_t)quantized;
-}
-
-static int SortKeyCompare(const void *lhs, const void *rhs) {
-  const SortKey a = *(const SortKey *)lhs;
-  const SortKey b = *(const SortKey *)rhs;
-  if (a < b)
-    return -1;
-  if (a > b)
-    return 1;
-  return 0;
+  if (quantized >= static_cast<float>(SORT_DEPTH_MAX))
+    return SORT_DEPTH_MAX;
+  return static_cast<uint32_t>(quantized);
 }
 
 void renderSystem_RegisterBatch(uint8_t id, Texture2D *tex, Shader *shd,
                                 int32_t blend, int32_t filterMode) {
   render_state_table[id] = RenderState{.texture = tex,
-                                         .shader = shd,
-                                         .blendMode = blend,
-                                         .filterMode = filterMode};
+                                       .shader = shd,
+                                       .blendMode = blend,
+                                       .filterMode = filterMode};
 }
 
 static void _renderSystem_InitBatchTable(void) {
@@ -216,12 +209,15 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
   assert(reg && "reg is NULL");
   _renderSystem_InitBatchTable();
 
+  // These two create data race on multithreaded systems, fix them before
+  // multithreading.
   static uint32_t visibleEntities[MAX_VISIBLE_ENTITIES];
   static SortKey sortKeys[MAX_VISIBLE_ENTITIES];
 
   const int visibleCount = SpatialHash_Query(
-      (int)cullRect.x, (int)cullRect.y, (int)cullRect.width,
-      (int)cullRect.height, visibleEntities, MAX_VISIBLE_ENTITIES);
+      static_cast<int>(cullRect.x), static_cast<int>(cullRect.y),
+      static_cast<int>(cullRect.width), static_cast<int>(cullRect.height),
+      visibleEntities, MAX_VISIBLE_ENTITIES);
 
   int sortCount = 0;
   for (int i = 0; i < visibleCount; i++) {
@@ -243,7 +239,9 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
     sortKeys[sortCount++] = PackSortKey(layer, batchID, depth, id);
   }
 
-  qsort(sortKeys, (size_t)sortCount, sizeof(SortKey), SortKeyCompare);
+  // replaced qsort(C) with std::sort for safer code. qsort(C) required void*
+  std::sort(sortKeys, sortKeys + sortCount,
+            [](const SortKey &a, const SortKey &b) { return a < b; });
 
   int16_t lastBatch = -1;
   for (int i = 0; i < sortCount; i++) {
@@ -279,8 +277,7 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
 
 void renderSystem_Draw(EntityRegistry *reg, CommandBus *bus,
                        creRectangle view) {
-  renderSystem_ProcessCommands(reg, bus);
-  //_Renderer_SyncDecorations(reg); Disabled this for temporary.
 
+  renderSystem_ProcessCommands(reg, bus);
   renderSystem_DrawEntities(reg, view);
 }
