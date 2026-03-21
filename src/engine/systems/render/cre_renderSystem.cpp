@@ -193,11 +193,11 @@ static void _renderSystem_InitBatchTable(void) {
   // line.
   s_defaultTexture = Asset_getTexture();
 
-  renderSystem_RegisterBatch(RENDER_BATCH_DEFAULT, &s_defaultTexture, NULL,
+  renderSystem_RegisterBatch(RENDER_BATCH_DEFAULT, &s_defaultTexture, nullptr,
                              BLEND_ALPHA, TEXTURE_FILTER_POINT);
-  renderSystem_RegisterBatch(RENDER_BATCH_PLAYER, &s_defaultTexture, NULL,
+  renderSystem_RegisterBatch(RENDER_BATCH_PLAYER, &s_defaultTexture, nullptr,
                              BLEND_ALPHA, TEXTURE_FILTER_POINT);
-  renderSystem_RegisterBatch(RENDER_BATCH_ENEMY, &s_defaultTexture, NULL,
+  renderSystem_RegisterBatch(RENDER_BATCH_ENEMY, &s_defaultTexture, nullptr,
                              BLEND_ALPHA, TEXTURE_FILTER_POINT);
 
   s_batchTableInitialized = true;

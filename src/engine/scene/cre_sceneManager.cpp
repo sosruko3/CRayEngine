@@ -2,7 +2,6 @@
 #include "engine/core/cre_logger.h"
 #include "engine/ecs/cre_entitySystem.h"
 #include "stdbool.h"
-#include "stddef.h" // for NULL
 #include <stdint.h>
 
 // Internal state

@@ -294,7 +294,7 @@ static void audio_GroupInit(AudioGroupID groupID) {
   }
 
   const ma_result result =
-      ma_sound_group_init(&s_audioEngine, 0, NULL, &s_groups[groupID]);
+      ma_sound_group_init(&s_audioEngine, 0, nullptr, &s_groups[groupID]);
   if (result != MA_SUCCESS) {
     Log(LOG_LVL_WARNING, "[AUDIO] Failed to init group %u (err=%d)",
         (unsigned)groupID, (int)result);
@@ -387,7 +387,7 @@ static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
   const ma_uint32 flags = s_usageFlags[(uint32_t)usage];
   const ma_result result =
       ma_sound_init_from_file(&s_audioEngine, filepath, flags,
-                              &s_groups[groupID], NULL, &s_soundPool[slot]);
+                  &s_groups[groupID], nullptr, &s_soundPool[slot]);
 
   if (result != MA_SUCCESS) {
     Log(LOG_LVL_WARNING, "[AUDIO] Failed to load sound idx=%u path=%s err=%d",

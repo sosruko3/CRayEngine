@@ -63,10 +63,10 @@ static void EntitySystem_CopyPrototype(EntityRegistry &reg, uint32_t dst_id,
 
 bool EntitySystem_SubscribeOnCloned(EntityRegistry &reg,
                                     OnEntityClonedCallback cb) {
-  assert(cb != NULL && "Subscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Subscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_clone_hooks &&
          "Cannot subscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.clone_hook_count; ++i) {
@@ -88,10 +88,10 @@ bool EntitySystem_SubscribeOnCloned(EntityRegistry &reg,
 
 bool EntitySystem_UnsubscribeOnCloned(EntityRegistry &reg,
                                       OnEntityClonedCallback cb) {
-  assert(cb != NULL && "Unsubscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Unsubscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_clone_hooks &&
          "Cannot unsubscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.clone_hook_count; ++i) {
@@ -103,7 +103,7 @@ bool EntitySystem_UnsubscribeOnCloned(EntityRegistry &reg,
     }
 
     reg.events.clone_hook_count--;
-    reg.events.clone_hooks[reg.events.clone_hook_count] = NULL;
+    reg.events.clone_hooks[reg.events.clone_hook_count] = nullptr;
     return true;
   }
 
@@ -115,7 +115,7 @@ void EntitySystem_ClearCloneHooks(EntityRegistry &reg) {
          "Cannot clear hooks during dispatch loop");
 
   for (uint8_t i = 0; i < MAX_CLONE_HOOKS; ++i) {
-    reg.events.clone_hooks[i] = NULL;
+    reg.events.clone_hooks[i] = nullptr;
   }
 
   reg.events.clone_hook_count = 0;
@@ -124,10 +124,10 @@ void EntitySystem_ClearCloneHooks(EntityRegistry &reg) {
 
 bool EntitySystem_SubscribeOnSpawned(EntityRegistry &reg,
                                      OnEntitySpawnedCallback cb) {
-  assert(cb != NULL && "Subscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Subscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_spawn_hooks &&
          "Cannot subscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.spawn_hook_count; ++i) {
@@ -149,10 +149,10 @@ bool EntitySystem_SubscribeOnSpawned(EntityRegistry &reg,
 
 bool EntitySystem_UnsubscribeOnSpawned(EntityRegistry &reg,
                                        OnEntitySpawnedCallback cb) {
-  assert(cb != NULL && "Unsubscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Unsubscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_spawn_hooks &&
          "Cannot unsubscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.spawn_hook_count; ++i) {
@@ -164,7 +164,7 @@ bool EntitySystem_UnsubscribeOnSpawned(EntityRegistry &reg,
     }
 
     reg.events.spawn_hook_count--;
-    reg.events.spawn_hooks[reg.events.spawn_hook_count] = NULL;
+    reg.events.spawn_hooks[reg.events.spawn_hook_count] = nullptr;
     return true;
   }
 
@@ -176,7 +176,7 @@ void EntitySystem_ClearSpawnHooks(EntityRegistry &reg) {
          "Cannot clear hooks during dispatch loop");
 
   for (uint8_t i = 0; i < MAX_SPAWN_HOOKS; ++i) {
-    reg.events.spawn_hooks[i] = NULL;
+    reg.events.spawn_hooks[i] = nullptr;
   }
 
   reg.events.spawn_hook_count = 0;
@@ -185,10 +185,10 @@ void EntitySystem_ClearSpawnHooks(EntityRegistry &reg) {
 
 bool EntitySystem_SubscribeOnDestroyed(EntityRegistry &reg,
                                        OnEntityDestroyedCallback cb) {
-  assert(cb != NULL && "Subscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Subscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_destroy_hooks &&
          "Cannot subscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.destroy_hook_count; ++i) {
@@ -211,10 +211,10 @@ bool EntitySystem_SubscribeOnDestroyed(EntityRegistry &reg,
 
 bool EntitySystem_UnsubscribeOnDestroyed(EntityRegistry &reg,
                                          OnEntityDestroyedCallback cb) {
-  assert(cb != NULL && "Unsubscribe callback cannot be NULL!");
+  assert(cb != nullptr && "Unsubscribe callback cannot be NULL!");
   assert(!reg.events.is_dispatching_destroy_hooks &&
          "Cannot unsubscribe during dispatch loop");
-  if (cb == NULL)
+  if (cb == nullptr)
     return false;
 
   for (uint8_t i = 0; i < reg.events.destroy_hook_count; ++i) {
@@ -226,7 +226,7 @@ bool EntitySystem_UnsubscribeOnDestroyed(EntityRegistry &reg,
     }
 
     reg.events.destroy_hook_count--;
-    reg.events.destroy_hooks[reg.events.destroy_hook_count] = NULL;
+    reg.events.destroy_hooks[reg.events.destroy_hook_count] = nullptr;
     return true;
   }
 
@@ -238,7 +238,7 @@ void EntitySystem_ClearDestroyHooks(EntityRegistry &reg) {
          "Cannot clear hooks during dispatch loop");
 
   for (uint8_t i = 0; i < MAX_DESTROY_HOOKS; ++i) {
-    reg.events.destroy_hooks[i] = NULL;
+    reg.events.destroy_hooks[i] = nullptr;
   }
 
   reg.events.destroy_hook_count = 0;
@@ -300,7 +300,7 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
         const uint8_t hook_count = reg.events.spawn_hook_count;
         for (uint8_t i = 0; i < hook_count; ++i) {
           OnEntitySpawnedCallback hook = reg.events.spawn_hooks[i];
-          if (hook == NULL)
+          if (hook == nullptr)
             continue;
           hook(reg, bus, src, dst);
         }
@@ -347,7 +347,7 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       const uint8_t hook_count = reg.events.clone_hook_count;
       for (uint8_t i = 0; i < hook_count; ++i) {
         OnEntityClonedCallback hook = reg.events.clone_hooks[i];
-        if (hook == NULL)
+        if (hook == nullptr)
           continue;
         hook(reg, bus, src, dst);
       }
@@ -363,7 +363,7 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       const uint8_t hook_count = reg.events.destroy_hook_count;
       for (uint8_t i = 0; i < hook_count; ++i) {
         OnEntityDestroyedCallback hook = reg.events.destroy_hooks[i];
-        if (hook == NULL)
+        if (hook == nullptr)
           continue;
         hook(reg, bus, cmd->entity);
       }

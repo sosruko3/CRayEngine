@@ -147,7 +147,7 @@ void rendererCore_SetState(Texture2D *texture, Shader *shader,
 
   // This is in case current and next atlas has same filter. It would have been
   // a problem for checks.
-  Texture2D nextTexture = (texture != NULL) ? *texture : state.cachedAtlas;
+  Texture2D nextTexture = (texture != nullptr) ? *texture : state.cachedAtlas;
   bool textureChanged = (nextTexture.id != state.currentTexture.id);
   state.currentTexture = nextTexture;
 
@@ -158,7 +158,7 @@ void rendererCore_SetState(Texture2D *texture, Shader *shader,
   }
 
   state.currentShader =
-      (shader != NULL && shader->id != 0) ? *shader : Shader{0, NULL};
+      (shader != nullptr && shader->id != 0) ? *shader : Shader{0, nullptr};
   state.currentBlendMode = blendMode;
 
   BeginBlendMode(state.currentBlendMode);

@@ -38,7 +38,7 @@ void RaylibLogHook(int logLevel, const char *text, va_list args) {
   // Send it to the engine
   Log(myLevel, "[RAYLIB] %s", buffer);
 }
-static FILE *logFile = NULL;
+static FILE *logFile = nullptr;
 
 // Helper function to create a directory
 // Deleted MakeDirectory function, instead using raylib's MakeDirectory
@@ -77,12 +77,12 @@ void Logger_Shutdown(void) {
   if (logFile) {
     Log(LOG_LVL_INFO, "---- SYSTEM SHUTDOWN ----");
     fclose(logFile);
-    logFile = NULL;
+    logFile = nullptr;
   }
 }
 void Log(LogLevel level, const char *fmt, ...) {
   // get current time
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   struct tm *t = localtime(&now);
   char timeStr[24];
   strftime(timeStr, sizeof(timeStr), "%d/%m/%Y %H:%M:%S", t);

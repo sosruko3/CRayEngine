@@ -20,7 +20,7 @@ void CommandBus_Init(CommandBus &bus) {
 }
 
 void CommandBus_Flush(CommandBus &bus, const CommandIterator *iter) {
-  assert(iter != NULL && "Cannot flush with NULL iterator");
+  assert(iter != nullptr && "Cannot flush with NULL iterator");
 
   // Advance tail to iterator's end position
   // All commands up to iter->end are now considered consumed

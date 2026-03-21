@@ -188,12 +188,12 @@ static inline CommandIterator CommandBus_GetIterator(CommandBus &bus) {
  */
 static inline bool CommandBus_Next(const CommandBus &bus, CommandIterator *iter,
                                    const Command **outPtr) {
-  assert(iter != NULL && "CommandBus_Next: iter is NULL");
-  assert(outPtr != NULL && "CommandBus_Next: outPtr is NULL");
+  assert(iter != nullptr && "CommandBus_Next: iter is NULL");
+  assert(outPtr != nullptr && "CommandBus_Next: outPtr is NULL");
 
   // Check if iterator is exhausted
   if (iter->current == iter->end) {
-    *outPtr = NULL;
+    *outPtr = nullptr;
     return false;
   }
 
@@ -224,12 +224,12 @@ static inline bool CommandBus_IsFull(const CommandBus &bus) {
 }
 
 static inline uint32_t CommandIterator_Remaining(const CommandIterator *iter) {
-  assert(iter != NULL);
+  assert(iter != nullptr);
   return iter->end - iter->current;
 }
 
 static inline bool CommandIterator_IsDone(const CommandIterator *iter) {
-  assert(iter != NULL);
+  assert(iter != nullptr);
   return iter->current == iter->end;
 }
 
