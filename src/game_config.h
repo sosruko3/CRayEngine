@@ -1,25 +1,23 @@
 #ifndef GAME_CONFIG_H
 #define GAME_CONFIG_H
 
-#define SCORE_PER_FOOD 10
-
+#include <stdint.h>
 #define SETTING_CFG_PATH "src/game/config/settings.cfg"
 #define GAME_TITLE "CRayEngine"
 #define MENU_TITLE_TEXT "Snake Game"
 #define MENU_START_TEXT "Press ENTER to START"
-#define MENU_TO_QUIT    "Press ESC to Quit"
+#define MENU_TO_QUIT "Press ESC to Quit"
 #define GAMEOVER_TITLE_TEXT "Game Over"
 #define GAMEOVER_RESTART_TEXT "Press ENTER for Menu"
-
-#define MAX_SNAKE_LENGTH 256
-#define SNAKE_INITIAL_LENGTH 3
-#define SNAKE_SPEED_START 0.15f
-#define SNAKE_SPEED_MIN   0.05f
-#define SNAKE_SPEED_BUFF  0.009f
 
 #define FONT_SIZE_TITLE 80
 #define FONT_SIZE_SUBTITLE 40
 #define FONT_SIZE_SCORE 80
 
 #define dirCONFIG "assets/config/settings.cfg"
+
+constexpr uint8_t RENDER_LAYER_DEFAULT = 0u;
+constexpr uint8_t RENDER_LAYER_ENEMY = 10u;
+constexpr uint8_t RENDER_LAYER_PLAYER = 20u;
+
 #endif

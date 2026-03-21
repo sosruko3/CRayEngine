@@ -6,6 +6,7 @@
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/physics/cre_physics_defs.h"
 #include "entity_types.h"
+#include "game_config.h"
 
 Entity g_playerPrototype = Entity{.id = 0, .generation = 0};
 Entity g_zombiePrototype = Entity{.id = 1, .generation = 0};

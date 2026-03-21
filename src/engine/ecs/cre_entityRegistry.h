@@ -20,21 +20,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// These three will be removed soon, just temporary for systems to work.
+#define RENDER_BATCH_DEFAULT 0u
+#define RENDER_BATCH_PLAYER 1u
+#define RENDER_BATCH_ENEMY 2u
+
 // ============================================================================
 // Component Mask Bits (uint64_t component_masks[])
 // ============================================================================
 // These bits indicate which components an entity possesses.
 
-#define COMP_NONE (0ULL)
-#define COMP_SPRITE (1ULL << 1)
-#define COMP_ANIMATION (1ULL << 2)
-#define COMP_PHYSICS (1ULL << 3)
-#define COMP_COLLISION_Circle (1ULL << 4)
-#define COMP_COLLISION_AABB (1ULL << 5)
-#define COMP_SOUND (1ULL << 6)
-#define COMP_AI (1ULL << 7)
-#define COMP_SHADER (1ULL << 8)
-#define COMP_CAMERA (1ULL << 9)
+constexpr uint64_t COMP_NONE = (0ULL);
+constexpr uint64_t COMP_SPRITE = (1ULL << 1);
+constexpr uint64_t COMP_ANIMATION = (1ULL << 2);
+constexpr uint64_t COMP_PHYSICS = (1ULL << 3);
+constexpr uint64_t COMP_COLLISION_Circle = (1ULL << 4);
+constexpr uint64_t COMP_COLLISION_AABB = (1ULL << 5);
+constexpr uint64_t COMP_SOUND = (1ULL << 6);
+constexpr uint64_t COMP_AI = (1ULL << 7);
+constexpr uint64_t COMP_SHADER = (1ULL << 8);
+constexpr uint64_t COMP_CAMERA = (1ULL << 9);
 
 // Reserve bits 6-31 for future component types
 // Bits 32-63 available for game-specific components
@@ -48,15 +53,21 @@
 // Bits 48-63: Reserved for future use
 
 // --- Behavioral Flags (Bits 0-15) ---
-#define FLAG_ACTIVE (1ULL << 0)       ///< Is this slot in use?
-#define FLAG_VISIBLE (1ULL << 1)      ///< Should renderer draw it?
-#define FLAG_ALWAYS_AWAKE (1ULL << 2) ///< Never enters sleep state
-#define FLAG_SLEEPING (1ULL << 3)     ///< Currently sleeping (skip physics)
-#define FLAG_CULLED (1ULL << 4)       ///< Outside camera view, skip rendering
-#define FLAG_PERSISTENT (1ULL << 5)   ///< Survives scene transitions
-#define FLAG_STATIC (1ULL << 6)       ///< Static in physics.
-#define FLAG_ANIM_PAUSED (1ULL << 7)  ///< Entity's animation is paused.
-#define CLONE_FLAGS_SCRUB_MASK (FLAG_ACTIVE | FLAG_CULLED | FLAG_SLEEPING)
+constexpr uint64_t FLAG_ACTIVE = (1ULL << 0);  ///< Is this slot in use?
+constexpr uint64_t FLAG_VISIBLE = (1ULL << 1); ///< Should renderer draw it?
+constexpr uint64_t FLAG_ALWAYS_AWAKE =
+    (1ULL << 2); ///< Never enters sleep state
+constexpr uint64_t FLAG_SLEEPING =
+    (1ULL << 3); ///< Currently sleeping (skip physics)
+constexpr uint64_t FLAG_CULLED =
+    (1ULL << 4); ///< Outside camera view, skip rendering
+constexpr uint64_t FLAG_PERSISTENT =
+    (1ULL << 5);                              ///< Survives scene transitions
+constexpr uint64_t FLAG_STATIC = (1ULL << 6); ///< Static in physics.
+constexpr uint64_t FLAG_ANIM_PAUSED =
+    (1ULL << 7); ///< Entity's animation is paused.
+constexpr uint64_t CLONE_FLAGS_SCRUB_MASK =
+    (FLAG_ACTIVE | FLAG_CULLED | FLAG_SLEEPING);
 // Bits 8-15 reserved for future engine flags
 
 // --- Collision Layer/Mask (64-bit version) ---
@@ -77,18 +88,6 @@
   static_cast<uint32_t>(flags) & ~(0xFFFFULL << LAYER_SHIFT)
 #define CLEAR_MASK(flags)                                                      \
   (static_cast<uint32_t>(flags) & ~(0xFFFFULL << MASK_SHIFT)
-
-// ============================================================================
-// Render Order / Batch Constants
-// ============================================================================
-// Move these to somewhere else. This is temporary.
-#define RENDER_LAYER_DEFAULT 0u
-#define RENDER_LAYER_ENEMY 10u
-#define RENDER_LAYER_PLAYER 20u
-
-#define RENDER_BATCH_DEFAULT 0u
-#define RENDER_BATCH_PLAYER 1u
-#define RENDER_BATCH_ENEMY 2u
 
 // ============================================================================
 // Entity Registry (Packed Parallel SoA)
