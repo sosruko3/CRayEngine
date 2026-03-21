@@ -28,13 +28,13 @@ static void EnginePhase0_PlatformSync(void) {
         (double)vp.width, (double)vp.height);
   }
 }
-static void EnginePhase1_InputAndLogic(EntityRegistry *restrict reg,
-                                       CommandBus *bus, float dt) {
+static void EnginePhase1_InputAndLogic(EntityRegistry &reg, CommandBus &bus,
+                                       float dt) {
   // Note: If you use command bus on phase0 , you need to move these to first
   // part of phase0
-  bus->consumed_end = bus->tail;
+  bus.consumed_end = bus.tail;
 #ifndef NDEBUG
-  bus->current_phase = BUS_PHASE_OPEN;
+  bus.current_phase = BUS_PHASE_OPEN;
 #endif
 
   Input_Poll(); // Empty right now.
@@ -44,11 +44,11 @@ static void EnginePhase1_InputAndLogic(EntityRegistry *restrict reg,
   SceneManager_Update(reg, bus, dt);
   PROFILE_END(PROF_SCENE);
 }
-static void EnginePhase2_Simulation(EntityRegistry *restrict reg,
-                                    CommandBus *bus, float dt) {
+static void EnginePhase2_Simulation(EntityRegistry &reg, CommandBus &bus,
+                                    float dt) {
   // AI and Particle systems are not implemented right now.
 #ifndef NDEBUG
-  bus->current_phase = BUS_PHASE_SIMULATION;
+  bus.current_phase = BUS_PHASE_SIMULATION;
 #endif
 
   PROFILE_START(PROF_ECS_SYS);
@@ -65,10 +65,10 @@ static void EnginePhase2_Simulation(EntityRegistry *restrict reg,
 
   audioSystem_Update(reg, bus);
 }
-static void EnginePhase3_RenderState(EntityRegistry *restrict reg,
-                                     CommandBus *bus, float dt) {
+static void EnginePhase3_RenderState(EntityRegistry &reg, CommandBus &bus,
+                                     float dt) {
 #ifndef NDEBUG
-  bus->current_phase = BUS_PHASE_RENDER;
+  bus.current_phase = BUS_PHASE_RENDER;
 #endif
 
   PROFILE_START(PROF_CAMERA);
@@ -81,31 +81,30 @@ static void EnginePhase3_RenderState(EntityRegistry *restrict reg,
   PROFILE_END(PROF_RENDER);
   rendererCore_EndFrame();
 }
-static void EnginePhase4_Cleanup(EntityRegistry *restrict reg,
-                                 CommandBus *bus) {
+static void EnginePhase4_Cleanup(EntityRegistry &reg, CommandBus &bus) {
   PROFILE_START(PROF_CLEANUP);
   (void)reg;
 #ifndef NDEBUG
-  bus->current_phase = BUS_PHASE_OPEN;
+  bus.current_phase = BUS_PHASE_OPEN;
 #endif
 
-  uint32_t flush_end = bus->consumed_end;
+  uint32_t flush_end = bus.consumed_end;
 
 #ifndef NDEBUG
-  assert((flush_end - bus->tail) <= (bus->head - bus->tail) &&
+  assert((flush_end - bus.tail) <= (bus.head - bus.tail) &&
          "consumed_end outside [tail..head] range");
 #endif
 
-  if ((flush_end - bus->tail) > (bus->head - bus->tail)) {
-    flush_end = bus->tail;
+  if ((flush_end - bus.tail) > (bus.head - bus.tail)) {
+    flush_end = bus.tail;
   }
 
-  CommandIterator iter = {.current = bus->tail, .end = flush_end};
+  CommandIterator iter = {.current = bus.tail, .end = flush_end};
   CommandBus_Flush(bus, &iter);
   PROFILE_END(PROF_CLEANUP);
 }
 
-void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
+void Engine_Init(EntityRegistry &reg, CommandBus &bus, const char *title,
                  const char *configFileName) {
   Logger_Init();
   Log(LOG_LVL_INFO, "[ENGINE] Engine is Initializing...");
@@ -138,7 +137,7 @@ void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
   audioSystem_Init();
   Log(LOG_LVL_INFO, "[ENGINE] Windows created successfully.");
 }
-void Engine_Run(EntityRegistry *reg, CommandBus *bus, float dt) {
+void Engine_Run(EntityRegistry &reg, CommandBus &bus, float dt) {
   while (!WindowShouldClose()) {
     PROFILE_START(PROF_TOTAL_ACTIVE);
     EnginePhase0_PlatformSync();
@@ -150,7 +149,7 @@ void Engine_Run(EntityRegistry *reg, CommandBus *bus, float dt) {
     Profiler_UpdateAndPrint(dt);
   }
 }
-void Engine_Shutdown(EntityRegistry *reg, CommandBus *bus) {
+void Engine_Shutdown(EntityRegistry &reg, CommandBus &bus) {
   Log(LOG_LVL_INFO, "[ENGINE] Shutting down...");
   SceneManager_Shutdown(reg, bus);
   EntityManager_Shutdown(reg);

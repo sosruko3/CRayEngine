@@ -5,11 +5,11 @@
 struct EntityRegistry;
 struct CommandBus;
 
-void Engine_Init(EntityRegistry *reg, CommandBus *bus, const char *title,
+void Engine_Init(EntityRegistry &reg, CommandBus &bus, const char *title,
                  const char *configFileName);
 
-void Engine_Run(EntityRegistry *reg, CommandBus *bus, float dt);
+void Engine_Run(EntityRegistry &reg, CommandBus &bus, float dt);
 
-void Engine_Shutdown(EntityRegistry *reg, CommandBus *bus);
+void Engine_Shutdown(EntityRegistry &reg, CommandBus &bus);
 
 #endif

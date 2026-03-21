@@ -79,9 +79,7 @@ static void renderSystem_SetDepthMath(float wX, float wY, float wH,
   g_shiftDepth = shiftDepth;
 }
 
-void renderSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
-  if (!reg || !bus)
-    return;
+void renderSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -109,37 +107,37 @@ void renderSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
       continue;
 
     const uint32_t id = cmd->entity.id;
-    if (!(reg->component_masks[id] & COMP_SPRITE))
+    if (!(reg.component_masks[id] & COMP_SPRITE))
       continue;
 
     switch (cmd->type) {
     case CMD_RENDER_SET_SPRITE:
-      reg->sprite_ids[id] = cmd->u16.value;
+      reg.sprite_ids[id] = cmd->u16.value;
       break;
 
     case CMD_RENDER_SET_COLOR:
-      reg->colors[id] = cmd->color.color;
+      reg.colors[id] = cmd->color.color;
       break;
 
     case CMD_RENDER_SET_VISIBLE:
       if (cmd->b8.value) {
-        reg->state_flags[id] |= FLAG_VISIBLE;
+        reg.state_flags[id] |= FLAG_VISIBLE;
       } else {
-        reg->state_flags[id] &= ~FLAG_VISIBLE;
+        reg.state_flags[id] &= ~FLAG_VISIBLE;
       }
       break;
 
     case CMD_RENDER_SET_VISUAL_SCALE:
-      reg->visual_scale_x[id] = cmd->vec2.value.x;
-      reg->visual_scale_y[id] = cmd->vec2.value.y;
+      reg.visual_scale_x[id] = cmd->vec2.value.x;
+      reg.visual_scale_y[id] = cmd->vec2.value.y;
       break;
 
     case CMD_RENDER_SET_ROTATION:
-      reg->rotation[id] = cmd->f32.value;
+      reg.rotation[id] = cmd->f32.value;
       break;
 
     case CMD_RENDER_SET_LAYER:
-      reg->render_layer[id] = cmd->u8.value;
+      reg.render_layer[id] = cmd->u8.value;
       break;
 
     default:
@@ -205,8 +203,7 @@ static void _renderSystem_InitBatchTable(void) {
   s_batchTableInitialized = true;
 }
 
-void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
-  assert(reg && "reg is NULL");
+void renderSystem_DrawEntities(EntityRegistry &reg, creRectangle cullRect) {
   _renderSystem_InitBatchTable();
 
   // These two create data race on multithreaded systems, fix them before
@@ -225,16 +222,16 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
     if (id >= MAX_ENTITIES)
       continue;
 
-    const uint64_t flags = reg->state_flags[id];
+    const uint64_t flags = reg.state_flags[id];
     if ((flags & (FLAG_ACTIVE | FLAG_VISIBLE)) != (FLAG_ACTIVE | FLAG_VISIBLE))
       continue;
 
-    const float rawDepth = (reg->pos_x[id] * g_WeightX) +
-                           (reg->pos_y[id] * g_WeightY) +
-                           (reg->size_h[id] * g_WeightH);
+    const float rawDepth = (reg.pos_x[id] * g_WeightX) +
+                           (reg.pos_y[id] * g_WeightY) +
+                           (reg.size_h[id] * g_WeightH);
     const uint32_t depth = QuantizeDepth(rawDepth);
-    const uint8_t layer = reg->render_layer[id];
-    const uint8_t batchID = reg->batch_ids[id];
+    const uint8_t layer = reg.render_layer[id];
+    const uint8_t batchID = reg.batch_ids[id];
 
     sortKeys[sortCount++] = PackSortKey(layer, batchID, depth, id);
   }
@@ -255,14 +252,14 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
       lastBatch = currentBatch;
     }
 
-    const uint16_t spriteID = reg->sprite_ids[id];
-    creVec2 position = {reg->pos_x[id], reg->pos_y[id]};
-    const creVec2 size = {reg->size_w[id] * reg->visual_scale_x[id],
-                          reg->size_h[id] * reg->visual_scale_y[id]};
-    const float rotation = reg->rotation[id];
-    const float pivotX = reg->pivot_x[id];
-    const float pivotY = reg->pivot_y[id];
-    const creColor color = reg->colors[id];
+    const uint16_t spriteID = reg.sprite_ids[id];
+    creVec2 position = {reg.pos_x[id], reg.pos_y[id]};
+    const creVec2 size = {reg.size_w[id] * reg.visual_scale_x[id],
+                          reg.size_h[id] * reg.visual_scale_y[id]};
+    const float rotation = reg.rotation[id];
+    const float pivotX = reg.pivot_x[id];
+    const float pivotY = reg.pivot_y[id];
+    const creColor color = reg.colors[id];
     const bool flipX = false;
     const bool flipY = false;
 
@@ -275,7 +272,7 @@ void renderSystem_DrawEntities(EntityRegistry *reg, creRectangle cullRect) {
   rendererCore_EndBatch();
 }
 
-void renderSystem_Draw(EntityRegistry *reg, CommandBus *bus,
+void renderSystem_Draw(EntityRegistry &reg, CommandBus &bus,
                        creRectangle view) {
 
   renderSystem_ProcessCommands(reg, bus);

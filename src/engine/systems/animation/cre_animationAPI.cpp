@@ -4,19 +4,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void animAPI_Play(CommandBus *restrict bus, Entity entity, uint16_t animID,
+void animAPI_Play(CommandBus &bus, Entity entity, uint16_t animID,
                   bool forceReset) {
 
   uint16_t flags = forceReset ? ANIM_FLAG_FORCE_RESET : 0;
-  assert(bus != NULL);
   Command cmd = {.type = CMD_ANIM_PLAY,
                  .entity = entity,
                  .anim = {.animID = animID, .flags = flags}};
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_Stop(CommandBus *restrict bus, Entity entity) {
-  assert(bus != NULL);
+void animAPI_Stop(CommandBus &bus, Entity entity) {
   Command cmd = {
       .type = CMD_ANIM_STOP,
       .entity = entity,
@@ -25,8 +23,7 @@ void animAPI_Stop(CommandBus *restrict bus, Entity entity) {
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_Resume(CommandBus *restrict bus, Entity entity) {
-  assert(bus != NULL);
+void animAPI_Resume(CommandBus &bus, Entity entity) {
   Command cmd = {
       .type = CMD_ANIM_RESUME,
       .entity = entity,
@@ -35,8 +32,7 @@ void animAPI_Resume(CommandBus *restrict bus, Entity entity) {
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_Pause(CommandBus *restrict bus, Entity entity) {
-  assert(bus != NULL);
+void animAPI_Pause(CommandBus &bus, Entity entity) {
   Command cmd = {
       .type = CMD_ANIM_PAUSE,
       .entity = entity,
@@ -45,22 +41,19 @@ void animAPI_Pause(CommandBus *restrict bus, Entity entity) {
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_SetSpeed(CommandBus *restrict bus, Entity entity, float speed) {
-  assert(bus != NULL);
+void animAPI_SetSpeed(CommandBus &bus, Entity entity, float speed) {
   Command cmd = {
       .type = CMD_ANIM_SET_SPEED, .entity = entity, .f32 = {.value = speed}};
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_SetFrame(CommandBus *restrict bus, Entity entity, uint16_t frame) {
-  assert(bus != NULL);
+void animAPI_SetFrame(CommandBus &bus, Entity entity, uint16_t frame) {
   Command cmd = {
       .type = CMD_ANIM_SET_FRAME, .entity = entity, .u16 = {.value = frame}};
   CommandBus_Push(bus, cmd);
 }
 
-void animAPI_SetLoop(CommandBus *restrict bus, Entity entity, bool loop) {
-  assert(bus != NULL);
+void animAPI_SetLoop(CommandBus &bus, Entity entity, bool loop) {
   Command cmd = {
       .type = CMD_ANIM_SET_LOOP, .entity = entity, .b8 = {.value = loop}};
   CommandBus_Push(bus, cmd);

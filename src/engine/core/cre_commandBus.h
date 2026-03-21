@@ -29,7 +29,7 @@ static_assert((CMD_BUFFER_SIZE & CMD_BUFFER_MASK) == 0,
 // Command Structure (64 bytes, C11 Anonymous Union)
 // ============================================================================
 
-typedef struct Command {
+struct Command {
   // NOTE CHANGED type to uint32_t for temporary. This is for 4 byte aligning.
   // DO NOT FORGET THIS!!!!
   uint32_t type; // CommandType (4 bytes)
@@ -59,7 +59,7 @@ typedef struct Command {
     CommandPayloadAudioOneShot audioshot;
     alignas(4) uint8_t raw[48];
   };
-} Command;
+};
 
 // Compile-time struct verification
 static_assert(sizeof(Command) == 64, "Command struct must be exactly 64 bytes");
@@ -79,7 +79,7 @@ typedef struct CommandIterator {
 // Command Bus (Ring Buffer)
 // ============================================================================
 
-typedef struct CommandBus {
+struct CommandBus {
   alignas(64) Command buffer[CMD_BUFFER_SIZE]; // Cache-line aligned
   uint32_t head;                               // Write index (free-running)
   uint32_t tail;                               // Read index (free-running)
@@ -88,8 +88,13 @@ typedef struct CommandBus {
   uint8_t current_phase;
   uint16_t debug_forbidden_domain;
 #endif
-} CommandBus;
-
+};
+static_assert(
+    alignof(CommandBus) == 64,
+    "ERROR: CommandBus must be 64-byte aligned for optimal cache performance");
+static_assert(sizeof(CommandBus) % 64 == 0,
+              "ERROR: CommandBus size must be a multiple of 64 bytes to avoid "
+              "false sharing");
 // ============================================================================
 // Cold Path Functions (Implemented in cre_commandBus.c)
 // ============================================================================
@@ -98,7 +103,7 @@ typedef struct CommandBus {
  * Initialize the command bus, resetting all state.
  * @param bus Pointer to the CommandBus to initialize
  */
-void CommandBus_Init(CommandBus *bus);
+void CommandBus_Init(CommandBus &bus);
 
 /**
  * Flush processed commands from the buffer.
@@ -107,13 +112,13 @@ void CommandBus_Init(CommandBus *bus);
  * @param bus Pointer to the CommandBus
  * @param iter Pointer to the completed iterator
  */
-void CommandBus_Flush(CommandBus *bus, const CommandIterator *iter);
+void CommandBus_Flush(CommandBus &bus, const CommandIterator *iter);
 
 /**
  * Clear the command bus, resetting head and tail to 0.
  * @param bus Pointer to the CommandBus
  */
-void CommandBus_Clear(CommandBus *bus);
+void CommandBus_Clear(CommandBus &bus);
 
 // ============================================================================
 // Hot Path Inline Functions
@@ -127,29 +132,28 @@ void CommandBus_Clear(CommandBus *bus);
  * @param cmd The command to push
  * @return true if successful, false if buffer is full
  */
-static inline bool CommandBus_Push(CommandBus *restrict bus, Command cmd) {
-  assert(bus != NULL && "CommandBus_Push: bus is NULL");
+static inline bool CommandBus_Push(CommandBus & bus, Command cmd) {
 
 #ifndef NDEBUG
   const uint32_t domain = cmd.type & CMD_DOMAIN_MASK;
-  if (bus->current_phase == BUS_PHASE_RENDER) {
+  if (bus.current_phase == BUS_PHASE_RENDER) {
     assert(domain == CMD_DOMAIN_RENDER || cmd.type == CMD_NONE);
   }
-  assert(bus->debug_forbidden_domain == 0 ||
-         domain != bus->debug_forbidden_domain);
+  assert(bus.debug_forbidden_domain == 0 ||
+         domain != bus.debug_forbidden_domain);
 #endif
 
   // Check if buffer is full (free-running index arithmetic)
-  if ((bus->head - bus->tail) >= CMD_BUFFER_SIZE) {
+  if ((bus.head - bus.tail) >= CMD_BUFFER_SIZE) {
     return false;
   }
 
   // Bitwise AND mask for array index
-  const uint32_t index = bus->head & CMD_BUFFER_MASK;
-  bus->buffer[index] = cmd;
+  const uint32_t index = bus.head & CMD_BUFFER_MASK;
+  bus.buffer[index] = cmd;
 
   // Increment head (free-running, natural overflow)
-  bus->head++;
+  bus.head++;
 
   return true;
 }
@@ -161,13 +165,11 @@ static inline bool CommandBus_Push(CommandBus *restrict bus, Command cmd) {
  * @param bus Pointer to the CommandBus
  * @return CommandIterator positioned at tail, ending at current head
  */
-static inline CommandIterator CommandBus_GetIterator(CommandBus *bus) {
-  assert(bus != NULL && "CommandBus_GetIterator: bus is NULL");
+static inline CommandIterator CommandBus_GetIterator(CommandBus &bus) {
 
-  CommandIterator iter =
-      CommandIterator{.current = bus->tail, .end = bus->head};
+  CommandIterator iter = CommandIterator{.current = bus.tail, .end = bus.head};
 
-  bus->consumed_end = iter.end;
+  bus.consumed_end = iter.end;
   return iter;
 }
 
@@ -184,9 +186,8 @@ static inline CommandIterator CommandBus_GetIterator(CommandBus *bus) {
  * read-only)
  * @return true if command available, false if iterator exhausted
  */
-static inline bool CommandBus_Next(const CommandBus *bus, CommandIterator *iter,
+static inline bool CommandBus_Next(const CommandBus &bus, CommandIterator *iter,
                                    const Command **outPtr) {
-  assert(bus != NULL && "CommandBus_Next: bus is NULL");
   assert(iter != NULL && "CommandBus_Next: iter is NULL");
   assert(outPtr != NULL && "CommandBus_Next: outPtr is NULL");
 
@@ -198,7 +199,7 @@ static inline bool CommandBus_Next(const CommandBus *bus, CommandIterator *iter,
 
   // Get const pointer to command in buffer (zero-copy, immutable)
   const uint32_t index = iter->current & CMD_BUFFER_MASK;
-  *outPtr = &bus->buffer[index];
+  *outPtr = &bus.buffer[index];
 
   // Advance iterator (free-running)
   iter->current++;
@@ -210,19 +211,16 @@ static inline bool CommandBus_Next(const CommandBus *bus, CommandIterator *iter,
 // Inline Utility Functions
 // ============================================================================
 
-static inline uint32_t CommandBus_Count(const CommandBus *bus) {
-  assert(bus != NULL);
-  return bus->head - bus->tail;
+static inline uint32_t CommandBus_Count(const CommandBus &bus) {
+  return bus.head - bus.tail;
 }
 
-static inline bool CommandBus_IsEmpty(const CommandBus *bus) {
-  assert(bus != NULL);
-  return bus->head == bus->tail;
+static inline bool CommandBus_IsEmpty(const CommandBus &bus) {
+  return bus.head == bus.tail;
 }
 
-static inline bool CommandBus_IsFull(const CommandBus *bus) {
-  assert(bus != NULL);
-  return (bus->head - bus->tail) >= CMD_BUFFER_SIZE;
+static inline bool CommandBus_IsFull(const CommandBus &bus) {
+  return (bus.head - bus.tail) >= CMD_BUFFER_SIZE;
 }
 
 static inline uint32_t CommandIterator_Remaining(const CommandIterator *iter) {

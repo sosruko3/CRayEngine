@@ -103,13 +103,11 @@ void audioSystem_Init(void) {
   }
 }
 
-void audioSystem_Update(EntityRegistry *reg, CommandBus *bus) {
+void audioSystem_Update(EntityRegistry &reg, CommandBus &bus) {
   audioSystem_ProcessCommands(reg, bus);
 }
 
-void audioSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
-  assert(reg && "reg is NULL");
-  assert(bus && "bus is NULL");
+void audioSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
   (void)reg;
 
   CommandIterator iter = CommandBus_GetIterator(bus);

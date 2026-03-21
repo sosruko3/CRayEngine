@@ -1,8 +1,8 @@
 #ifndef CRE_ASSETMANAGER_H
 #define CRE_ASSETMANAGER_H
 
-#include "raylib.h"
 #include "engine/core/cre_types.h"
+#include "raylib.h"
 
 void Asset_Init(void);
 void Asset_Shutdown(void);

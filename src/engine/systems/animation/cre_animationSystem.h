@@ -39,7 +39,7 @@ struct CommandBus;
  * @param reg Pointer to EntityRegistry (SoA data)
  * @param bus Pointer to CommandBus (read-only iteration)
  */
-void AnimationSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus);
+void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
 
 /**
  * @brief Advance animation state for all active animated entities.
@@ -51,6 +51,6 @@ void AnimationSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus);
  * @param bus Pointer to CommandBus
  * @param dt Delta time in seconds (clamped to 0.05f max internally)
  */
-void AnimationSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt);
+void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt);
 
 #endif

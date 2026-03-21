@@ -11,15 +11,15 @@ constexpr uint16_t MAX_CLONE_HOOKS = 8;
 constexpr uint16_t MAX_SPAWN_HOOKS = 8;
 constexpr uint16_t MAX_DESTROY_HOOKS = 8;
 
-typedef void (*OnEntityClonedCallback)(EntityRegistry *reg, CommandBus *bus,
+typedef void (*OnEntityClonedCallback)(EntityRegistry &reg, CommandBus &bus,
                                        Entity srcPrototype,
                                        Entity dstNewEntity);
 
-typedef void (*OnEntitySpawnedCallback)(EntityRegistry *reg, CommandBus *bus,
+typedef void (*OnEntitySpawnedCallback)(EntityRegistry &reg, CommandBus &bus,
                                         Entity srcPrototype,
                                         Entity dstNewEntity);
 
-typedef void (*OnEntityDestroyedCallback)(EntityRegistry *reg, CommandBus *bus,
+typedef void (*OnEntityDestroyedCallback)(EntityRegistry &reg, CommandBus &bus,
                                           Entity destroyedEntity);
 
 typedef struct EntityEventDispatcher {

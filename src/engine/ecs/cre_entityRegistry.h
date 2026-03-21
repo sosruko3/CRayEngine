@@ -101,7 +101,7 @@
  * Data is stored in "parallel" arrays - same index across all arrays
  * refers to the same entity.
  */
-typedef struct EntityRegistry {
+struct EntityRegistry {
   alignas(64) float pos_x[MAX_ENTITIES]; ///< Position X
   alignas(64) float pos_y[MAX_ENTITIES]; ///< Position Y
   alignas(64) float vel_x[MAX_ENTITIES]; ///< Velocity X
@@ -166,24 +166,25 @@ typedef struct EntityRegistry {
       max_used_bound; ///< Highest index ever used (optimization hint)
 
   alignas(64) EntityEventDispatcher events; ///< Lifecycle hook dispatcher state
-} EntityRegistry;
+};
 
-static inline bool EntityRegistry_IsAlive(const EntityRegistry *reg, Entity e) {
-  if (!reg)
-    return false;
+static_assert(alignof(EntityRegistry) == 64,
+              "EntityRegistry MUST be 64-byte aligned for cache efficiency!");
+static_assert(sizeof(EntityRegistry) % 64 == 0,
+              "EntityRegistry size MUST be a multiple of 64 bytes!");
+
+static inline bool EntityRegistry_IsAlive(const EntityRegistry &reg, Entity e) {
   if (e.id >= MAX_ENTITIES)
     return false;
-  if (!(reg->state_flags[e.id] & FLAG_ACTIVE))
+  if (!(reg.state_flags[e.id] & FLAG_ACTIVE))
     return false;
-  return reg->generations[e.id] == e.generation;
+  return reg.generations[e.id] == e.generation;
 }
 
-static inline bool EntityRegistry_IsValid(const EntityRegistry *reg, Entity e) {
-  if (!reg)
-    return false;
+static inline bool EntityRegistry_IsValid(const EntityRegistry &reg, Entity e) {
   if (e.id >= MAX_ENTITIES)
     return false;
-  return (reg->generations[e.id] == e.generation);
+  return (reg.generations[e.id] == e.generation);
 }
 
 #endif

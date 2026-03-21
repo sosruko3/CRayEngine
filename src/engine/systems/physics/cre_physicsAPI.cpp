@@ -6,9 +6,8 @@
 #include <assert.h>
 #include <cstdint>
 
-void physicsAPI_DefineBody(CommandBus *restrict bus, Entity entity,
-                           uint8_t mat_id, float drag, bool is_static) {
-  assert(bus != NULL);
+void physicsAPI_DefineBody(CommandBus &bus, Entity entity, uint8_t mat_id,
+                           float drag, bool is_static) {
 
   Command cmd = {.type = CMD_PHYS_DEFINE,
                  .entity = entity,
@@ -25,9 +24,7 @@ void physicsAPI_DefineBody(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void physicsAPI_TeleportBody(CommandBus *restrict bus, Entity entity, float x,
-                             float y) {
-  assert(bus != NULL);
+void physicsAPI_TeleportBody(CommandBus &bus, Entity entity, float x, float y) {
 
   Command cmd = {.type = CMD_PHYS_TELEPORT,
                  .entity = entity,
@@ -38,9 +35,8 @@ void physicsAPI_TeleportBody(CommandBus *restrict bus, Entity entity, float x,
   }
 }
 
-void physicsAPI_ApplyImpulse(CommandBus *restrict bus, Entity entity, float jx,
+void physicsAPI_ApplyImpulse(CommandBus &bus, Entity entity, float jx,
                              float jy) {
-  assert(bus != NULL);
 
   Command cmd = {.type = CMD_PHYS_APPLY_IMPULSE,
                  .entity = entity,
@@ -51,9 +47,8 @@ void physicsAPI_ApplyImpulse(CommandBus *restrict bus, Entity entity, float jx,
   }
 }
 
-void physicsAPI_SetVelocity(CommandBus *restrict bus, Entity entity, float vx,
+void physicsAPI_SetVelocity(CommandBus &bus, Entity entity, float vx,
                             float vy) {
-  assert(bus != NULL);
 
   Command cmd = {.type = CMD_PHYS_SET_VELOCITY,
                  .entity = entity,
@@ -64,8 +59,7 @@ void physicsAPI_SetVelocity(CommandBus *restrict bus, Entity entity, float vx,
   }
 }
 
-void physicsAPI_SetDrag(CommandBus *restrict bus, Entity entity, float drag) {
-  assert(bus != NULL);
+void physicsAPI_SetDrag(CommandBus &bus, Entity entity, float drag) {
 
   Command cmd = {
       .type = CMD_PHYS_SET_DRAG, .entity = entity, .f32 = {.value = drag}};
@@ -75,9 +69,7 @@ void physicsAPI_SetDrag(CommandBus *restrict bus, Entity entity, float drag) {
   }
 }
 
-void physicsAPI_SetGravityScale(CommandBus *restrict bus, Entity entity,
-                                float scale) {
-  assert(bus != NULL);
+void physicsAPI_SetGravityScale(CommandBus &bus, Entity entity, float scale) {
 
   Command cmd = {.type = CMD_PHYS_SET_GRAVITY_SCALE,
                  .entity = entity,
@@ -88,9 +80,7 @@ void physicsAPI_SetGravityScale(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void physicsAPI_SetMaterial(CommandBus *restrict bus, Entity entity,
-                            uint8_t mat_id) {
-  assert(bus != NULL);
+void physicsAPI_SetMaterial(CommandBus &bus, Entity entity, uint8_t mat_id) {
 
   Command cmd = {
       .type = CMD_PHYS_SET_MATERIAL, .entity = entity, .u8 = {.value = mat_id}};
@@ -100,8 +90,7 @@ void physicsAPI_SetMaterial(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void physicsAPI_SetGlobalGravity(CommandBus *restrict bus, float x, float y) {
-  assert(bus != NULL);
+void physicsAPI_SetGlobalGravity(CommandBus &bus, float x, float y) {
 
   Command cmd = {.type = CMD_PHYS_SET_GRAVITY,
                  .entity = ENTITY_INVALID,
@@ -110,8 +99,7 @@ void physicsAPI_SetGlobalGravity(CommandBus *restrict bus, float x, float y) {
   CommandBus_Push(bus, cmd);
 }
 
-void physicsAPI_LoadStaticGeometry(CommandBus *restrict bus) {
-  assert(bus != NULL);
+void physicsAPI_LoadStaticGeometry(CommandBus &bus) {
 
   Command cmd = {
       .type = CMD_PHYS_LOAD_STATIC,
@@ -122,8 +110,7 @@ void physicsAPI_LoadStaticGeometry(CommandBus *restrict bus) {
   CommandBus_Push(bus, cmd);
 }
 
-void physicsAPI_ResetWorld(CommandBus *restrict bus) {
-  assert(bus != NULL);
+void physicsAPI_ResetWorld(CommandBus &bus) {
 
   Command cmd = {
       .type = CMD_PHYS_RESET,
@@ -134,27 +121,27 @@ void physicsAPI_ResetWorld(CommandBus *restrict bus) {
   CommandBus_Push(bus, cmd);
 }
 
-creVec2 physicsAPI_GetVelocity(const EntityRegistry *reg, Entity entity) {
-  if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+creVec2 physicsAPI_GetVelocity(const EntityRegistry &reg, Entity entity) {
+  if (!EntityRegistry_IsAlive(reg, entity)) {
     return creVec2{.x = 0.0f, .y = 0.0f};
   }
 
   const uint32_t id = entity.id;
-  return creVec2{.x = reg->vel_x[id], .y = reg->vel_y[id]};
+  return creVec2{.x = reg.vel_x[id], .y = reg.vel_y[id]};
 }
 
-bool physicsAPI_IsSleeping(const EntityRegistry *reg, Entity entity) {
-  if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+bool physicsAPI_IsSleeping(const EntityRegistry &reg, Entity entity) {
+  if (!EntityRegistry_IsAlive(reg, entity)) {
     return false;
   }
 
-  return (reg->state_flags[entity.id] & FLAG_SLEEPING) != 0;
+  return (reg.state_flags[entity.id] & FLAG_SLEEPING) != 0;
 }
 
-uint8_t physicsAPI_GetMaterial(const EntityRegistry *reg, Entity entity) {
-  if (!reg || !EntityRegistry_IsAlive(reg, entity)) {
+uint8_t physicsAPI_GetMaterial(const EntityRegistry &reg, Entity entity) {
+  if (!EntityRegistry_IsAlive(reg, entity)) {
     return MAT_DEFAULT;
   }
 
-  return reg->material_id[entity.id];
+  return reg.material_id[entity.id];
 }

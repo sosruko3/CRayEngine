@@ -6,12 +6,12 @@
 #include <stdint.h>
 struct CommandBus;
 
-void animAPI_Play(CommandBus *restrict bus, Entity entity, uint16_t animID,
+void animAPI_Play(CommandBus &bus, Entity entity, uint16_t animID,
                   bool forceReset);
-void animAPI_Stop(CommandBus *restrict bus, Entity entity);
-void animAPI_Resume(CommandBus *restrict bus, Entity entity);
-void animAPI_Pause(CommandBus *restrict bus, Entity entity);
-void animAPI_SetSpeed(CommandBus *restrict bus, Entity entity, float speed);
-void animAPI_SetFrame(CommandBus *restrict bus, Entity entity, uint16_t frame);
-void animAPI_SetLoop(CommandBus *restrict bus, Entity entity, bool loop);
+void animAPI_Stop(CommandBus &bus, Entity entity);
+void animAPI_Resume(CommandBus &bus, Entity entity);
+void animAPI_Pause(CommandBus &bus, Entity entity);
+void animAPI_SetSpeed(CommandBus &bus, Entity entity, float speed);
+void animAPI_SetFrame(CommandBus &bus, Entity entity, uint16_t frame);
+void animAPI_SetLoop(CommandBus &bus, Entity entity, bool loop);
 #endif

@@ -10,7 +10,7 @@
 Entity g_playerPrototype = Entity{.id = 0, .generation = 0};
 Entity g_zombiePrototype = Entity{.id = 1, .generation = 0};
 
-void Prototypes_Init(EntityRegistry *reg) {
+void Prototypes_Init(EntityRegistry &reg) {
   // Zombie prototype
   uint64_t zombieCompMask =
       COMP_SPRITE | COMP_ANIMATION | COMP_PHYSICS | COMP_COLLISION_AABB;
@@ -22,12 +22,12 @@ void Prototypes_Init(EntityRegistry *reg) {
 
   if (ENTITY_IS_VALID(g_zombiePrototype)) {
     const uint32_t zombieid = g_zombiePrototype.id;
-    reg->render_layer[zombieid] = RENDER_LAYER_ENEMY;
-    reg->batch_ids[zombieid] = RENDER_BATCH_ENEMY;
-    reg->sprite_ids[zombieid] = SPR_ENEMY_IDLE;
-    reg->material_id[zombieid] = MAT_DEFAULT;
-    reg->drag[zombieid] = 2.0f;
-    reg->inv_mass[zombieid] = 1.0f; // Fix this later on.
+    reg.render_layer[zombieid] = RENDER_LAYER_ENEMY;
+    reg.batch_ids[zombieid] = RENDER_BATCH_ENEMY;
+    reg.sprite_ids[zombieid] = SPR_ENEMY_IDLE;
+    reg.material_id[zombieid] = MAT_DEFAULT;
+    reg.drag[zombieid] = 2.0f;
+    reg.inv_mass[zombieid] = 1.0f; // Fix this later on.
   }
 
   // Player prototype
@@ -40,11 +40,11 @@ void Prototypes_Init(EntityRegistry *reg) {
                                            playerCompMask, playerFlags);
   if (ENTITY_IS_VALID(g_playerPrototype)) {
     const uint32_t playerid = g_playerPrototype.id;
-    reg->render_layer[playerid] = RENDER_LAYER_ENEMY;
-    reg->batch_ids[playerid] = RENDER_BATCH_ENEMY;
-    reg->sprite_ids[playerid] = SPR_FISH_BLUE;
-    reg->material_id[playerid] = MAT_PLAYER;
-    reg->drag[playerid] = 0.2f;
-    reg->inv_mass[playerid] = 1.0f;
+    reg.render_layer[playerid] = RENDER_LAYER_ENEMY;
+    reg.batch_ids[playerid] = RENDER_BATCH_ENEMY;
+    reg.sprite_ids[playerid] = SPR_FISH_BLUE;
+    reg.material_id[playerid] = MAT_PLAYER;
+    reg.drag[playerid] = 0.2f;
+    reg.inv_mass[playerid] = 1.0f;
   }
 }

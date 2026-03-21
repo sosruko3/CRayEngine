@@ -27,7 +27,7 @@ void SceneManager_Init(SceneFactory factory) {
   Log(LOG_LVL_INFO, "Scene Manager Initialized.");
 }
 
-void SceneManager_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
+void SceneManager_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
   if (ctx.isSwitchPending) {
     if (ctx.currentScene.Unload)
       ctx.currentScene.Unload(reg, bus);
@@ -45,13 +45,13 @@ void SceneManager_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
     ctx.currentScene.Update(reg, bus, dt);
   }
 }
-void SceneManager_Draw(EntityRegistry *reg, CommandBus *bus) {
+void SceneManager_Draw(EntityRegistry &reg, CommandBus &bus) {
   if (ctx.currentScene.Draw) {
     ctx.currentScene.Draw(reg, bus);
   }
 }
 
-void SceneManager_Shutdown(EntityRegistry *reg, CommandBus *bus) {
+void SceneManager_Shutdown(EntityRegistry &reg, CommandBus &bus) {
   if (ctx.currentScene.Unload) {
     ctx.currentScene.Unload(reg, bus);
   }

@@ -30,7 +30,7 @@ creVec2 cameraUtils_Lerp(creVec2 current, creVec2 target, float speed,
                  .y = current.y + (target.y - current.y) * t};
 }
 
-creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, const EntityRegistry *reg,
+creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, const EntityRegistry &reg,
                                   const CameraComponent *cam, ViewportSize vp) {
   (void)reg;
   Camera2D rlCam = cameraUtils_buildRaylibCam(cam, vp);
@@ -38,7 +38,7 @@ creVec2 cameraUtils_ScreenToWorld(creVec2 screenPos, const EntityRegistry *reg,
   return creVec2{result.x, result.y};
 }
 
-creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, const EntityRegistry *reg,
+creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, const EntityRegistry &reg,
                                   const CameraComponent *cam, ViewportSize vp) {
   (void)reg;
   Camera2D rlCam = cameraUtils_buildRaylibCam(cam, vp);
@@ -46,15 +46,13 @@ creVec2 cameraUtils_WorldToScreen(creVec2 worldPos, const EntityRegistry *reg,
   return creVec2{result.x, result.y};
 }
 
-Camera2D cameraUtils_GetActiveRaylib(const EntityRegistry *reg,
+Camera2D cameraUtils_GetActiveRaylib(const EntityRegistry &reg,
                                      ViewportSize vp) {
   Camera2D out = {};
-  if (!reg)
-    return out;
 
   int32_t idx = cameraSystem_FindActive(reg);
   if (idx < 0 || idx >= static_cast<int16_t>(MAX_CAMERAS))
     return out;
 
-  return cameraUtils_buildRaylibCam(&reg->cameras[idx], vp);
+  return cameraUtils_buildRaylibCam(&reg.cameras[idx], vp);
 }

@@ -1,25 +1,26 @@
-#include "engine/core/cre_engine.h"
-#define _ISOC11_SOURCE // for aligned_alloc
 #include "engine/core/cre_commandBus.h"
+#include "engine/core/cre_engine.h"
 #include "engine/ecs/cre_entityRegistry.h"
 #include "engine/scene/cre_sceneManager.h"
 #include "game/game.h"
 #include "game/game_scenes.h"
 #include "game_config.h"
-#include <stdlib.h>
+#include <cstdalign>
+#include <cstdlib>
 
-int main(void) {
-  size_t regAllocSize =
-      (sizeof(EntityRegistry) + 63) & ~(static_cast<size_t>(63));
-  EntityRegistry *reg =
-      static_cast<EntityRegistry *>(aligned_alloc(64, regAllocSize));
-  if (!reg)
-    return -1;
+int main() {
+  EntityRegistry *ptrReg = static_cast<EntityRegistry *>(
+      std::aligned_alloc(alignof(EntityRegistry), sizeof(EntityRegistry)));
+  CommandBus *ptrBus = static_cast<CommandBus *>(
+      std::aligned_alloc(alignof(CommandBus), sizeof(CommandBus)));
 
-  size_t busAllocSize = (sizeof(CommandBus) + 63) & ~(static_cast<size_t>(63));
-  CommandBus *bus = static_cast<CommandBus *>(aligned_alloc(64, busAllocSize));
-  if (!bus)
+  if (!ptrReg || !ptrBus) {
+    std::free(ptrReg);
+    std::free(ptrBus);
     return -1;
+  }
+  EntityRegistry &reg = *static_cast<EntityRegistry *>(ptrReg);
+  CommandBus &bus = *static_cast<CommandBus *>(ptrBus);
 
   float dt = 0.0166f;
 
@@ -29,7 +30,7 @@ int main(void) {
   Engine_Run(reg, bus, dt);
   Engine_Shutdown(reg, bus);
 
-  free(bus);
-  free(reg);
+  std::free(ptrBus);
+  std::free(ptrReg);
   return 0;
 }

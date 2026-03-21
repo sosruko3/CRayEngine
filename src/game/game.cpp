@@ -18,10 +18,9 @@
 #include <assert.h>
 
 // Helper function
-static void ResetGameplay(EntityRegistry *reg, CommandBus *bus);
+static void ResetGameplay(EntityRegistry &reg, CommandBus &bus);
 
-void Game_Init(EntityRegistry *reg, CommandBus *bus) {
-  assert(reg && bus);
+void Game_Init(EntityRegistry &reg, CommandBus &bus) {
   renderAPI_SetDepthPreset(bus, DEPTH_PRESET_FLAT);
   EntitySystem_ClearAllHooks(reg);
   EntityManager_Reset(reg);
@@ -29,7 +28,7 @@ void Game_Init(EntityRegistry *reg, CommandBus *bus) {
   Prototypes_Init(reg);
   ResetGameplay(reg, bus);
 }
-void Game_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
+void Game_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
   ViewportSize vp = Viewport_Get();
   const CameraComponent *activeCam = cameraSystem_GetActiveComponent(reg);
   creRectangle cullBounds =
@@ -44,7 +43,7 @@ void Game_Update(EntityRegistry *reg, CommandBus *bus, float dt) {
   if (Input_IsPressed(ACTION_CONFIRM))
     SceneManager_ChangeScene(GAME_STATE_GAMEOVER);
 }
-void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
+void Game_Draw(EntityRegistry &reg, CommandBus &bus) {
   ClearBackground(DARKGREEN); // Use wrapper for this.
 
   ViewportSize vp = Viewport_Get();
@@ -66,12 +65,12 @@ void Game_Draw(EntityRegistry *reg, CommandBus *bus) {
   // Screen-space debug HUD (outside camera)
   DebugSystem_RenderScreenSpace(reg);
 }
-void Game_Shutdown(EntityRegistry *reg, CommandBus *bus) {
+void Game_Shutdown(EntityRegistry &reg, CommandBus &bus) {
   (void)reg;
   (void)bus;
   // Cleanup if needed
 }
-static void ResetGameplay(EntityRegistry *reg, CommandBus *bus) {
+static void ResetGameplay(EntityRegistry &reg, CommandBus &bus) {
   Entity mainCam = ControlSystem_SpawnCamera(reg);
   Entity player = ControlSystem_SpawnPlayer(reg, bus);
   ControlSystem_SetCameraTarget(reg, bus, player, mainCam);

@@ -4,12 +4,12 @@
 #include "engine/core/cre_logger.h"
 #include <assert.h>
 
-Entity entityAPI_ReserveSlot(EntityRegistry *reg) {
+Entity entityAPI_ReserveSlot(EntityRegistry &reg) {
   return EntityManager_ReserveSlot(reg);
 }
 
-Entity entityAPI_Spawn(EntityRegistry *reg, CommandBus *restrict bus,
-                       Entity prototype, creVec2 position) {
+Entity entityAPI_Spawn(EntityRegistry &reg, CommandBus &bus, Entity prototype,
+                       creVec2 position) {
   Entity reserved = entityAPI_ReserveSlot(reg);
   if (!ENTITY_IS_VALID(reserved))
     return ENTITY_INVALID;
@@ -30,7 +30,7 @@ Entity entityAPI_Spawn(EntityRegistry *reg, CommandBus *restrict bus,
   return reserved;
 }
 
-Entity entityAPI_SpawnUntracked(EntityRegistry *reg, CommandBus *restrict bus,
+Entity entityAPI_SpawnUntracked(EntityRegistry &reg, CommandBus &bus,
                                 Entity prototype, creVec2 position) {
   Entity reserved = entityAPI_ReserveSlot(reg);
   if (!ENTITY_IS_VALID(reserved))
@@ -53,7 +53,7 @@ Entity entityAPI_SpawnUntracked(EntityRegistry *reg, CommandBus *restrict bus,
   return reserved;
 }
 
-void entityAPI_Destroy(CommandBus *restrict bus, Entity entity) {
+void entityAPI_Destroy(CommandBus &bus, Entity entity) {
   Command cmd = {
       .type = CMD_ENTITY_DESTROY,
       .entity = entity,
@@ -65,8 +65,7 @@ void entityAPI_Destroy(CommandBus *restrict bus, Entity entity) {
   }
 }
 
-void entityAPI_AddFlags(CommandBus *restrict bus, Entity entity,
-                        uint64_t flags) {
+void entityAPI_AddFlags(CommandBus &bus, Entity entity, uint64_t flags) {
   Command cmd = {
       .type = CMD_ENTITY_ADD_FLAGS,
       .entity = entity,
@@ -78,8 +77,7 @@ void entityAPI_AddFlags(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void entityAPI_RemoveFlags(CommandBus *restrict bus, Entity entity,
-                           uint64_t flags) {
+void entityAPI_RemoveFlags(CommandBus &bus, Entity entity, uint64_t flags) {
   Command cmd = {
       .type = CMD_ENTITY_REMOVE_FLAGS,
       .entity = entity,
@@ -91,7 +89,7 @@ void entityAPI_RemoveFlags(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void entityAPI_SetType(CommandBus *restrict bus, Entity entity, uint16_t type) {
+void entityAPI_SetType(CommandBus &bus, Entity entity, uint16_t type) {
   Command cmd = {
       .type = CMD_ENTITY_SET_TYPE,
       .entity = entity,
@@ -103,8 +101,7 @@ void entityAPI_SetType(CommandBus *restrict bus, Entity entity, uint16_t type) {
   }
 }
 
-void entityAPI_SetPivot(CommandBus *restrict bus, Entity entity,
-                        creVec2 pivot) {
+void entityAPI_SetPivot(CommandBus &bus, Entity entity, creVec2 pivot) {
   Command cmd = {
       .type = CMD_ENTITY_SET_PIVOT,
       .entity = entity,
@@ -116,7 +113,7 @@ void entityAPI_SetPivot(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void entityAPI_AddComponent(CommandBus *restrict bus, Entity entity,
+void entityAPI_AddComponent(CommandBus &bus, Entity entity,
                             uint64_t component_mask) {
   Command cmd = {
       .type = CMD_ENTITY_ADD_COMPONENT,
@@ -129,7 +126,7 @@ void entityAPI_AddComponent(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void entityAPI_RemoveComponent(CommandBus *restrict bus, Entity entity,
+void entityAPI_RemoveComponent(CommandBus &bus, Entity entity,
                                uint64_t component_mask) {
   Command cmd = {
       .type = CMD_ENTITY_REMOVE_COMPONENT,
@@ -142,7 +139,7 @@ void entityAPI_RemoveComponent(CommandBus *restrict bus, Entity entity,
   }
 }
 
-void entityAPI_Clone(EntityRegistry *reg, CommandBus *restrict bus, Entity dst,
+void entityAPI_Clone(EntityRegistry &reg, CommandBus &bus, Entity dst,
                      Entity prototype, creVec2 position) {
 
   Command cmd = {.type = CMD_ENTITY_CLONE,

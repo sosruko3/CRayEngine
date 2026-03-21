@@ -31,8 +31,8 @@ enum AudioGroupID : uint8_t {
 
 void audioSystem_Init(void);
 void audioSystem_Shutdown(void);
-void audioSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus);
-void audioSystem_Update(EntityRegistry *reg, CommandBus *bus);
+void audioSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
+void audioSystem_Update(EntityRegistry &reg, CommandBus &bus);
 AudioID audioSystem_AllocateID(void);
 
 #endif

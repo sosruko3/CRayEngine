@@ -19,8 +19,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct EntityRegistry EntityRegistry;
-typedef struct CommandBus CommandBus;
+struct EntityRegistry;
+struct CommandBus;
 
 // ============================================================================
 // Visualization Mode Enumeration
@@ -50,14 +50,14 @@ void DebugSystem_Init(void);
  *
  * @param reg Entity registry
  */
-void DebugSystem_HandleInput(EntityRegistry *reg);
+void DebugSystem_HandleInput(EntityRegistry &reg);
 
 /**
  * @brief Get count of active entities.
  * @param reg Entity registry
  * @return Number of active entities
  */
-uint32_t DebugSystem_GetActiveCount(EntityRegistry *reg);
+uint32_t DebugSystem_GetActiveCount(EntityRegistry &reg);
 
 /**
  * @brief Render world-space debug visualizations.
@@ -67,7 +67,7 @@ uint32_t DebugSystem_GetActiveCount(EntityRegistry *reg);
  *
  * @param reg Entity registry (read-only access)
  */
-void DebugSystem_RenderWorldSpace(EntityRegistry *reg);
+void DebugSystem_RenderWorldSpace(EntityRegistry &reg);
 
 /**
  * @brief Render screen-space HUD elements.
@@ -77,7 +77,7 @@ void DebugSystem_RenderWorldSpace(EntityRegistry *reg);
  *
  * @param reg Entity registry (read-only access)
  */
-void DebugSystem_RenderScreenSpace(EntityRegistry *reg);
+void DebugSystem_RenderScreenSpace(EntityRegistry &reg);
 
 /**
  * @brief Main entry point for physics debug (world-space only).
@@ -87,7 +87,7 @@ void DebugSystem_RenderScreenSpace(EntityRegistry *reg);
  *
  * @param reg Entity registry (read-only access)
  */
-void DebugSystem_RenderPhysicsInsight(EntityRegistry *reg);
+void DebugSystem_RenderPhysicsInsight(EntityRegistry &reg);
 
 /**
  * @brief Render stats HUD overlay (can be called independently).
@@ -96,7 +96,7 @@ void DebugSystem_RenderPhysicsInsight(EntityRegistry *reg);
  *
  * @param reg Entity registry
  */
-void DebugSystem_RenderStatsHUD(EntityRegistry *reg);
+void DebugSystem_RenderStatsHUD(EntityRegistry &reg);
 
 /**
  * @brief Get current visualization mode.

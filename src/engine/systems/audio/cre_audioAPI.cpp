@@ -6,8 +6,7 @@
 
 AudioID audioAPI_AllocateSound(void) { return audioSystem_AllocateID(); }
 
-void audioAPI_GroupInit(CommandBus *restrict bus, AudioGroupID groupID) {
-  assert(bus != NULL);
+void audioAPI_GroupInit(CommandBus &bus, AudioGroupID groupID) {
   Command cmd = {
       .type = CMD_AUDIO_GROUP_INIT,
       .entity = ENTITY_INVALID,
@@ -19,8 +18,7 @@ void audioAPI_GroupInit(CommandBus *restrict bus, AudioGroupID groupID) {
   }
 }
 
-void audioAPI_SetMasterVolume(CommandBus *restrict bus, float volume) {
-  assert(bus != NULL);
+void audioAPI_SetMasterVolume(CommandBus &bus, float volume) {
   Command cmd = {
       .type = CMD_AUDIO_SET_MASTER_VOLUME,
       .entity = ENTITY_INVALID,
@@ -32,8 +30,7 @@ void audioAPI_SetMasterVolume(CommandBus *restrict bus, float volume) {
   }
 }
 
-void audioAPI_SetListenerPosition(CommandBus *restrict bus, creVec2 position) {
-  assert(bus != NULL);
+void audioAPI_SetListenerPosition(CommandBus &bus, creVec2 position) {
   Command cmd = {
       .type = CMD_AUDIO_SET_LISTENER_POSITION,
       .entity = ENTITY_INVALID,
@@ -45,9 +42,8 @@ void audioAPI_SetListenerPosition(CommandBus *restrict bus, creVec2 position) {
   }
 }
 
-void audioAPI_GroupSetVolume(CommandBus *restrict bus, AudioGroupID groupID,
+void audioAPI_GroupSetVolume(CommandBus &bus, AudioGroupID groupID,
                              float volume) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_AUDIO_GROUP_SET_VOLUME,
       .entity = ENTITY_INVALID,
@@ -63,9 +59,8 @@ void audioAPI_GroupSetVolume(CommandBus *restrict bus, AudioGroupID groupID,
   }
 }
 
-void audioAPI_GroupSetPitch(CommandBus *restrict bus, AudioGroupID groupID,
+void audioAPI_GroupSetPitch(CommandBus &bus, AudioGroupID groupID,
                             float pitch) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_AUDIO_GROUP_SET_PITCH,
       .entity = ENTITY_INVALID,
@@ -81,9 +76,7 @@ void audioAPI_GroupSetPitch(CommandBus *restrict bus, AudioGroupID groupID,
   }
 }
 
-void audioAPI_GroupSetPan(CommandBus *restrict bus, AudioGroupID groupID,
-                          float pan) {
-  assert(bus != NULL);
+void audioAPI_GroupSetPan(CommandBus &bus, AudioGroupID groupID, float pan) {
   Command cmd = {
       .type = CMD_AUDIO_GROUP_SET_PAN,
       .entity = ENTITY_INVALID,
@@ -99,9 +92,8 @@ void audioAPI_GroupSetPan(CommandBus *restrict bus, AudioGroupID groupID,
   }
 }
 
-void audioAPI_PlayOneShot(CommandBus *restrict bus, AudioGroupID groupID,
+void audioAPI_PlayOneShot(CommandBus &bus, AudioGroupID groupID,
                           AudioSourceID sourceID) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_AUDIO_PLAY_ONESHOT,
       .entity = ENTITY_INVALID,
@@ -117,11 +109,8 @@ void audioAPI_PlayOneShot(CommandBus *restrict bus, AudioGroupID groupID,
   }
 }
 
-void audioAPI_SoundLoad(CommandBus *restrict bus, AudioID id,
-                        AudioSourceID sourceID, AudioGroupID groupID,
-                        AudioUsageType usageType) {
-
-  assert(bus != NULL);
+void audioAPI_SoundLoad(CommandBus &bus, AudioID id, AudioSourceID sourceID,
+                        AudioGroupID groupID, AudioUsageType usageType) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_LOAD,
       .entity = ENTITY_INVALID,
@@ -139,8 +128,7 @@ void audioAPI_SoundLoad(CommandBus *restrict bus, AudioID id,
   }
 }
 
-void audioAPI_SoundUnload(CommandBus *restrict bus, AudioID id) {
-  assert(bus != NULL);
+void audioAPI_SoundUnload(CommandBus &bus, AudioID id) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_UNLOAD,
       .entity = ENTITY_INVALID,
@@ -152,8 +140,7 @@ void audioAPI_SoundUnload(CommandBus *restrict bus, AudioID id) {
   }
 }
 
-void audioAPI_SoundPlay(CommandBus *restrict bus, AudioID id) {
-  assert(bus != NULL);
+void audioAPI_SoundPlay(CommandBus &bus, AudioID id) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_PLAY,
       .entity = ENTITY_INVALID,
@@ -165,8 +152,7 @@ void audioAPI_SoundPlay(CommandBus *restrict bus, AudioID id) {
   }
 }
 
-void audioAPI_SoundPause(CommandBus *restrict bus, AudioID id) {
-  assert(bus != NULL);
+void audioAPI_SoundPause(CommandBus &bus, AudioID id) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_PAUSE,
       .entity = ENTITY_INVALID,
@@ -178,8 +164,7 @@ void audioAPI_SoundPause(CommandBus *restrict bus, AudioID id) {
   }
 }
 
-void audioAPI_SoundStop(CommandBus *restrict bus, AudioID id) {
-  assert(bus != NULL);
+void audioAPI_SoundStop(CommandBus &bus, AudioID id) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_STOP,
       .entity = ENTITY_INVALID,
@@ -191,9 +176,7 @@ void audioAPI_SoundStop(CommandBus *restrict bus, AudioID id) {
   }
 }
 
-void audioAPI_SoundSetVolume(CommandBus *restrict bus, AudioID id,
-                             float volume) {
-  assert(bus != NULL);
+void audioAPI_SoundSetVolume(CommandBus &bus, AudioID id, float volume) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_VOLUME,
       .entity = ENTITY_INVALID,
@@ -209,8 +192,7 @@ void audioAPI_SoundSetVolume(CommandBus *restrict bus, AudioID id,
   }
 }
 
-void audioAPI_SoundSetPitch(CommandBus *restrict bus, AudioID id, float pitch) {
-  assert(bus != NULL);
+void audioAPI_SoundSetPitch(CommandBus &bus, AudioID id, float pitch) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_PITCH,
       .entity = ENTITY_INVALID,
@@ -226,8 +208,7 @@ void audioAPI_SoundSetPitch(CommandBus *restrict bus, AudioID id, float pitch) {
   }
 }
 
-void audioAPI_SoundSetPan(CommandBus *restrict bus, AudioID id, float pan) {
-  assert(bus != NULL);
+void audioAPI_SoundSetPan(CommandBus &bus, AudioID id, float pan) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_PAN,
       .entity = ENTITY_INVALID,
@@ -243,9 +224,7 @@ void audioAPI_SoundSetPan(CommandBus *restrict bus, AudioID id, float pan) {
   }
 }
 
-void audioAPI_SoundSetLooping(CommandBus *restrict bus, AudioID id,
-                              bool looping) {
-  assert(bus != NULL);
+void audioAPI_SoundSetLooping(CommandBus &bus, AudioID id, bool looping) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_LOOPING,
       .entity = ENTITY_INVALID,
@@ -261,9 +240,8 @@ void audioAPI_SoundSetLooping(CommandBus *restrict bus, AudioID id,
   }
 }
 
-void audioAPI_SoundSetSpatialization(CommandBus *restrict bus, AudioID id,
+void audioAPI_SoundSetSpatialization(CommandBus &bus, AudioID id,
                                      bool enabled) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_SPATIALIZATION,
       .entity = ENTITY_INVALID,
@@ -280,9 +258,7 @@ void audioAPI_SoundSetSpatialization(CommandBus *restrict bus, AudioID id,
   }
 }
 
-void audioAPI_SoundSetPosition(CommandBus *restrict bus, AudioID id,
-                               creVec2 position) {
-  assert(bus != NULL);
+void audioAPI_SoundSetPosition(CommandBus &bus, AudioID id, creVec2 position) {
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_POSITION,
       .entity = ENTITY_INVALID,
@@ -298,9 +274,8 @@ void audioAPI_SoundSetPosition(CommandBus *restrict bus, AudioID id,
   }
 }
 
-void audioAPI_SoundSetAttenuation(CommandBus *restrict bus, AudioID id,
+void audioAPI_SoundSetAttenuation(CommandBus &bus, AudioID id,
                                   float minDistance, float maxDistance) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_AUDIO_SOUND_SET_ATTENUATION,
       .entity = ENTITY_INVALID,

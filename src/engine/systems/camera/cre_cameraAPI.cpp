@@ -2,9 +2,7 @@
 #include "engine/core/cre_commandBus.h"
 #include <assert.h>
 
-void cameraAPI_SetActive(CommandBus *restrict bus, Entity cameraEntity,
-                         bool isActive) {
-  assert(bus != NULL);
+void cameraAPI_SetActive(CommandBus &bus, Entity cameraEntity, bool isActive) {
   Command cmd = {
       .type = CMD_CAM_SET_ACTIVE,
       .entity = cameraEntity,
@@ -13,9 +11,8 @@ void cameraAPI_SetActive(CommandBus *restrict bus, Entity cameraEntity,
   CommandBus_Push(bus, cmd);
 }
 
-void cameraAPI_SetPriority(CommandBus *restrict bus, Entity cameraEntity,
+void cameraAPI_SetPriority(CommandBus &bus, Entity cameraEntity,
                            uint16_t priority) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_CAM_SET_PRIORITY,
       .entity = cameraEntity,
@@ -24,9 +21,7 @@ void cameraAPI_SetPriority(CommandBus *restrict bus, Entity cameraEntity,
   CommandBus_Push(bus, cmd);
 }
 
-void cameraAPI_SetZoom(CommandBus *restrict bus, Entity cameraEntity,
-                       float zoom) {
-  assert(bus != NULL);
+void cameraAPI_SetZoom(CommandBus &bus, Entity cameraEntity, float zoom) {
   Command cmd = {
       .type = CMD_CAM_SET_ZOOM,
       .entity = cameraEntity,
@@ -35,9 +30,8 @@ void cameraAPI_SetZoom(CommandBus *restrict bus, Entity cameraEntity,
   CommandBus_Push(bus, cmd);
 }
 
-void cameraAPI_SetRotation(CommandBus *restrict bus, Entity cameraEntity,
+void cameraAPI_SetRotation(CommandBus &bus, Entity cameraEntity,
                            float rotation) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_CAM_SET_ROTATION,
       .entity = cameraEntity,
@@ -46,10 +40,9 @@ void cameraAPI_SetRotation(CommandBus *restrict bus, Entity cameraEntity,
   CommandBus_Push(bus, cmd);
 }
 
-void cameraAPI_SetFollowTarget(CommandBus *restrict bus, Entity cameraEntity,
+void cameraAPI_SetFollowTarget(CommandBus &bus, Entity cameraEntity,
                                Entity targetEntity, float smoothSpeed,
                                creVec2 offset) {
-  assert(bus != NULL);
   Command cmd = {
       .type = CMD_CAM_SET_FOLLOW,
       .entity = cameraEntity,
@@ -63,8 +56,7 @@ void cameraAPI_SetFollowTarget(CommandBus *restrict bus, Entity cameraEntity,
   CommandBus_Push(bus, cmd);
 }
 
-void cameraAPI_DisableFollow(CommandBus *restrict bus, Entity cameraEntity) {
-  assert(bus != NULL);
+void cameraAPI_DisableFollow(CommandBus &bus, Entity cameraEntity) {
   Command cmd = {
       .type = CMD_CAM_DISABLE_FOLLOW,
       .entity = cameraEntity,

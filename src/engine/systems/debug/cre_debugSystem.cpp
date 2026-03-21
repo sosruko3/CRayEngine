@@ -31,7 +31,7 @@ static double s_avgFrameTime = 0.0;
 // Forward Declarations
 // ============================================================================
 
-static void DebugSystem_RenderAlarms(EntityRegistry *reg);
+static void DebugSystem_RenderAlarms(EntityRegistry &reg);
 
 // ============================================================================
 // Public API Implementation
@@ -44,8 +44,7 @@ void DebugSystem_Init(void) {
       "Debug System Initialized - Press F1 to toggle alarms, TAB for stats");
 }
 
-void DebugSystem_HandleInput(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
+void DebugSystem_HandleInput(EntityRegistry &reg) {
   (void)reg;
 
   if (IsKeyPressed(KEY_F1)) {
@@ -58,13 +57,11 @@ void DebugSystem_HandleInput(EntityRegistry *reg) {
   }
 }
 
-uint32_t DebugSystem_GetActiveCount(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
-  return reg->active_count;
+uint32_t DebugSystem_GetActiveCount(EntityRegistry &reg) {
+  return reg.active_count;
 }
 
-void DebugSystem_RenderWorldSpace(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
+void DebugSystem_RenderWorldSpace(EntityRegistry &reg) {
 
   if (!s_debugEnabled) {
     return;
@@ -73,20 +70,18 @@ void DebugSystem_RenderWorldSpace(EntityRegistry *reg) {
   DebugSystem_RenderAlarms(reg);
 }
 
-void DebugSystem_RenderPhysicsInsight(EntityRegistry *reg) {
+void DebugSystem_RenderPhysicsInsight(EntityRegistry &reg) {
   DebugSystem_RenderWorldSpace(reg);
 }
 
-void DebugSystem_RenderScreenSpace(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
+void DebugSystem_RenderScreenSpace(EntityRegistry &reg) {
 
   if (s_statsHudEnabled) {
     DebugSystem_RenderStatsHUD(reg);
   }
 }
 
-void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
+void DebugSystem_RenderStatsHUD(EntityRegistry &reg) {
 
   // Calculate frame time
   const double currentTime = GetTime();
@@ -102,10 +97,10 @@ void DebugSystem_RenderStatsHUD(EntityRegistry *reg) {
   uint32_t physicsCount = 0;
   uint32_t awakeCount = 0;
 
-  const uint32_t bound = reg->max_used_bound;
+  const uint32_t bound = reg.max_used_bound;
   for (uint32_t i = 0; i < bound; i++) {
-    const uint64_t flags = reg->state_flags[i];
-    const uint64_t comps = reg->component_masks[i];
+    const uint64_t flags = reg.state_flags[i];
+    const uint64_t comps = reg.component_masks[i];
 
     if (!(flags & FLAG_ACTIVE)) {
       continue;
@@ -205,8 +200,8 @@ void DebugSystem_Draw(void) {
 // World-Space Alarm Overlay
 // ============================================================================
 
-static void DebugSystem_RenderAlarms(EntityRegistry *reg) {
-  const uint32_t bound = reg->max_used_bound;
+static void DebugSystem_RenderAlarms(EntityRegistry &reg) {
+  const uint32_t bound = reg.max_used_bound;
 
   const creColor colorNaN = {255, 0, 0, 255};
   const creColor colorOrphan = creORANGE;
@@ -217,13 +212,13 @@ static void DebugSystem_RenderAlarms(EntityRegistry *reg) {
   const Camera2D cam = cameraUtils_GetActiveRaylib(reg, vp);
 
   for (uint32_t i = 0; i < bound; i++) {
-    const uint64_t flags = reg->state_flags[i];
+    const uint64_t flags = reg.state_flags[i];
     if (!(flags & FLAG_ACTIVE)) {
       continue;
     }
 
-    const float px = reg->pos_x[i];
-    const float py = reg->pos_y[i];
+    const float px = reg.pos_x[i];
+    const float py = reg.pos_y[i];
 
     // Data corruption alarm: NaN/Inf transform values.
     if (isnan(px) || isnan(py) || isinf(px) || isinf(py)) {

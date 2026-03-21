@@ -22,24 +22,19 @@ CameraComponent cameraSystem_CreateDefault(void) {
   return cam;
 }
 
-void cameraSystem_Init(EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
-  reg->camera_count = 0;
-}
+void cameraSystem_Init(EntityRegistry &reg) { reg.camera_count = 0; }
 
-static int32_t findCameraByOwner(const EntityRegistry *reg, Entity owner) {
+static int32_t findCameraByOwner(const EntityRegistry &reg, Entity owner) {
   // Feeling like i can handle this part better. Without static_cast.
-  for (uint32_t i = 0; i < reg->camera_count; i++) {
-    if (ENTITY_MATCH(reg->cameras[i].ownerEntity, owner)) {
+  for (uint32_t i = 0; i < reg.camera_count; i++) {
+    if (ENTITY_MATCH(reg.cameras[i].ownerEntity, owner)) {
       return static_cast<int32_t>(i);
     }
   }
   return -1;
 }
 
-void cameraSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
-  if (!reg || !bus)
-    return;
+void cameraSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -52,14 +47,14 @@ void cameraSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
       continue;
 
     const uint32_t id = cmd->entity.id;
-    if (!(reg->component_masks[id] & COMP_CAMERA))
+    if (!(reg.component_masks[id] & COMP_CAMERA))
       continue;
 
     const int32_t camIdx = findCameraByOwner(reg, cmd->entity);
     if (camIdx < 0)
       continue;
 
-    CameraComponent *cam = &reg->cameras[camIdx];
+    CameraComponent *cam = &reg.cameras[camIdx];
 
     switch (cmd->type) {
     case CMD_CAM_SET_ACTIVE:
@@ -105,18 +100,18 @@ void cameraSystem_ProcessCommands(EntityRegistry *reg, CommandBus *bus) {
   }
 }
 
-static void applyFollowLogic(CameraComponent *cam, EntityRegistry *reg,
+static void applyFollowLogic(CameraComponent *cam, EntityRegistry &reg,
                              float dt, uint32_t ownerId) {
   if (EntityRegistry_IsAlive(reg, cam->follow.targetEntity)) {
     const uint32_t targetId = cam->follow.targetEntity.id;
     const creVec2 desired = {
-        reg->pos_x[targetId] + cam->follow.offset.x,
-        reg->pos_y[targetId] + cam->follow.offset.y,
+        reg.pos_x[targetId] + cam->follow.offset.x,
+        reg.pos_y[targetId] + cam->follow.offset.y,
     };
 
     creVec2 current = {
-        reg->pos_x[ownerId],
-        reg->pos_y[ownerId],
+        reg.pos_x[ownerId],
+        reg.pos_y[ownerId],
     };
 
     creVec2 nextPos = desired;
@@ -124,18 +119,16 @@ static void applyFollowLogic(CameraComponent *cam, EntityRegistry *reg,
       nextPos = cameraUtils_Lerp(current, desired, cam->follow.smoothSpeed, dt);
     }
 
-    reg->pos_x[ownerId] = nextPos.x;
-    reg->pos_y[ownerId] = nextPos.y;
+    reg.pos_x[ownerId] = nextPos.x;
+    reg.pos_y[ownerId] = nextPos.y;
   } else {
     cam->follow.enabled = false;
     cam->follow.targetEntity = ENTITY_INVALID;
   }
 }
 
-void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
+void cameraSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt,
                          ViewportSize vp) {
-  assert(reg && "reg is NULL");
-  assert(bus && "bus is NULL");
   (void)vp;
 
   if (dt > 0.05f)
@@ -145,10 +138,10 @@ void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
 
   cameraSystem_ProcessCommands(reg, bus);
 
-  uint32_t cam_count = reg->camera_count;
+  uint32_t cam_count = reg.camera_count;
 
   for (uint32_t i = 0; i < cam_count; i++) {
-    CameraComponent *cam = &reg->cameras[i];
+    CameraComponent *cam = &reg.cameras[i];
     if (!(EntityRegistry_IsAlive(reg, cam->ownerEntity)))
       continue;
 
@@ -161,15 +154,14 @@ void cameraSystem_Update(EntityRegistry *reg, CommandBus *bus, float dt,
 
     // Sync Phase: cache final world position for renderer
     uint32_t id = cam->ownerEntity.id;
-    cam->viewPosition.x = reg->pos_x[id];
-    cam->viewPosition.y = reg->pos_y[id];
+    cam->viewPosition.x = reg.pos_x[id];
+    cam->viewPosition.y = reg.pos_y[id];
   }
 }
 
-creRectangle cameraSystem_GetViewBounds(const EntityRegistry *reg,
+creRectangle cameraSystem_GetViewBounds(const EntityRegistry &reg,
                                         const CameraComponent *cam,
                                         ViewportSize vp) {
-  assert(reg && "reg is NULL");
   assert(cam && "cam is NULL");
 
   Entity ownEntity = cam->ownerEntity;
@@ -184,8 +176,8 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry *reg,
     zoom = MAX_ZOOM;
 
   const uint32_t ownerId = ownEntity.id;
-  const float camX = reg->pos_x[ownerId];
-  const float camY = reg->pos_y[ownerId];
+  const float camX = reg.pos_x[ownerId];
+  const float camY = reg.pos_y[ownerId];
 
   float viewWidth = vp.width / zoom;
   float viewHeight = vp.height / zoom;
@@ -209,7 +201,7 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry *reg,
   return bounds;
 }
 
-creRectangle cameraSystem_GetCullBounds(const EntityRegistry *reg,
+creRectangle cameraSystem_GetCullBounds(const EntityRegistry &reg,
                                         const CameraComponent *cam,
                                         ViewportSize vp) {
   creRectangle view = cameraSystem_GetViewBounds(reg, cam, vp);
@@ -220,14 +212,13 @@ creRectangle cameraSystem_GetCullBounds(const EntityRegistry *reg,
                       .height = view.height + (CAMERA_CULL_MARGIN * 2.0f)};
 }
 
-int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
-  assert(reg && "reg is NULL");
+int32_t cameraSystem_FindActive(const EntityRegistry &reg) {
 
   int32_t activeIndex = -1;
   int32_t highestPriority = -1;
 
-  for (uint32_t i = 0; i < reg->camera_count; i++) {
-    const CameraComponent *cam = &reg->cameras[i];
+  for (uint32_t i = 0; i < reg.camera_count; i++) {
+    const CameraComponent *cam = &reg.cameras[i];
     Entity ownEntity = cam->ownerEntity;
     if (!cam->isActive || !EntityRegistry_IsAlive(reg, ownEntity))
       continue;
@@ -242,7 +233,7 @@ int32_t cameraSystem_FindActive(const EntityRegistry *reg) {
 }
 
 const CameraComponent *
-cameraSystem_GetActiveComponent(const EntityRegistry *reg) {
+cameraSystem_GetActiveComponent(const EntityRegistry &reg) {
   static bool s_warned = false;
   int32_t camIdx = cameraSystem_FindActive(reg);
   if (camIdx < 0) {
@@ -252,10 +243,10 @@ cameraSystem_GetActiveComponent(const EntityRegistry *reg) {
     }
     return NULL;
   }
-  return &reg->cameras[camIdx];
+  return &reg.cameras[camIdx];
 }
 
-creRectangle cameraSystem_GetActiveCullBounds(const EntityRegistry *reg,
+creRectangle cameraSystem_GetActiveCullBounds(const EntityRegistry &reg,
                                               const CameraComponent *cam,
                                               ViewportSize vp) {
 
