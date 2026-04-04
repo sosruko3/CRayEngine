@@ -3,7 +3,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR "In-source builds are not allowed. Please run 'cmake -B build' and 'cmake --build build'.")
 endif()
 
-project(CRayEngine VERSION 0.9 LANGUAGES C CXX)
+project(CRayEngine VERSION 0.11 LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -106,21 +106,22 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   endif()
 endif()
 
+
 # --- Dependencies ---
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
 
-# --- Libraries included  ---
+# --- EXTERNAL LIBRARIES (Vendored) ---
 add_library(miniaudio_lib STATIC src/external/miniaudio/miniaudio_impl.c)
+add_library(fmt_lib STATIC src/external/fmt/src/format.cc)
 
-# --- Linking miniaudio ---
 target_link_libraries(miniaudio_lib PRIVATE m pthread dl)
 
-# --- Include Directories ---
+# --- PROJECT DIRECTORIES & LINKING ---
 target_include_directories(${PROJECT_NAME} PRIVATE src "${GEN_DIR}")
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE src/external/raylib/src)
+target_include_directories(fmt_lib PUBLIC src/external/fmt/include)
 
-# --- Linking ---
-target_link_libraries(${PROJECT_NAME} raylib miniaudio_lib)
+target_link_libraries(${PROJECT_NAME} raylib miniaudio_lib fmt_lib)
 
 
 
@@ -128,6 +129,7 @@ target_link_libraries(${PROJECT_NAME} raylib miniaudio_lib)
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR} PATTERN "raw_textures" EXCLUDE)
 file(COPY ${CMAKE_SOURCE_DIR}/src/game/config/settings.cfg DESTINATION ${CMAKE_BINARY_DIR}/assets/config)
 
+# --- Debug and Release modes ---
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Build Type is Debug: Enabling Strict C++20 Warnings & Sanitizers")
 
