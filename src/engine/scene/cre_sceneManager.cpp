@@ -23,7 +23,7 @@ void SceneManager_Init(SceneFactory factory) {
   ctx.factory = factory;
   ctx.activeState = -1;
   ctx.isSwitchPending = false;
-  Log(LOG_LVL_INFO, "Scene Manager Initialized.");
+  Log(LogLevel::Info, "Scene Manager Initialized.");
 }
 
 void SceneManager_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
@@ -60,7 +60,7 @@ void SceneManager_Shutdown(EntityRegistry &reg, CommandBus &bus) {
 void SceneManager_ChangeScene(int32_t nextState) {
   ctx.nextState = nextState;
   ctx.isSwitchPending = true;
-  Log(LOG_LVL_INFO, "Scene changing queued for next frame...");
+  Log(LogLevel::Info, "Scene changing queued for next frame...");
 }
 
 int SceneManager_GetActiveState(void) { return ctx.activeState; }

@@ -14,7 +14,7 @@ void audioAPI_GroupInit(CommandBus &bus, AudioGroupID groupID) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_GroupInit: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_GroupInit: CommandBus is full!");
   }
 }
 
@@ -26,7 +26,7 @@ void audioAPI_SetMasterVolume(CommandBus &bus, float volume) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SetMasterVolume: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SetMasterVolume: CommandBus is full!");
   }
 }
 
@@ -38,7 +38,7 @@ void audioAPI_SetListenerPosition(CommandBus &bus, creVec2 position) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SetListenerPosition: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SetListenerPosition: CommandBus is full!");
   }
 }
 
@@ -55,7 +55,7 @@ void audioAPI_GroupSetVolume(CommandBus &bus, AudioGroupID groupID,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_GroupSetVolume: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_GroupSetVolume: CommandBus is full!");
   }
 }
 
@@ -72,7 +72,7 @@ void audioAPI_GroupSetPitch(CommandBus &bus, AudioGroupID groupID,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_GroupSetPitch: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_GroupSetPitch: CommandBus is full!");
   }
 }
 
@@ -88,7 +88,7 @@ void audioAPI_GroupSetPan(CommandBus &bus, AudioGroupID groupID, float pan) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_GroupSetPan: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_GroupSetPan: CommandBus is full!");
   }
 }
 
@@ -105,7 +105,7 @@ void audioAPI_PlayOneShot(CommandBus &bus, AudioGroupID groupID,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_PlayOneShot: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_PlayOneShot: CommandBus is full!");
   }
 }
 
@@ -124,7 +124,7 @@ void audioAPI_SoundLoad(CommandBus &bus, AudioID id, AudioSourceID sourceID,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundLoad: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundLoad: CommandBus is full!");
   }
 }
 
@@ -136,7 +136,7 @@ void audioAPI_SoundUnload(CommandBus &bus, AudioID id) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundUnload: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundUnload: CommandBus is full!");
   }
 }
 
@@ -148,7 +148,7 @@ void audioAPI_SoundPlay(CommandBus &bus, AudioID id) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundPlay: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundPlay: CommandBus is full!");
   }
 }
 
@@ -160,7 +160,7 @@ void audioAPI_SoundPause(CommandBus &bus, AudioID id) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundPause: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundPause: CommandBus is full!");
   }
 }
 
@@ -172,7 +172,7 @@ void audioAPI_SoundStop(CommandBus &bus, AudioID id) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundStop: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundStop: CommandBus is full!");
   }
 }
 
@@ -188,7 +188,7 @@ void audioAPI_SoundSetVolume(CommandBus &bus, AudioID id, float volume) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetVolume: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetVolume: CommandBus is full!");
   }
 }
 
@@ -204,7 +204,7 @@ void audioAPI_SoundSetPitch(CommandBus &bus, AudioID id, float pitch) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetPitch: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetPitch: CommandBus is full!");
   }
 }
 
@@ -220,7 +220,7 @@ void audioAPI_SoundSetPan(CommandBus &bus, AudioID id, float pan) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetPan: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetPan: CommandBus is full!");
   }
 }
 
@@ -236,7 +236,7 @@ void audioAPI_SoundSetLooping(CommandBus &bus, AudioID id, bool looping) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetLooping: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetLooping: CommandBus is full!");
   }
 }
 
@@ -253,7 +253,7 @@ void audioAPI_SoundSetSpatialization(CommandBus &bus, AudioID id,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING,
+    Log(LogLevel::Warning,
         "audioAPI_SoundSetSpatialization: CommandBus is full!");
   }
 }
@@ -270,7 +270,7 @@ void audioAPI_SoundSetPosition(CommandBus &bus, AudioID id, creVec2 position) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetPosition: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetPosition: CommandBus is full!");
   }
 }
 
@@ -287,6 +287,6 @@ void audioAPI_SoundSetAttenuation(CommandBus &bus, AudioID id,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "audioAPI_SoundSetAttenuation: CommandBus is full!");
+    Log(LogLevel::Warning, "audioAPI_SoundSetAttenuation: CommandBus is full!");
   }
 }

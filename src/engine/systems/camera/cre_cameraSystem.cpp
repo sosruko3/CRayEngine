@@ -238,7 +238,7 @@ cameraSystem_GetActiveComponent(const EntityRegistry &reg) {
   int32_t camIdx = cameraSystem_FindActive(reg);
   if (camIdx < 0) {
     if (!s_warned) {
-      Log(LOG_LVL_WARNING, "No active camera found! Rendering fallback.");
+      Log(LogLevel::Warning, "No active camera found! Rendering fallback.");
       s_warned = true;
     }
     return nullptr;

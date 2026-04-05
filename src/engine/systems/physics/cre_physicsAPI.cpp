@@ -20,7 +20,7 @@ void physicsAPI_DefineBody(CommandBus &bus, Entity entity, uint8_t mat_id,
                  }};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_DefineBody: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_DefineBody: CommandBus is full!");
   }
 }
 
@@ -31,7 +31,7 @@ void physicsAPI_TeleportBody(CommandBus &bus, Entity entity, float x, float y) {
                  .vec2 = {.value = creVec2{.x = x, .y = y}}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_TeleportBody: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_TeleportBody: CommandBus is full!");
   }
 }
 
@@ -43,7 +43,7 @@ void physicsAPI_ApplyImpulse(CommandBus &bus, Entity entity, float jx,
                  .vec2 = {.value = creVec2{.x = jx, .y = jy}}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_ApplyImpulse: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_ApplyImpulse: CommandBus is full!");
   }
 }
 
@@ -55,7 +55,7 @@ void physicsAPI_SetVelocity(CommandBus &bus, Entity entity, float vx,
                  .vec2 = {.value = creVec2{.x = vx, .y = vy}}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_SetVelocity: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_SetVelocity: CommandBus is full!");
   }
 }
 
@@ -65,7 +65,7 @@ void physicsAPI_SetDrag(CommandBus &bus, Entity entity, float drag) {
       .type = CMD_PHYS_SET_DRAG, .entity = entity, .f32 = {.value = drag}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_SetDrag: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_SetDrag: CommandBus is full!");
   }
 }
 
@@ -76,7 +76,7 @@ void physicsAPI_SetGravityScale(CommandBus &bus, Entity entity, float scale) {
                  .f32 = {.value = scale}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_SetGravityScale: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_SetGravityScale: CommandBus is full!");
   }
 }
 
@@ -86,7 +86,7 @@ void physicsAPI_SetMaterial(CommandBus &bus, Entity entity, uint8_t mat_id) {
       .type = CMD_PHYS_SET_MATERIAL, .entity = entity, .u8 = {.value = mat_id}};
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "physicsAPI_SetMaterial: CommandBus is full!");
+    Log(LogLevel::Warning, "physicsAPI_SetMaterial: CommandBus is full!");
   }
 }
 

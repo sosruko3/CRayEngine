@@ -187,7 +187,7 @@ void PhysicsSystem_Init(void) {
   g_gravity_x = PHYS_GRAVITY_DEF_X;
   g_gravity_y = PHYS_GRAVITY_DEF_Y;
 
-  Log(LOG_LVL_INFO, "Physics System Initialized (SubSteps=%d, SolverIters=%d)",
+  Log(LogLevel::Info, "Physics System Initialized (SubSteps={}, SolverIters={})",
       PHYS_SUB_STEPS, PHYS_SOLVER_ITERATIONS);
 }
 
@@ -404,7 +404,7 @@ static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry &reg) {
     staticCount++;
   }
 
-  Log(LOG_LVL_INFO, "Loaded %u static bodies into spatial hash", staticCount);
+  Log(LogLevel::Info, "Loaded {} static bodies into spatial hash", staticCount);
 }
 
 // ============================================================================
@@ -427,7 +427,7 @@ static void ConfigureBody(EntityRegistry &reg, uint32_t id, uint8_t mat_id,
                           float drag, bool is_static) {
   // Bounds check: prevent OOB array access
   if (id >= MAX_ENTITIES) {
-    Log(LOG_LVL_ERROR, "ConfigureBody: ID %u exceeds MAX_ENTITIES (%u)", id,
+    Log(LogLevel::Error, "ConfigureBody: ID {} exceeds MAX_ENTITIES ({})", id,
         MAX_ENTITIES);
     return;
   }

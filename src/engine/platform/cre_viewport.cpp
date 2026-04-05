@@ -39,7 +39,7 @@ void Viewport_Update(void) {
         CalculateInternal(static_cast<float>(GetScreenWidth()),
                           static_cast<float>(GetScreenHeight()));
         s_didResizeThisFrame = true;
-        Log(LOG_LVL_DEBUG, "Viewport Resized [Debounced]");
+        Log(LogLevel::Debug, "Viewport Resized [Debounced]");
       }
     }
   }

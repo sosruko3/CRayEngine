@@ -15,6 +15,8 @@
 #include "engine/core/cre_commandBus.h"
 #include "engine/ecs/cre_entityRegistry.h"
 
+// This file doesn't seem to be using logs? ADD LOG CHECKS HERE!
+
 static void AnimationSystem_Play(EntityRegistry &reg, uint32_t entityID,
                                  uint16_t animID, bool forceReset);
 
@@ -73,7 +75,8 @@ void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       }
 
       if (frame >= frame_count) {
-        frame = frame_count - 1u;
+        frame = frame_count;
+        --frame; // frame = frame_count -1U;
       }
 
       reg.anim_frames[id] = frame;

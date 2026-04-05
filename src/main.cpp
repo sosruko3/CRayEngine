@@ -5,7 +5,7 @@
 #include "game/game.h"
 #include "game/game_scenes.h"
 #include "game_config.h"
-#include <cstdalign>
+#include <stdalign.h>
 #include <cstdlib>
 
 int main() {

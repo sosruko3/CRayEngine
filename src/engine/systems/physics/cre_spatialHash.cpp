@@ -107,7 +107,7 @@ static uint32_t PopStaticNode(void) {
   }
   // Otherwise allocate from pool
   if (staticPoolIdx >= SPATIAL_MAX_STATIC) {
-    Log(LOG_LVL_WARNING, "Static node pool is FULL.");
+    Log(LogLevel::Warning, "Static node pool is FULL.");
     return SPATIAL_NULL_IDX;
   }
   return staticPoolIdx++;

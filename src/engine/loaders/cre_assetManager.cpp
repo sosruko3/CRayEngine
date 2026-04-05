@@ -33,21 +33,21 @@ void Asset_Init(void) {
 
   if (atlasTexture.id) {
     SetTextureFilter(atlasTexture, TEXTURE_FILTER_POINT);
-    Log(LOG_LVL_INFO, "ASSETS: Atlas loaded successfully.");
+    Log(LogLevel::Info, "ASSETS: Atlas loaded successfully.");
   } else {
-    Log(LOG_LVL_ERROR, "ASSETS: Failed to load atlas.png!");
+    Log(LogLevel::Error, "ASSETS: Failed to load atlas.png!");
   }
 }
 void Asset_Shutdown(void) {
   UnloadTexture(atlasTexture);
-  Log(LOG_LVL_INFO, "ASSETS: Atlas unloaded succesfully.");
+  Log(LogLevel::Info, "ASSETS: Atlas unloaded succesfully.");
 }
 Texture2D Asset_getTexture(void) { return atlasTexture; }
 // why does this parameter has int? Change this to uint32_t after changing
 // spriteids to uint32_t
 creRectangle Asset_getRect(int spriteID) {
   if (spriteID < 0 || spriteID >= SPRITE_COUNT) {
-    Log(LOG_LVL_WARNING, "ASSETS: Missing sprite ID %d,using Fallback.",
+    Log(LogLevel::Warning, "ASSETS: Missing sprite ID {},using Fallback.",
         spriteID);
     return SpriteMeta_ToRect(&ASSET_SPRITES[SPR_MISSING]);
   }

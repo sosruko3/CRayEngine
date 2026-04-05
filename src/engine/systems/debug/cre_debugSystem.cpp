@@ -40,7 +40,7 @@ static void DebugSystem_RenderAlarms(EntityRegistry &reg);
 void DebugSystem_Init(void) {
   s_debugEnabled = false;
   s_statsHudEnabled = true;
-  Log(LOG_LVL_INFO,
+  Log(LogLevel::Info,
       "Debug System Initialized - Press F1 to toggle alarms, TAB for stats");
 }
 
@@ -49,7 +49,7 @@ void DebugSystem_HandleInput(EntityRegistry &reg) {
 
   if (IsKeyPressed(KEY_F1)) {
     s_debugEnabled = !s_debugEnabled;
-    Log(LOG_LVL_INFO, "Debug Overlay: %s", s_debugEnabled ? "ON" : "OFF");
+    Log(LogLevel::Info, "Debug Overlay: {}", s_debugEnabled ? "ON" : "OFF");
   }
 
   if (IsKeyPressed(KEY_TAB)) {

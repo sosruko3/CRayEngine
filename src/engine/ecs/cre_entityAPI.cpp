@@ -23,7 +23,7 @@ Entity entityAPI_Spawn(EntityRegistry &reg, CommandBus &bus, Entity prototype,
 
   if (!CommandBus_Push(bus, cmd)) {
     EntityManager_ReturnReservedSlot(reg, reserved);
-    Log(LOG_LVL_ERROR, "entityAPI_Spawn: CommandBus is full! Slot returned.");
+    Log(LogLevel::Error, "entityAPI_Spawn: CommandBus is full! Slot returned.");
     return ENTITY_INVALID;
   }
 
@@ -45,7 +45,7 @@ Entity entityAPI_SpawnUntracked(EntityRegistry &reg, CommandBus &bus,
 
   if (!CommandBus_Push(bus, cmd)) {
     EntityManager_ReturnReservedSlot(reg, reserved);
-    Log(LOG_LVL_ERROR,
+    Log(LogLevel::Error,
         "entityAPI_SpawnUntracked: CommandBus is full! Slot returned.");
     return ENTITY_INVALID;
   }
@@ -61,7 +61,7 @@ void entityAPI_Destroy(CommandBus &bus, Entity entity) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_Destroy: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_Destroy: CommandBus is full!");
   }
 }
 
@@ -73,7 +73,7 @@ void entityAPI_AddFlags(CommandBus &bus, Entity entity, uint64_t flags) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_SetFlags: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_SetFlags: CommandBus is full!");
   }
 }
 
@@ -85,7 +85,7 @@ void entityAPI_RemoveFlags(CommandBus &bus, Entity entity, uint64_t flags) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_ClearFlags: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_ClearFlags: CommandBus is full!");
   }
 }
 
@@ -97,7 +97,7 @@ void entityAPI_SetType(CommandBus &bus, Entity entity, uint16_t type) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_SetType: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_SetType: CommandBus is full!");
   }
 }
 
@@ -109,7 +109,7 @@ void entityAPI_SetPivot(CommandBus &bus, Entity entity, creVec2 pivot) {
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_SetPivot: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_SetPivot: CommandBus is full!");
   }
 }
 
@@ -122,7 +122,7 @@ void entityAPI_AddComponent(CommandBus &bus, Entity entity,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_AddComponent: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_AddComponent: CommandBus is full!");
   }
 }
 
@@ -135,7 +135,7 @@ void entityAPI_RemoveComponent(CommandBus &bus, Entity entity,
   };
 
   if (!CommandBus_Push(bus, cmd)) {
-    Log(LOG_LVL_WARNING, "entityAPI_RemoveComponent: CommandBus is full!");
+    Log(LogLevel::Warning, "entityAPI_RemoveComponent: CommandBus is full!");
   }
 }
 
@@ -151,6 +151,6 @@ void entityAPI_Clone(EntityRegistry &reg, CommandBus &bus, Entity dst,
 
   if (!CommandBus_Push(bus, cmd)) {
     EntityManager_ReturnReservedSlot(reg, dst);
-    Log(LOG_LVL_ERROR, "entityAPI_Clone: CommandBus is full! Slot returned.");
+    Log(LogLevel::Warning, "entityAPI_Clone: CommandBus is full! Slot returned.");
   }
 }

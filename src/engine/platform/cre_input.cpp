@@ -72,7 +72,7 @@ int GetKeyFromStr(const char *str) {
 void Input_LoadConfig(const char *filename) {
   FILE *file = fopen(filename, "r");
   if (!file) {
-    Log(LOG_LVL_WARNING, "Config missing: %s. Using defaults.", filename);
+    Log(LogLevel::Warning, "Config missing: {}. Using defaults.", filename);
     return;
   }
 
@@ -96,7 +96,7 @@ void Input_LoadConfig(const char *filename) {
     Input_Remap(action, key);
   }
   fclose(file);
-  Log(LOG_LVL_INFO, "Config loaded successfully.");
+  Log(LogLevel::Info, "Config loaded successfully.");
 }
 
 void Input_Init(const char *configPath) {

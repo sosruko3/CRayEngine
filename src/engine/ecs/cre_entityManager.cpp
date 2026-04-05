@@ -29,7 +29,8 @@ void EntityManager_Init(EntityRegistry &reg) {
   reg.active_count = 0;
   reg.max_used_bound = 0;
 
-  Log(LOG_LVL_INFO, "Entity Manager Initialized (SoA, %u slots)", MAX_ENTITIES);
+  Log(LogLevel::Info, "Entity Manager Initialized (SoA, {} slots)",
+      MAX_ENTITIES);
 }
 
 void EntityManager_Reset(EntityRegistry &reg) {
@@ -80,7 +81,7 @@ void EntityManager_Reset(EntityRegistry &reg) {
   reg.active_count = 0;
   reg.max_used_bound = 0;
 
-  Log(LOG_LVL_INFO, "Entity Manager Reset Complete (generations preserved)");
+  Log(LogLevel::Info, "Entity Manager Reset Complete (generations preserved)");
 }
 
 Entity EntityManager_ReserveSlot(EntityRegistry &reg) {
@@ -122,7 +123,7 @@ Entity EntityManager_Create(EntityRegistry &reg, uint16_t type, creVec2 pos,
   reg.state_flags[index] = initial_flags;
   reg.types[index] = static_cast<uint16_t>(type);
   reg.render_layer[index] = 0; // Keep these in mind
-  reg.batch_ids[index] = 0; // **
+  reg.batch_ids[index] = 0;    // **
 
   // Position
   reg.pos_x[index] = pos.x;
@@ -196,5 +197,5 @@ void EntityManager_Destroy(EntityRegistry &reg, Entity e) {
 
 void EntityManager_Shutdown(EntityRegistry &reg) {
   memset(&reg, 0, sizeof(EntityRegistry));
-  Log(LOG_LVL_INFO, "Entity Manager Shutdown");
+  Log(LogLevel::Info, "Entity Manager Shutdown");
 }

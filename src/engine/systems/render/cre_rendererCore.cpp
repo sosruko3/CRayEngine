@@ -51,7 +51,7 @@ void rendererCore_Init(float virtualWidth, float virtualHeight) {
   state.currentShader = Shader{};
   state.currentTexture = Texture2D{};
   rendererCore_RecreateCanvas(virtualWidth, virtualHeight);
-  Log(LOG_LVL_INFO, "RENDERER: Initialized (%dx%d)", state.virtualWidth,
+  Log(LogLevel::Info, "RENDERER: Initialized ({}x{})", state.virtualWidth,
       state.virtualHeight);
 }
 
@@ -65,7 +65,7 @@ void rendererCore_Shutdown(void) {
   state.currentShader = Shader{};
   state.currentBlendMode = BLEND_ALPHA;
   state.currentFilterMode = -1;
-  Log(LOG_LVL_INFO, "RENDERER: Shutdown complete");
+  Log(LogLevel::Info, "RENDERER: Shutdown complete");
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

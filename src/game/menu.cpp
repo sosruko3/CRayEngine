@@ -10,7 +10,7 @@
 void Menu_Init(EntityRegistry &reg, CommandBus &bus) {
   (void)reg;
   (void)bus;
-  Log(LOG_LVL_INFO, "Scene: Menu Initialized");
+  Log(LogLevel::Info, "Scene: Menu Initialized");
 }
 
 void Menu_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
@@ -42,5 +42,5 @@ void Menu_Draw(EntityRegistry &reg, CommandBus &bus) {
 void Menu_Unload(EntityRegistry &reg, CommandBus &bus) {
   (void)reg;
   (void)bus;
-  Log(LOG_LVL_INFO, "Scene: Menu Unloaded.");
+  Log(LogLevel::Info, "Scene: Menu Unloaded.");
 }

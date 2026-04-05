@@ -1,138 +1,81 @@
 #include "cre_logger.h"
-#include "raylib.h"
-#include <stdarg.h> // For "..." arguments
+#include "../platform/cre_sys.h"
+#include "fmt/base.h"
+#include "fmt/chrono.h"
 #include <stdio.h>
-#include <time.h> // For timestamps
 
-// Will be using fmt library and make this system safer and cleaner.
-// Will be fixing compiler warnings too.
+static constexpr const char *LOG_TAGS[] = {
+  "[INFO]" , "[WARNING]",
+  "[ERROR]", "[DEBUG]"};
 
-void RaylibLogHook(int logLevel, const char *text, va_list args) {
-  // Map Raylib's levels to engine's levels.
-  LogLevel myLevel;
-  switch (logLevel) {
-  case LOG_DEBUG:
-    myLevel = LOG_LVL_DEBUG;
-    break;
-  case LOG_INFO:
-    myLevel = LOG_LVL_INFO;
-    break;
-  case LOG_WARNING:
-    myLevel = LOG_LVL_WARNING;
-    break;
-  case LOG_ERROR:
-    myLevel = LOG_LVL_ERROR;
-    break;
-  case LOG_FATAL:
-    myLevel = LOG_LVL_ERROR;
-    break;
-  default:
-    return; // Ignore "Trace" or "All" spam.
-  }
-
-  char buffer[1024];
-
-  // Print raylib's message to engine's buffer.
-  vsnprintf(buffer, sizeof(buffer), text, args);
-
-  // Send it to the engine
-  Log(myLevel, "[RAYLIB] %s", buffer);
-}
 static FILE *logFile = nullptr;
+void Logger_WriteToFile(const char *finalMessage, LogLevel level) {
+  fputs(finalMessage, stdout);
 
-// Helper function to create a directory
-// Deleted MakeDirectory function, instead using raylib's MakeDirectory
+  if (logFile) {
+    fputs(finalMessage, logFile);
 
+    if (level == LogLevel::Warning || level == LogLevel::Error) {
+      fflush(logFile);
+    }
+  }
+}
+
+// Might think about making this a bool return type. For safety.
 void Logger_Init(void) {
   // Get file directory
-  const char *appDir = GetApplicationDirectory();
+  const char *appDir = Platform_GetAppDir();
 
-  // Create logs folder
-  const char *logDir = TextFormat("%slogs", appDir);
+  char pathBuffer[512] = {};
 
-  if (!DirectoryExists(logDir)) {
-    MakeDirectory(logDir);
+  // Creates logs folder.
+  fmt::format_to_n(pathBuffer, sizeof(pathBuffer) - 1, "{}logs", appDir);
+
+  if (!Platform_DirExists(pathBuffer)) {
+    Platform_MakeDir(pathBuffer);
   }
   // Build the full filename
-  const char *filePath = TextFormat("%s/game.log", logDir);
+  fmt::format_to_n(pathBuffer, sizeof(pathBuffer) - 1, "{}logs/game.log",
+                   appDir);
 
-  logFile = fopen(filePath, "a");
+  logFile = fopen(pathBuffer, "a");
   if (logFile) {
-    Log(LOG_LVL_INFO, "Logger Initialized.");
+    Log(LogLevel::Info, "Logger Initialized.");
   } else {
     // If error , try to save in root folder
     logFile = fopen("game_fallback.log", "w");
-    printf(
+    fmt::print(
+        stderr,
         "ERROR: Could not create log file in logs folder. Trying fallback.\n");
   }
-
-  if (logFile) {
-    Log(LOG_LVL_INFO, "Logger Initialized.");
-
-    // For raylib's logs. There are safety warnings here.
-    SetTraceLogCallback(RaylibLogHook);
-  }
 }
+
 void Logger_Shutdown(void) {
   if (logFile) {
-    Log(LOG_LVL_INFO, "---- SYSTEM SHUTDOWN ----");
+    Log(LogLevel::Info, "Logger Shutdown.");
     fclose(logFile);
     logFile = nullptr;
   }
 }
-void Log(LogLevel level, const char *fmt, ...) {
-  // get current time
-  time_t now = time(nullptr);
-  struct tm *t = localtime(&now);
-  char timeStr[24];
-  strftime(timeStr, sizeof(timeStr), "%d/%m/%Y %H:%M:%S", t);
 
-  const char *tag;
-  switch (level) {
-  case LOG_LVL_INFO:
-    tag = "[INFO]";
-    break;
-  case LOG_LVL_WARNING:
-    tag = "[WARNING]";
-    break;
-  case LOG_LVL_ERROR:
-    tag = "[ERROR]";
-    break;
-  case LOG_LVL_DEBUG:
-    tag = "[DEBUG]";
-    break;
-  default:
-    tag = "[LOG]";
-    break;
-  }
+void Logger_LogImplementation(LogLevel level, fmt::string_view format,
+                              fmt::format_args args) {
+  char buffer[1024] = {};
 
-  // Handle variable arguments (...)
-  va_list args;
+  const std::chrono::system_clock::time_point now =
+      std::chrono::system_clock::now();
 
-  // Write to the terminal
-  // This prints "17:30:05 [INFO]"
-  printf("%s %s ", timeStr, tag);
+  // DD/MM/YY H:M:S
+  // -2 is for \n. In case buffer is full.
+    fmt::format_to_n_result<char *> res1 =
+      fmt::format_to_n(buffer, sizeof(buffer) - 2, "{:%d/%m/%Y %H:%M:%S} {} ",
+                       std::chrono::time_point_cast<std::chrono::seconds>(now), 
+                       LOG_TAGS[static_cast<uint8_t>(level)]
+                      );
 
-  // This prints the actual message : "Game started"
-  va_start(args, fmt);
-  vprintf(fmt, args);
-  va_end(args);
-
-  printf("\n");
-
-  // Write to file (game.log)
-  if (logFile) {
-    fprintf(logFile, "%s %s ", timeStr, tag);
-
-    va_start(args, fmt);
-    vfprintf(logFile, fmt, args);
-    va_end(args);
-
-    fprintf(logFile, "\n");
-
-    // Force save only if error or warning (can change that later on maybe)
-    if (level == LOG_LVL_ERROR || level == LOG_LVL_WARNING) {
-      fflush(logFile);
-    }
-  }
+  size_t written = (res1.size > sizeof(buffer) - 2) ? (sizeof(buffer) - 2) : res1.size;
+  fmt::format_to_n_result<char *> res2 =
+      fmt::vformat_to_n(buffer + written, sizeof(buffer) - 2 - written, format, args);
+  fmt::format_to_n(res2.out, 1, "\n");
+  Logger_WriteToFile(buffer, level);
 }

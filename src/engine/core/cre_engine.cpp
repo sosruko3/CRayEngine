@@ -24,8 +24,8 @@ static void EnginePhase0_PlatformSync(void) {
     ViewportSize vp = Viewport_Get();
 
     rendererCore_RecreateCanvas(vp.width, vp.height);
-    Log(LOG_LVL_INFO, "[ENGINE] Resolution updated to %0.fx%0.f",
-        (double)vp.width, (double)vp.height);
+    Log(LogLevel::Info, "[ENGINE] Resolution updated to {}x{}", vp.width,
+        vp.height);
   }
 }
 static void EnginePhase1_InputAndLogic(EntityRegistry &reg, CommandBus &bus,
@@ -107,22 +107,21 @@ static void EnginePhase4_Cleanup(EntityRegistry &reg, CommandBus &bus) {
 void Engine_Init(EntityRegistry &reg, CommandBus &bus, const char *title,
                  const char *configFileName) {
   Logger_Init();
-  Log(LOG_LVL_INFO, "[ENGINE] Engine is Initializing...");
+  Log(LogLevel::Info, "[ENGINE] Engine is Initializing...");
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   Viewport_Init(SCREEN_WIDTH, SCREEN_HEIGHT);
   ViewportSize v = Viewport_Get();
   InitWindow(static_cast<int>(v.width), static_cast<int>(v.height), title);
   SetTargetFPS(TARGET_FRAMERATE);
-  Log(LOG_LVL_DEBUG, "[ENGINE] Target Resolution: %.0fx%.0f", (double)v.width,
-      (double)v.height);
+  Log(LogLevel::Debug, "[ENGINE] Target Resolution: {}x{}", v.width, v.height);
 
   // Clean this configPath later on.
   const char *configPath =
       TextFormat("%s%s", GetApplicationDirectory(), configFileName);
   Input_Init(configPath);
   if (!IsWindowReady()) {
-    Log(LOG_LVL_ERROR, "[ENGINE] CRITICAL: Raylib failed to create window. ");
+    Log(LogLevel::Error, "[ENGINE] CRITICAL: Raylib failed to create window. ");
     Logger_Shutdown();
     exit(1);
   }
@@ -135,7 +134,7 @@ void Engine_Init(EntityRegistry &reg, CommandBus &bus, const char *title,
   PhysicsSystem_Init();
   cameraSystem_Init(reg);
   audioSystem_Init();
-  Log(LOG_LVL_INFO, "[ENGINE] Windows created successfully.");
+  Log(LogLevel::Info, "[ENGINE] Windows created successfully.");
 }
 void Engine_Run(EntityRegistry &reg, CommandBus &bus, float dt) {
   while (!WindowShouldClose()) {
@@ -150,7 +149,7 @@ void Engine_Run(EntityRegistry &reg, CommandBus &bus, float dt) {
   }
 }
 void Engine_Shutdown(EntityRegistry &reg, CommandBus &bus) {
-  Log(LOG_LVL_INFO, "[ENGINE] Shutting down...");
+  Log(LogLevel::Info, "[ENGINE] Shutting down...");
   SceneManager_Shutdown(reg, bus);
   EntityManager_Shutdown(reg);
   audioSystem_Shutdown();
@@ -158,6 +157,6 @@ void Engine_Shutdown(EntityRegistry &reg, CommandBus &bus) {
   CloseWindow();
 
   // Add failsafes later on.
-  Log(LOG_LVL_INFO, "[ENGINE] Engine Shutdown Complete.");
+  Log(LogLevel::Info, "[ENGINE] Engine Shutdown Complete.");
   Logger_Shutdown();
 }

@@ -74,7 +74,7 @@ void audioSystem_Init(void) {
 
   ma_result result = ma_resource_manager_init(&rmConfig, &s_resourceManager);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_ERROR, "[AUDIO] Resource Manager init failed (err=%d)",
+    Log(LogLevel::Error, "[AUDIO] Resource Manager init failed (err={})",
         static_cast<int32_t>(result));
     return;
   }
@@ -84,7 +84,7 @@ void audioSystem_Init(void) {
 
   result = ma_engine_init(&engineConfig, &s_audioEngine);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] ma_engine_init failed (err=%d)",
+    Log(LogLevel::Warning, "[AUDIO] ma_engine_init failed (err={})",
         static_cast<int32_t>(result));
     ma_resource_manager_uninit(&s_resourceManager);
     return;
@@ -108,7 +108,7 @@ void audioSystem_Update(EntityRegistry &reg, CommandBus &bus) {
 }
 
 void audioSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
-  (void)reg;
+  static_cast<void>(reg);
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -211,8 +211,9 @@ void audioSystem_Shutdown(void) {
 
 /* Section 3: Internal Guardrail Functions */
 static bool audio_ValidateUsage(AudioUsageType usage) {
-  if ((uint32_t)usage >= AUDIO_USAGE_COUNT) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid usage enum: %u", (unsigned)usage);
+  if (static_cast<uint32_t>(usage) >= AUDIO_USAGE_COUNT) {
+    Log(LogLevel::Warning, "[AUDIO] Invalid usage enum: {}",
+        static_cast<unsigned>(usage));
     return false;
   }
 
@@ -221,8 +222,8 @@ static bool audio_ValidateUsage(AudioUsageType usage) {
 
 static bool audio_ValidateGroupID(AudioGroupID groupID) {
   if (groupID >= AUDIO_GROUP_COUNT) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Group ID out of bounds: %u",
-        (unsigned)groupID);
+    Log(LogLevel::Warning, "[AUDIO] Group ID out of bounds: {}",
+        static_cast<unsigned>(groupID));
     return false;
   }
 
@@ -235,22 +236,22 @@ static bool audio_ValidateSoundID(AudioID id, uint16_t *outIndex,
   const uint16_t generation = id.gen;
 
   if (index >= AUDIO_SOUND_POOL_CAPACITY) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Sound ID index out of bounds: %u",
-        (unsigned)index);
+    Log(LogLevel::Warning, "[AUDIO] Sound ID index out of bounds: {}",
+        static_cast<unsigned>(index));
     return false;
   }
 
   if (generation != s_soundGeneration[index]) {
-    Log(LOG_LVL_WARNING,
-        "[AUDIO] Stale sound handle. idx=%u gen=%u expected=%u",
-        (unsigned)index, (unsigned)generation,
-        (unsigned)s_soundGeneration[index]);
+    Log(LogLevel::Warning,
+        "[AUDIO] Stale sound handle. idx={} gen={} expected={}",
+        static_cast<unsigned>(index), static_cast<unsigned>(generation),
+        static_cast<unsigned>(s_soundGeneration[index]));
     return false;
   }
 
   if (requireLoaded && !s_soundLoaded[index]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Sound slot is not loaded. idx=%u",
-        (unsigned)index);
+    Log(LogLevel::Warning, "[AUDIO] Sound slot is not loaded. idx={}",
+        static_cast<unsigned>(index));
     return false;
   }
 
@@ -260,7 +261,7 @@ static bool audio_ValidateSoundID(AudioID id, uint16_t *outIndex,
 
 AudioID audioSystem_AllocateID(void) {
   if (s_freeTop < 0) {
-    Log(LOG_LVL_ERROR, "[AUDIO] Pool exhausted! No free slots.");
+    Log(LogLevel::Error, "[AUDIO] Pool exhausted! No free slots.");
     return AudioID{.index = 0, .gen = 0xFFFF};
   }
   uint16_t index = s_freeIndices[s_freeTop--];
@@ -288,16 +289,16 @@ static void audio_GroupInit(AudioGroupID groupID) {
   }
 
   if (s_groupInitialized[groupID]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Group already initialized: %u",
-        (unsigned)groupID);
+    Log(LogLevel::Warning, "[AUDIO] Group already initialized: {}",
+        static_cast<unsigned>(groupID));
     return;
   }
 
   const ma_result result =
       ma_sound_group_init(&s_audioEngine, 0, nullptr, &s_groups[groupID]);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to init group %u (err=%d)",
-        (unsigned)groupID, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to init group {} (err={})",
+        static_cast<unsigned>(groupID), static_cast<int>(result));
     return;
   }
 
@@ -308,8 +309,8 @@ static void audio_GroupSetVolume(AudioGroupID groupID, float vol) {
   assert(s_audioInitialized && "Audio system is not initalized.");
 
   if (!audio_ValidateGroupID(groupID) || !s_groupInitialized[groupID]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Group volume set on uninitialized group: %u",
-        (unsigned)groupID);
+    Log(LogLevel::Warning, "[AUDIO] Group volume set on uninitialized group: {}",
+        static_cast<unsigned>(groupID));
     return;
   }
 
@@ -320,8 +321,8 @@ static void audio_GroupSetPitch(AudioGroupID groupID, float pitch) {
   assert(s_audioInitialized && "Audio system is not initalized.");
 
   if (!audio_ValidateGroupID(groupID) || !s_groupInitialized[groupID]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Group pitch set on uninitialized group: %u",
-        (unsigned)groupID);
+    Log(LogLevel::Warning, "[AUDIO] Group pitch set on uninitialized group: {}",
+        static_cast<unsigned>(groupID));
     return;
   }
 
@@ -332,8 +333,8 @@ static void audio_GroupSetPan(AudioGroupID groupID, float pan) {
   assert(s_audioInitialized && "Audio system is not initalized.");
 
   if (!audio_ValidateGroupID(groupID) || !s_groupInitialized[groupID]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Group pan set on uninitialized group: %u",
-        (unsigned)groupID);
+    Log(LogLevel::Warning, "[AUDIO] Group pan set on uninitialized group: {}",
+        static_cast<unsigned>(groupID));
     return;
   }
 
@@ -346,7 +347,8 @@ static void audio_PlayOneShot(AudioSourceID sourceID, AudioGroupID groupID) {
          "Group must be initialized before use!");
 
   if (sourceID >= AUDIO_SOURCE_COUNT) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid source ID: %u", (unsigned)sourceID);
+    Log(LogLevel::Warning, "[AUDIO] Invalid source ID: {}",
+        static_cast<unsigned>(sourceID));
     return;
   }
 
@@ -355,8 +357,8 @@ static void audio_PlayOneShot(AudioSourceID sourceID, AudioGroupID groupID) {
       ma_engine_play_sound(&s_audioEngine, filepath, &s_groups[groupID]);
 
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] One-shot play failed: %s (err=%d)", filepath,
-        (int)result);
+    Log(LogLevel::Warning, "[AUDIO] One-shot play failed: {} (err={})", filepath,
+        static_cast<int>(result));
   }
 }
 
@@ -368,7 +370,8 @@ static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
          "Group must be initialized before use!");
 
   if (sourceID >= AUDIO_SOURCE_COUNT) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid source ID: %u", (unsigned)sourceID);
+    Log(LogLevel::Warning, "[AUDIO] Invalid source ID: {}",
+        static_cast<unsigned>(sourceID));
     return;
   }
 
@@ -377,21 +380,21 @@ static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
   }
 
   if (s_soundLoaded[slot]) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Reloading loaded sound slot: %u",
-        (unsigned)slot);
+    Log(LogLevel::Warning, "[AUDIO] Reloading loaded sound slot: {}",
+        static_cast<unsigned>(slot));
     ma_sound_uninit(&s_soundPool[slot]);
     s_soundLoaded[slot] = false;
   }
 
   const char *filepath = s_sourcePaths[sourceID];
-  const ma_uint32 flags = s_usageFlags[(uint32_t)usage];
+  const ma_uint32 flags = s_usageFlags[static_cast<uint32_t>(usage)];
   const ma_result result =
       ma_sound_init_from_file(&s_audioEngine, filepath, flags,
                   &s_groups[groupID], nullptr, &s_soundPool[slot]);
 
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to load sound idx=%u path=%s err=%d",
-        (unsigned)slot, filepath, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to load sound idx={} path={} err={}",
+        static_cast<unsigned>(slot), filepath, static_cast<int>(result));
     return;
   }
 
@@ -422,8 +425,8 @@ static void audio_SoundPlay(AudioID id) {
 
   const ma_result result = ma_sound_start(&s_soundPool[slot]);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to start sound idx=%u err=%d",
-        (unsigned)slot, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to start sound idx={} err={}",
+        static_cast<unsigned>(slot), static_cast<int>(result));
   }
 }
 
@@ -437,8 +440,8 @@ static void audio_SoundPause(AudioID id) {
 
   const ma_result result = ma_sound_stop(&s_soundPool[slot]);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to pause sound idx=%u err=%d",
-        (unsigned)slot, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to pause sound idx={} err={}",
+        static_cast<unsigned>(slot), static_cast<int>(result));
   }
 }
 
@@ -452,15 +455,15 @@ static void audio_SoundStop(AudioID id) {
 
   ma_result result = ma_sound_stop(&s_soundPool[slot]);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to stop sound idx=%u err=%d",
-        (unsigned)slot, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to stop sound idx={} err={}",
+        static_cast<unsigned>(slot), static_cast<int>(result));
     return;
   }
 
   result = ma_sound_seek_to_pcm_frame(&s_soundPool[slot], 0);
   if (result != MA_SUCCESS) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Failed to rewind sound idx=%u err=%d",
-        (unsigned)slot, (int)result);
+    Log(LogLevel::Warning, "[AUDIO] Failed to rewind sound idx={} err={}",
+        static_cast<unsigned>(slot), static_cast<int>(result));
   }
 }
 
@@ -540,8 +543,8 @@ static void audio_SoundSetAttenuation(AudioID id, float min, float max) {
   }
 
   if (min < 0.0f || max < 0.0f || min > max) {
-    Log(LOG_LVL_WARNING, "[AUDIO] Invalid attenuation min=%.3f max=%.3f",
-        (double)min, (double)max);
+    Log(LogLevel::Warning, "[AUDIO] Invalid attenuation min={:.3f} max={:.3f}",
+        static_cast<double>(min), static_cast<double>(max));
     return;
   }
 

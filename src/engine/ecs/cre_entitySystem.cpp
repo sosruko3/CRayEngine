@@ -75,8 +75,8 @@ bool EntitySystem_SubscribeOnCloned(EntityRegistry &reg,
   }
 
   if (reg.events.clone_hook_count >= MAX_CLONE_HOOKS) {
-    Log(LOG_LVL_ERROR,
-        "EntitySystem_SubscribeOnCloned: Hook capacity exceeded (%u)",
+    Log(LogLevel::Error,
+        "EntitySystem_SubscribeOnCloned: Hook capacity exceeded ({})",
         MAX_CLONE_HOOKS);
     assert(false && "EntitySystem_SubscribeOnCloned: Hook capacity exceeded");
     return false;
@@ -136,8 +136,8 @@ bool EntitySystem_SubscribeOnSpawned(EntityRegistry &reg,
   }
 
   if (reg.events.spawn_hook_count >= MAX_SPAWN_HOOKS) {
-    Log(LOG_LVL_ERROR,
-        "EntitySystem_SubscribeOnSpawned: Hook capacity exceeded (%u)",
+    Log(LogLevel::Error,
+        "EntitySystem_SubscribeOnSpawned: Hook capacity exceeded ({})",
         MAX_SPAWN_HOOKS);
     assert(false && "EntitySystem_SubscribeOnSpawned: Hook capacity exceeded");
     return false;
@@ -197,8 +197,8 @@ bool EntitySystem_SubscribeOnDestroyed(EntityRegistry &reg,
   }
 
   if (reg.events.destroy_hook_count >= MAX_DESTROY_HOOKS) {
-    Log(LOG_LVL_ERROR,
-        "EntitySystem_SubscribeOnDestroyed: Hook capacity exceeded (%u)",
+    Log(LogLevel::Error,
+        "EntitySystem_SubscribeOnDestroyed: Hook capacity exceeded ({})",
         MAX_DESTROY_HOOKS);
     assert(false &&
            "EntitySystem_SubscribeOnDestroyed: Hook capacity exceeded");

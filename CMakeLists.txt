@@ -61,6 +61,7 @@ set(SOURCES
     src/engine/scene/cre_sceneManager.cpp
     src/engine/platform/cre_input.cpp
     src/engine/platform/cre_viewport.cpp
+    src/engine/platform/cre_sys.cpp
     src/engine/ecs/cre_entityManager.cpp
     src/engine/ecs/cre_entityAPI.cpp
     src/engine/ecs/cre_entitySystem.cpp

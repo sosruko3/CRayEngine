@@ -30,7 +30,7 @@ Scene Game_GetScene(int stateID) {
     break;
 
   default:
-    Log(LOG_LVL_WARNING, "Game Scene failed to load.\n");
+    Log(LogLevel::Warning, "Game Scene failed to load.\n");
     break;
   }
   return scene;
