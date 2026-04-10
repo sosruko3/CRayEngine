@@ -1,6 +1,10 @@
 #ifndef CRE_TYPES_H
 #define CRE_TYPES_H
 #include <stdint.h>
+#include <stddef.h>
+
+struct EntityRegistry;
+struct CommandBus;
 
 // restrict macro
 #if defined(__cplusplus)
@@ -12,6 +16,23 @@
 #define restrict
 #endif
 #endif
+
+struct Arena {
+    uint8_t* base_ptr = nullptr; 
+    size_t capacity = 0;
+    size_t offset = 0;
+};
+
+struct EngineContext {
+  Arena masterArena;
+  Arena entityArena;
+  Arena physicsArena;
+  Arena audioArena;
+  Arena busArena;
+  Arena frameArena; 
+  EntityRegistry* reg; 
+  CommandBus* bus;
+};
 
 // Enum Forward Declaration.
 enum AudioSourceID : uint16_t;

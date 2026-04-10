@@ -3,7 +3,6 @@
 
 #include "fmt/base.h"
 #include <stdint.h>
-#include <utility>
 
 enum class LogLevel : uint8_t {
     Info = 0,

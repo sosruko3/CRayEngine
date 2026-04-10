@@ -2,14 +2,11 @@
 #define CRE_ENGINE_H
 
 // Forward Declaration
-struct EntityRegistry;
-struct CommandBus;
+struct EngineContext;
 
-void Engine_Init(EntityRegistry &reg, CommandBus &bus, const char *title,
+void Engine_Init(EngineContext& ctx, const char *title,
                  const char *configFileName);
-
-void Engine_Run(EntityRegistry &reg, CommandBus &bus, float dt);
-
-void Engine_Shutdown(EntityRegistry &reg, CommandBus &bus);
+void Engine_Run(EngineContext& ctx, float dt);
+void Engine_Shutdown(EngineContext& ctx);
 
 #endif

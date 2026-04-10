@@ -10,6 +10,8 @@ static constexpr const char *LOG_TAGS[] = {
 
 static FILE *logFile = nullptr;
 void Logger_WriteToFile(const char *finalMessage, LogLevel level) {
+  // NOTE: This function is not thread-safe right now.
+
   fputs(finalMessage, stdout);
 
   if (logFile) {
@@ -28,7 +30,8 @@ void Logger_Init(void) {
 
   char pathBuffer[512] = {};
 
-  // Creates logs folder.
+  // Creates logs folder. This part depends on appDir location.
+  // This might mean different things depending on whether '/' used or not.
   fmt::format_to_n(pathBuffer, sizeof(pathBuffer) - 1, "{}logs", appDir);
 
   if (!Platform_DirExists(pathBuffer)) {
@@ -44,6 +47,7 @@ void Logger_Init(void) {
   } else {
     // If error , try to save in root folder
     logFile = fopen("game_fallback.log", "w");
+    // NOTE: There is no game_fallback.log implementation yet.
     fmt::print(
         stderr,
         "ERROR: Could not create log file in logs folder. Trying fallback.\n");
@@ -62,11 +66,11 @@ void Logger_LogImplementation(LogLevel level, fmt::string_view format,
                               fmt::format_args args) {
   char buffer[1024] = {};
 
-  const std::chrono::system_clock::time_point now =
-      std::chrono::system_clock::now();
+  const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-  // DD/MM/YY H:M:S
   // -2 is for \n. In case buffer is full.
+  // This part checks time and calculates DDMMYY,HMS everytime.
+  // Which is a waste, might change some things here.
     fmt::format_to_n_result<char *> res1 =
       fmt::format_to_n(buffer, sizeof(buffer) - 2, "{:%d/%m/%Y %H:%M:%S} {} ",
                        std::chrono::time_point_cast<std::chrono::seconds>(now), 

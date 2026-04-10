@@ -58,6 +58,7 @@ set(SOURCES
     src/engine/core/cre_engine.cpp
     src/engine/core/cre_logger.cpp
     src/engine/core/cre_commandBus.cpp
+    src/engine/memory/cre_arena.cpp
     src/engine/scene/cre_sceneManager.cpp
     src/engine/platform/cre_input.cpp
     src/engine/platform/cre_viewport.cpp
@@ -147,7 +148,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         -Wundef -Wformat=2
         -Wconversion -Wsign-conversion
         -Wold-style-cast -Wcast-qual
-        # step4, might need to remove "-Werror=vla" for this = -Werror
+        -Werror
     )
 
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address,undefined)
