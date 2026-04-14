@@ -23,6 +23,14 @@ struct Arena {
     size_t offset = 0;
 };
 
+struct TimeContext {
+  float realDt;
+  float gameDt;
+  double lastTime;
+  float accumulator;
+  float timeScale;
+};
+
 struct EngineContext {
   Arena masterArena;
   Arena entityArena;
@@ -30,6 +38,7 @@ struct EngineContext {
   Arena audioArena;
   Arena busArena;
   Arena frameArena; 
+  TimeContext time;
   EntityRegistry* reg; 
   CommandBus* bus;
 };

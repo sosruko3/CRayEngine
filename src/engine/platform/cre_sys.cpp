@@ -11,5 +11,7 @@ int Platform_MakeDir(const char *dirPath) {
     int x = MakeDirectory(dirPath);
     if (x) return 0;
     return 1;
-
+}
+double Platform_GetTime(void) {
+    return GetTime();
 }

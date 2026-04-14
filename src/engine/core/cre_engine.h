@@ -6,7 +6,7 @@ struct EngineContext;
 
 void Engine_Init(EngineContext& ctx, const char *title,
                  const char *configFileName);
-void Engine_Run(EngineContext& ctx, float dt);
+void Engine_Run(EngineContext& ctx);
 void Engine_Shutdown(EngineContext& ctx);
 
 #endif

@@ -4,4 +4,6 @@
 const char* Platform_GetAppDir(void);
 bool Platform_DirExists(const char *dirPath);
 int Platform_MakeDir(const char *dirPath);
+double Platform_GetTime(void);
+
 #endif

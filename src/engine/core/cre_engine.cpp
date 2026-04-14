@@ -17,10 +17,11 @@
 #include "engine/systems/physics/cre_physicsSystem.h"
 #include "engine/systems/render/cre_rendererCore.h"
 #include "engine/platform/cre_sys.h"
+#include "engine/platform/cre_time.h"
 #include "raylib.h"
 #include <stdlib.h>
 
-static void EnginePhase0_PlatformSync(void);
+static void EnginePhase0_PlatformSync(TimeContext* time);
 static void EnginePhase1_InputAndLogic(EntityRegistry& reg,CommandBus& bus, float dt);
 static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus, float dt);
 static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus, float dt);
@@ -36,6 +37,7 @@ void Engine_Init(EngineContext& ctx, const char *title,const char *configFileNam
   ctx.reg = arena_Push<EntityRegistry>(&ctx.entityArena);
   ctx.bus = arena_Push<CommandBus>(&ctx.busArena);
 
+  timeSystem_Init(&ctx.time);
   Logger_Init();
   Log(LogLevel::Info, "[ENGINE] Engine is Initializing...");
 
@@ -66,17 +68,22 @@ void Engine_Init(EngineContext& ctx, const char *title,const char *configFileNam
   audioSystem_Init();
   Log(LogLevel::Info, "[ENGINE] Windows created successfully.");
 }
-void Engine_Run(EngineContext& ctx, float dt) {
+void Engine_Run(EngineContext& ctx) {
+  constexpr float FIXED_DT = 0.0166667f;
+
   while (!WindowShouldClose()) {
     PROFILE_START(PROF_TOTAL_ACTIVE);
-    EnginePhase0_PlatformSync();
-    EnginePhase1_InputAndLogic(*ctx.reg, *ctx.bus, dt);
-    EnginePhase2_Simulation(*ctx.reg, *ctx.bus, dt);
-    EnginePhase3_RenderState(*ctx.reg,*ctx.bus, dt);
+    
+    EnginePhase0_PlatformSync(&ctx.time);
+    EnginePhase1_InputAndLogic(*ctx.reg, *ctx.bus, ctx.time.gameDt);
+    while (timeSystem_ConsumeFixedStep(&ctx.time,FIXED_DT)) {
+      EnginePhase2_Simulation(*ctx.reg, *ctx.bus, FIXED_DT);
+    }
+    EnginePhase3_RenderState(*ctx.reg,*ctx.bus, ctx.time.gameDt);
     EnginePhase4_Cleanup(*ctx.bus);
     arena_Clear(&ctx.frameArena);
     PROFILE_END(PROF_TOTAL_ACTIVE);
-    Profiler_UpdateAndPrint(dt);
+    Profiler_UpdateAndPrint(ctx.time.realDt);
   }
 }
 void Engine_Shutdown(EngineContext& ctx) {
@@ -93,9 +100,8 @@ void Engine_Shutdown(EngineContext& ctx) {
 }
 
 // ENGINE PHASES
-static void EnginePhase0_PlatformSync(void) {
-  // Clean frame-based arena.
-  //arena_Clear(ctx.frameArena);
+static void EnginePhase0_PlatformSync(TimeContext* time) {
+  timeSystem_Update(time);
 
   Viewport_Update();
   if (Viewport_wasResized()) {

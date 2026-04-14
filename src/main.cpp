@@ -9,18 +9,16 @@
 #include "game_config.h"
 
 int main() {
-  Arena masterArena = arena_AllocateMemory(256 * 1024 * 1024); // 256MB
   EngineContext ctx = {};
-  ctx.masterArena = masterArena;
+  ctx.masterArena = arena_AllocateMemory(256 * 1024 * 1024); // 256MB
   if (!ctx.masterArena.base_ptr) {
     arena_FreeMemory(&ctx.masterArena);
     return -1;
   }
-  float dt = 0.0166f; // temp value
   Engine_Init(ctx, GAME_TITLE, dirCONFIG);
   SceneManager_Init(Game_GetScene);
   SceneManager_ChangeScene(GAME_STATE_PLAYING);
-  Engine_Run(ctx, dt);
+  Engine_Run(ctx);
   Engine_Shutdown(ctx);
 
   arena_FreeMemory(&ctx.masterArena);
