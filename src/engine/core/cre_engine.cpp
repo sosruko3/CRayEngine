@@ -22,9 +22,9 @@
 #include <stdlib.h>
 
 static void EnginePhase0_PlatformSync(TimeContext* time);
-static void EnginePhase1_InputAndLogic(EntityRegistry& reg,CommandBus& bus, float dt);
-static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus, float dt);
-static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus, float dt);
+static void EnginePhase1_InputAndLogic(EntityRegistry& reg,CommandBus& bus, TimeContext* time);
+static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus, TimeContext* time);
+static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus, TimeContext* time);
 static void EnginePhase4_Cleanup(CommandBus& bus);
 
 void Engine_Init(EngineContext& ctx, const char *title,const char *configFileName) {
@@ -58,7 +58,7 @@ void Engine_Init(EngineContext& ctx, const char *title,const char *configFileNam
     exit(1);
   }
 
-  CommandBus_Init(*ctx.bus); // Make sure this function is getting called.
+  CommandBus_Init(*ctx.bus);
   EntityManager_Init(*ctx.reg);
   Asset_Init();
 
@@ -69,17 +69,12 @@ void Engine_Init(EngineContext& ctx, const char *title,const char *configFileNam
   Log(LogLevel::Info, "[ENGINE] Windows created successfully.");
 }
 void Engine_Run(EngineContext& ctx) {
-  constexpr float FIXED_DT = 0.0166667f;
-
   while (!WindowShouldClose()) {
     PROFILE_START(PROF_TOTAL_ACTIVE);
-    
     EnginePhase0_PlatformSync(&ctx.time);
-    EnginePhase1_InputAndLogic(*ctx.reg, *ctx.bus, ctx.time.gameDt);
-    while (timeSystem_ConsumeFixedStep(&ctx.time,FIXED_DT)) {
-      EnginePhase2_Simulation(*ctx.reg, *ctx.bus, FIXED_DT);
-    }
-    EnginePhase3_RenderState(*ctx.reg,*ctx.bus, ctx.time.gameDt);
+    EnginePhase1_InputAndLogic(*ctx.reg, *ctx.bus, &ctx.time);
+    EnginePhase2_Simulation(*ctx.reg, *ctx.bus, &ctx.time);
+    EnginePhase3_RenderState(*ctx.reg,*ctx.bus, &ctx.time);
     EnginePhase4_Cleanup(*ctx.bus);
     arena_Clear(&ctx.frameArena);
     PROFILE_END(PROF_TOTAL_ACTIVE);
@@ -113,7 +108,7 @@ static void EnginePhase0_PlatformSync(TimeContext* time) {
   }
 }
 static void EnginePhase1_InputAndLogic(EntityRegistry& reg, CommandBus& bus,
-                                       float dt) {
+                                       TimeContext* time) {
   // Note: If you use command bus on phase0 , you need to move these to first
   // part of phase0
   bus.consumed_end = bus.tail;
@@ -125,38 +120,41 @@ static void EnginePhase1_InputAndLogic(EntityRegistry& reg, CommandBus& bus,
 
   // SceneManager handles input right now due to raylib.
   PROFILE_START(PROF_SCENE);
-  SceneManager_Update(reg, bus, dt);
+  SceneManager_Update(reg, bus, time->gameDt);
   PROFILE_END(PROF_SCENE);
 }
 static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus,
-                                    float dt) {
+                                    TimeContext* time) {
   // AI and Particle systems are not implemented right now.
 #ifndef NDEBUG
   bus.current_phase = BUS_PHASE_SIMULATION;
 #endif
 
+  constexpr float FIXED_DT = 0.0166667f;
   PROFILE_START(PROF_ECS_SYS);
   EntitySystem_Update(reg, bus);
   PROFILE_END(PROF_ECS_SYS);
 
   PROFILE_START(PROF_PHYSICS);
-  PhysicsSystem_Update(reg, bus, dt);
+  while (timeSystem_ConsumeFixedStep(time,FIXED_DT)) {
+    PhysicsSystem_Update(reg, bus, FIXED_DT);
+  }
   PROFILE_END(PROF_PHYSICS);
 
   PROFILE_START(PROF_ANIMATION);
-  AnimationSystem_Update(reg, bus, dt);
+  AnimationSystem_Update(reg, bus, time->gameDt);
   PROFILE_END(PROF_ANIMATION);
 
   audioSystem_Update(reg, bus);
 }
 static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus,
-                                     float dt) {
+                                     TimeContext* time) {
 #ifndef NDEBUG
   bus.current_phase = BUS_PHASE_RENDER;
 #endif
 
   PROFILE_START(PROF_CAMERA);
-  cameraSystem_Update(reg, bus, dt, Viewport_Get());
+  cameraSystem_Update(reg, bus, time->gameDt, Viewport_Get());
   PROFILE_END(PROF_CAMERA);
 
   PROFILE_START(PROF_RENDER);

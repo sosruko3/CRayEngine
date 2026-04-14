@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-constexpr float GAME_VIRTUAL_HEIGHT =
-    360.0f; // Change these values to change real resolution
+constexpr float GAME_VIRTUAL_HEIGHT = 1080.0f;
 constexpr int TARGET_FRAMERATE = 60;
 constexpr float MIN_ZOOM = 0.2f;
 constexpr float MAX_ZOOM = 4.0f;
