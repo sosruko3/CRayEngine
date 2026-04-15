@@ -101,11 +101,8 @@ constexpr uint64_t CLONE_FLAGS_SCRUB_MASK =
  * refers to the same entity.
  */
 struct EntityRegistry {
-  alignas(64) float pos_x[MAX_ENTITIES]; ///< Position X
-  alignas(64) float pos_y[MAX_ENTITIES]; ///< Position Y
-  alignas(64) float vel_x[MAX_ENTITIES]; ///< Velocity X
-  alignas(64) float vel_y[MAX_ENTITIES]; ///< Velocity Y
-
+  alignas(64) creVec2 pos[MAX_ENTITIES]; ///< Position
+  alignas(64) creVec2 vel[MAX_ENTITIES]; ///< Velocity
   alignas(64) uint64_t
       component_masks[MAX_ENTITIES]; ///< Component presence bits
   alignas(64) uint64_t
@@ -113,24 +110,18 @@ struct EntityRegistry {
   alignas(64) uint8_t render_layer[MAX_ENTITIES]; ///< Render_layer
   alignas(64) uint8_t batch_ids[MAX_ENTITIES];    ///< Render batch lookup index
 
-  alignas(64) float size_w[MAX_ENTITIES];        ///< Size width
-  alignas(64) float size_h[MAX_ENTITIES];        ///< Size height
+  alignas(64) creVec2 size[MAX_ENTITIES];        ///< Size w/h
   alignas(64) uint8_t material_id[MAX_ENTITIES]; ///< Material ID for physics.
   alignas(64) float drag[MAX_ENTITIES]; ///< Air resistance etc. for physics.
   alignas(64) float inv_mass[MAX_ENTITIES];      ///< Physics Mass
   alignas(64) float gravity_scale[MAX_ENTITIES]; ///< Gravity Scales
   alignas(64) float rotation[MAX_ENTITIES];      ///< Rotation in degrees
 
-  // change sprite_ids to uint32_t
+  // change sprite_ids to uint32_t?? Not sure about this one.
   alignas(64) uint16_t sprite_ids[MAX_ENTITIES];  ///< Sprite/texture ID
   alignas(64) creColor colors[MAX_ENTITIES];      ///< Tint color
-  alignas(64) float pivot_x[MAX_ENTITIES];        ///< Pivot_x of sprite
-  alignas(64) float pivot_y[MAX_ENTITIES];        ///< Pivot_y of sprite
-  alignas(64) float visual_scale_x[MAX_ENTITIES]; ///< Visual Scale of
-                                                  ///< Entity(def. 1.0f)
-  alignas(64) float visual_scale_y[MAX_ENTITIES]; ///< Visual Scale of
-                                                  ///< Entity(def. 1.0f)
-
+  alignas(64) creVec2 pivot[MAX_ENTITIES];        ///< Pivot of sprite
+  alignas(64) creVec2 visual_scale[MAX_ENTITIES]; ///< Visual Scale
   // Animation SoA arrays - Dynamic State (managed by animationSystem)
   alignas(64) float anim_timers[MAX_ENTITIES]; ///< Time accumulator for frame
                                                ///< advance

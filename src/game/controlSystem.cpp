@@ -48,8 +48,8 @@ void ControlSystem_UpdateLogic(EntityRegistry &reg, float dt,
     if (!(reg.state_flags[i] & FLAG_ACTIVE))
       continue;
 
-    float posX = reg.pos_x[i];
-    float posY = reg.pos_y[i];
+    float posX = reg.pos[i].x;
+    float posY = reg.pos[i].y;
     bool isOutofBounds = (posX < boundMinX || posX > boundMaxX ||
                           posY < boundMinY || posY > boundMaxY);
 
@@ -66,8 +66,7 @@ void ControlSystem_UpdateLogic(EntityRegistry &reg, float dt,
         velX = -speed;
       if (Input_IsDown(ACTION_RIGHT))
         velX = speed;
-      reg.vel_x[i] = velX;
-      reg.vel_y[i] = velY;
+      reg.vel[i] = creVec2{velX, velY};
       break;
     }
     case TYPE_PARTICLE: {
@@ -118,9 +117,9 @@ void ControlSystem_SetCameraTarget(EntityRegistry &reg, CommandBus &bus,
 
   // Snap immediately only when target already exists in registry.
   if (EntityRegistry_IsAlive(reg, target)) {
-    creVec2 pos = {reg.pos_x[target.id], reg.pos_y[target.id]};
-    reg.pos_x[camEntity.id] = pos.x;
-    reg.pos_y[camEntity.id] = pos.y;
+    creVec2 pos = reg.pos[target.id];
+    reg.pos[camEntity.id].x = pos.x;
+    reg.pos[camEntity.id].y = pos.y;
   }
 }
 
@@ -143,8 +142,8 @@ void ControlSystem_UpdateSleepState(EntityRegistry &reg,
       continue;
 
     // Distance Check
-    float dx = reg.pos_x[i] - centerX;
-    float dy = reg.pos_y[i] - centerY;
+    float dx = reg.pos[i].x - centerX;
+    float dy = reg.pos[i].y - centerY;
     float distSqr = (dx * dx) + (dy * dy);
 
     // Set the Flag

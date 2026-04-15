@@ -10,10 +10,8 @@
 static void EntitySystem_CopyPrototype(EntityRegistry &reg, uint32_t dst_id,
                                        uint32_t src_id, creVec2 position) {
 
-  reg.pos_x[dst_id] = reg.pos_x[src_id];
-  reg.pos_y[dst_id] = reg.pos_y[src_id];
-  reg.size_w[dst_id] = reg.size_w[src_id];
-  reg.size_h[dst_id] = reg.size_h[src_id];
+  reg.pos[dst_id] = reg.pos[src_id];
+  reg.size[dst_id] = reg.size[src_id];
   reg.rotation[dst_id] = reg.rotation[src_id];
 
   reg.component_masks[dst_id] = reg.component_masks[src_id];
@@ -24,10 +22,8 @@ static void EntitySystem_CopyPrototype(EntityRegistry &reg, uint32_t dst_id,
   reg.batch_ids[dst_id] = reg.batch_ids[src_id];
   reg.sprite_ids[dst_id] = reg.sprite_ids[src_id];
   reg.colors[dst_id] = reg.colors[src_id];
-  reg.pivot_x[dst_id] = reg.pivot_x[src_id];
-  reg.pivot_y[dst_id] = reg.pivot_y[src_id];
-  reg.visual_scale_x[dst_id] = reg.visual_scale_x[src_id];
-  reg.visual_scale_y[dst_id] = reg.visual_scale_y[src_id];
+  reg.pivot[dst_id] = reg.pivot[src_id];
+  reg.visual_scale[dst_id] = reg.visual_scale[src_id];
 
   reg.material_id[dst_id] = reg.material_id[src_id];
   reg.drag[dst_id] = reg.drag[src_id];
@@ -41,15 +37,12 @@ static void EntitySystem_CopyPrototype(EntityRegistry &reg, uint32_t dst_id,
   reg.anim_start_sprites[dst_id] = reg.anim_start_sprites[src_id];
   reg.anim_loops[dst_id] = reg.anim_loops[src_id];
 
-  reg.pos_x[dst_id] = position.x;
-  reg.pos_y[dst_id] = position.y;
-
+  reg.pos[dst_id] = position;
   reg.anim_timers[dst_id] = 0.0f;
   reg.anim_frames[dst_id] = 0;
   reg.anim_finished[dst_id] = false;
 
-  reg.vel_x[dst_id] = 0.0f;
-  reg.vel_y[dst_id] = 0.0f;
+  reg.vel[dst_id] = creVec2{0.0f, 0.0f};
 
   reg.state_flags[dst_id] |= FLAG_ACTIVE;
 
@@ -395,8 +388,7 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       if (!EntityRegistry_IsAlive(reg, cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
-      reg.pivot_x[id] = cmd->vec2.value.x;
-      reg.pivot_y[id] = cmd->vec2.value.y;
+      reg.pivot[id] = cmd->vec2.value;
       break;
     }
     case CMD_ENTITY_SET_TYPE: {

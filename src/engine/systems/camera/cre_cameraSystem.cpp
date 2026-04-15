@@ -104,23 +104,16 @@ static void applyFollowLogic(CameraComponent *cam, EntityRegistry &reg,
                              float dt, uint32_t ownerId) {
   if (EntityRegistry_IsAlive(reg, cam->follow.targetEntity)) {
     const uint32_t targetId = cam->follow.targetEntity.id;
-    const creVec2 desired = {
-        reg.pos_x[targetId] + cam->follow.offset.x,
-        reg.pos_y[targetId] + cam->follow.offset.y,
-    };
+    const creVec2 desired = reg.pos[targetId] + cam->follow.offset;
 
-    creVec2 current = {
-        reg.pos_x[ownerId],
-        reg.pos_y[ownerId],
-    };
+    creVec2 current = reg.pos[ownerId];
 
     creVec2 nextPos = desired;
     if (cam->follow.smoothSpeed > cam_safety_epsilon) {
       nextPos = cameraUtils_Lerp(current, desired, cam->follow.smoothSpeed, dt);
     }
 
-    reg.pos_x[ownerId] = nextPos.x;
-    reg.pos_y[ownerId] = nextPos.y;
+    reg.pos[ownerId] = nextPos;
   } else {
     cam->follow.enabled = false;
     cam->follow.targetEntity = ENTITY_INVALID;
@@ -154,8 +147,7 @@ void cameraSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt,
 
     // Sync Phase: cache final world position for renderer
     uint32_t id = cam->ownerEntity.id;
-    cam->viewPosition.x = reg.pos_x[id];
-    cam->viewPosition.y = reg.pos_y[id];
+    cam->viewPosition = reg.pos[id];
   }
 }
 
@@ -176,8 +168,8 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry &reg,
     zoom = MAX_ZOOM;
 
   const uint32_t ownerId = ownEntity.id;
-  const float camX = reg.pos_x[ownerId];
-  const float camY = reg.pos_y[ownerId];
+  const float camX = reg.pos[ownerId].x;
+  const float camY = reg.pos[ownerId].y;
 
   float viewWidth = vp.width / zoom;
   float viewHeight = vp.height / zoom;

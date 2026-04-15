@@ -42,12 +42,9 @@ void EntityManager_Reset(EntityRegistry &reg) {
   memset(reg.batch_ids, 0, sizeof(reg.batch_ids));
 
   // Clear data highways
-  memset(reg.pos_x, 0, sizeof(reg.pos_x));
-  memset(reg.pos_y, 0, sizeof(reg.pos_y));
-  memset(reg.vel_x, 0, sizeof(reg.vel_x));
-  memset(reg.vel_y, 0, sizeof(reg.vel_y));
-  memset(reg.size_w, 0, sizeof(reg.size_w));
-  memset(reg.size_h, 0, sizeof(reg.size_h));
+  memset(reg.pos, 0, sizeof(reg.pos));
+  memset(reg.vel, 0, sizeof(reg.vel));
+  memset(reg.size, 0, sizeof(reg.size));
 
   memset(reg.inv_mass, 0, sizeof(reg.inv_mass));
   memset(reg.drag, 0, sizeof(reg.drag));
@@ -58,8 +55,7 @@ void EntityManager_Reset(EntityRegistry &reg) {
   memset(reg.sprite_ids, 0, sizeof(reg.sprite_ids));
   memset(reg.colors, 0, sizeof(reg.colors));
   memset(reg.types, 0, sizeof(reg.types));
-  memset(reg.visual_scale_x, 0, sizeof(reg.visual_scale_x));
-  memset(reg.visual_scale_y, 0, sizeof(reg.visual_scale_y));
+  memset(reg.visual_scale, 0, sizeof(reg.visual_scale));
 
   memset(reg.anim_timers, 0, sizeof(reg.anim_timers));
   memset(reg.anim_speeds, 0, sizeof(reg.anim_speeds));
@@ -126,16 +122,13 @@ Entity EntityManager_Create(EntityRegistry &reg, uint16_t type, creVec2 pos,
   reg.batch_ids[index] = 0;    // **
 
   // Position
-  reg.pos_x[index] = pos.x;
-  reg.pos_y[index] = pos.y;
+  reg.pos[index] = pos;
 
   // Velocity (default zero)
-  reg.vel_x[index] = 0.0f;
-  reg.vel_y[index] = 0.0f;
+  reg.vel[index] = creVec2{0.0f, 0.0f};
 
   // Size (default 64x64)
-  reg.size_w[index] = 64.0f;
-  reg.size_h[index] = 64.0f;
+  reg.size[index] = creVec2{64.0f, 64.0f};
 
   // Physics specific
   reg.inv_mass[index] = 0.0f;
@@ -149,10 +142,8 @@ Entity EntityManager_Create(EntityRegistry &reg, uint16_t type, creVec2 pos,
   // Sprite specific
   reg.sprite_ids[index] = 0;
   reg.colors[index] = creBLANK;
-  reg.pivot_x[index] = 0.5f;
-  reg.pivot_y[index] = 0.5f;
-  reg.visual_scale_x[index] = 1.0f;
-  reg.visual_scale_y[index] = 1.0f;
+  reg.pivot[index] = creVec2{0.5f, 0.5f};
+  reg.visual_scale[index] = creVec2{1.0f, 1.0f};
 
   // Animations
   reg.anim_speeds[index] = 1.0f;

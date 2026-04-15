@@ -127,7 +127,7 @@ creVec2 physicsAPI_GetVelocity(const EntityRegistry &reg, Entity entity) {
   }
 
   const uint32_t id = entity.id;
-  return creVec2{.x = reg.vel_x[id], .y = reg.vel_y[id]};
+  return reg.vel[id];
 }
 
 bool physicsAPI_IsSleeping(const EntityRegistry &reg, Entity entity) {

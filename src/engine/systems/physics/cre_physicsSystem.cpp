@@ -187,7 +187,8 @@ void PhysicsSystem_Init(void) {
   g_gravity_x = PHYS_GRAVITY_DEF_X;
   g_gravity_y = PHYS_GRAVITY_DEF_Y;
 
-  Log(LogLevel::Info, "Physics System Initialized (SubSteps={}, SolverIters={})",
+  Log(LogLevel::Info,
+      "Physics System Initialized (SubSteps={}, SolverIters={})",
       PHYS_SUB_STEPS, PHYS_SOLVER_ITERATIONS);
 }
 
@@ -255,10 +256,10 @@ void PhysicsSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       if (!PhysicsSystem_ValidatePhysicsTarget(reg, entity, &id))
         break;
 
-      const float oldX = PhysicsSystem_ClampCoord(reg.pos_x[id]);
-      const float oldY = PhysicsSystem_ClampCoord(reg.pos_y[id]);
-      const float width = PhysicsSystem_ClampSize(reg.size_w[id]);
-      const float height = PhysicsSystem_ClampSize(reg.size_h[id]);
+      const float oldX = PhysicsSystem_ClampCoord(reg.pos[id].x);
+      const float oldY = PhysicsSystem_ClampCoord(reg.pos[id].y);
+      const float width = PhysicsSystem_ClampSize(reg.size[id].x);
+      const float height = PhysicsSystem_ClampSize(reg.size[id].y);
 
       const float newX = PhysicsSystem_SanitizeCoord(cmd->vec2.value.x, oldX);
       const float newY = PhysicsSystem_SanitizeCoord(cmd->vec2.value.y, oldY);
@@ -269,10 +270,8 @@ void PhysicsSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
             static_cast<int>(width), static_cast<int>(height));
       }
 
-      reg.pos_x[id] = newX;
-      reg.pos_y[id] = newY;
-      reg.vel_x[id] = 0.0f;
-      reg.vel_y[id] = 0.0f;
+      reg.pos[id] = creVec2{newX, newY};
+      reg.vel[id] = creVec2{0.0f, 0.0f};
       reg.state_flags[id] &= ~FLAG_SLEEPING;
 
       if (reg.state_flags[id] & FLAG_STATIC) {
@@ -289,11 +288,10 @@ void PhysicsSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
         break;
 
       const float vx =
-          PhysicsSystem_SanitizeVelocity(cmd->vec2.value.x, reg.vel_x[id]);
+          PhysicsSystem_SanitizeVelocity(cmd->vec2.value.x, reg.vel[id].x);
       const float vy =
-          PhysicsSystem_SanitizeVelocity(cmd->vec2.value.y, reg.vel_y[id]);
-      reg.vel_x[id] = vx;
-      reg.vel_y[id] = vy;
+          PhysicsSystem_SanitizeVelocity(cmd->vec2.value.y, reg.vel[id].y);
+      reg.vel[id] = creVec2{vx, vy};
       reg.state_flags[id] &= ~FLAG_SLEEPING;
       break;
     }
@@ -307,8 +305,8 @@ void PhysicsSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
 
       const float jx = PhysicsSystem_SanitizeImpulse(cmd->vec2.value.x);
       const float jy = PhysicsSystem_SanitizeImpulse(cmd->vec2.value.y);
-      reg.vel_x[id] += jx * reg.inv_mass[id];
-      reg.vel_y[id] += jy * reg.inv_mass[id];
+      reg.vel[id].x += jx * reg.inv_mass[id];
+      reg.vel[id].y += jy * reg.inv_mass[id];
       reg.state_flags[id] &= ~FLAG_SLEEPING;
       break;
     }
@@ -371,10 +369,8 @@ static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry &reg) {
 
   uint32_t staticCount = 0;
   const uint32_t bound = reg.max_used_bound;
-  const float *const p_pos_x = reg.pos_x;
-  const float *const p_pos_y = reg.pos_y;
-  const float *const p_size_w = reg.size_w;
-  const float *const p_size_h = reg.size_h;
+  const creVec2 *const p_pos = reg.pos;
+  const creVec2 *const p_size = reg.size;
 
   for (uint32_t i = 0; i < bound; i++) {
     const uint64_t flags = reg.state_flags[i];
@@ -394,10 +390,10 @@ static void PhysicsSystem_LoadStaticGeometry(const EntityRegistry &reg) {
         continue;
     }
 
-    const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
-    const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
-    const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
-    const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
+    const float clampedX = PhysicsSystem_ClampCoord(p_pos[i].x);
+    const float clampedY = PhysicsSystem_ClampCoord(p_pos[i].y);
+    const float clampedW = PhysicsSystem_ClampSize(p_size[i].x);
+    const float clampedH = PhysicsSystem_ClampSize(p_size[i].y);
     SpatialHash_AddStatic(
         i, static_cast<int>(clampedX), static_cast<int>(clampedY),
         static_cast<int>(clampedW), static_cast<int>(clampedH));
@@ -439,10 +435,10 @@ static void ConfigureBody(EntityRegistry &reg, uint32_t id, uint8_t mat_id,
   float area = 0.0f;
   if (comps & COMP_COLLISION_AABB) {
     // Box: width * height
-    area = reg.size_w[id] * reg.size_h[id];
+    area = reg.size[id].x * reg.size[id].y;
   } else if (comps & COMP_COLLISION_Circle) {
-    // Circle: π * r² (size_w holds diameter)
-    const float r = reg.size_w[id] * 0.5f;
+    // Circle: π * r² (weight size holds diameter)
+    const float r = reg.size[id].x * 0.5f;
     area = 3.14159265f * r * r;
   }
 
@@ -481,11 +477,11 @@ static void PhysicsSystem_RecalculateMass(EntityRegistry &reg, uint32_t id) {
   const uint64_t comps = reg.component_masks[id];
   float area = 0.0f;
   if (comps & COMP_COLLISION_AABB) {
-    const float width = PhysicsSystem_ClampSize(reg.size_w[id]);
-    const float height = PhysicsSystem_ClampSize(reg.size_h[id]);
+    const float width = PhysicsSystem_ClampSize(reg.size[id].x);
+    const float height = PhysicsSystem_ClampSize(reg.size[id].y);
     area = width * height;
   } else if (comps & COMP_COLLISION_Circle) {
-    const float diameter = PhysicsSystem_ClampSize(reg.size_w[id]);
+    const float diameter = PhysicsSystem_ClampSize(reg.size[id].x);
     const float r = diameter * 0.5f;
     area = 3.14159265f * r * r;
   }
@@ -514,10 +510,8 @@ static void Phase1_Integration(EntityRegistry &reg, float dt) {
   const float sleepThresholdSq = PHYS_SLEEP_EPSILON * PHYS_SLEEP_EPSILON;
 
   // Direct array access with restrict for SIMD optimization
-  float *restrict const pos_x = reg.pos_x;
-  float *restrict const pos_y = reg.pos_y;
-  float *restrict const vel_x = reg.vel_x;
-  float *restrict const vel_y = reg.vel_y;
+  creVec2 *restrict const pos = reg.pos;
+  creVec2 *restrict const vel = reg.vel;
   const float *restrict const gravity_scale = reg.gravity_scale;
   const float *restrict const drag = reg.drag;
   const uint64_t *restrict const comps = reg.component_masks;
@@ -540,21 +534,20 @@ static void Phase1_Integration(EntityRegistry &reg, float dt) {
       continue;
 
     // Gravity
-    vel_x[i] += g_gravity_x * gravity_scale[i] * dt;
-    vel_y[i] += g_gravity_y * gravity_scale[i] * dt;
+    vel[i].x += g_gravity_x * gravity_scale[i] * dt;
+    vel[i].x += g_gravity_y * gravity_scale[i] * dt;
 
     // Apply Drag (clamped to prevent sign flip)
     const float dragFactor = 1.0f - (drag[i] * dt);
     const float clampedDrag = (dragFactor > 0.0f) ? dragFactor : 0.0f;
-    vel_x[i] *= clampedDrag;
-    vel_y[i] *= clampedDrag;
+    vel[i].x *= clampedDrag;
+    vel[i].y *= clampedDrag;
 
     // Integrate Position (Semi-Implicit Euler)
-    pos_x[i] += vel_x[i] * dt;
-    pos_y[i] += vel_y[i] * dt;
+    pos[i] = pos[i] + vel[i] * dt;
 
     // Branchless Sleep Check
-    const float speedSq = vel_x[i] * vel_x[i] + vel_y[i] * vel_y[i];
+    const float speedSq = vel[i].x * vel[i].x + vel[i].y * vel[i].y;
     bool isSlow = (speedSq < sleepThresholdSq);
     bool canSleep = !(flags[i] & FLAG_ALWAYS_AWAKE);
     if (isSlow && canSleep) {
@@ -582,10 +575,8 @@ static void Phase2_BroadPhase(EntityRegistry &reg) {
   const uint32_t bound = reg.max_used_bound;
   const uint64_t reqComps = COMP_PHYSICS;
   const uint64_t skipFlags = FLAG_STATIC | FLAG_CULLED;
-  float *restrict const p_pos_x = reg.pos_x;
-  float *restrict const p_pos_y = reg.pos_y;
-  float *restrict const p_size_w = reg.size_w;
-  float *restrict const p_size_h = reg.size_h;
+  creVec2 *restrict const p_pos = reg.pos;
+  creVec2 *restrict const p_size = reg.size;
   uint64_t *restrict const p_flags = reg.state_flags;
   uint64_t *restrict const p_comps = reg.component_masks;
 
@@ -600,10 +591,10 @@ static void Phase2_BroadPhase(EntityRegistry &reg) {
     if (flags & skipFlags)
       continue;
 
-    const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
-    const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
-    const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
-    const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
+    const float clampedX = PhysicsSystem_ClampCoord(p_pos[i].x);
+    const float clampedY = PhysicsSystem_ClampCoord(p_pos[i].y);
+    const float clampedW = PhysicsSystem_ClampSize(p_size[i].x);
+    const float clampedH = PhysicsSystem_ClampSize(p_size[i].y);
 
     SpatialHash_AddDynamic(
         i, static_cast<int>(clampedX), static_cast<int>(clampedY),
@@ -634,10 +625,8 @@ static void Phase3_DetectContacts(EntityRegistry &reg) {
   const uint64_t reqComps = COMP_PHYSICS;
   const uint64_t target_flags = (FLAG_ACTIVE | FLAG_STATIC | FLAG_SLEEPING);
   const uint64_t target_flags_true = FLAG_ACTIVE;
-  float *restrict const p_pos_x = reg.pos_x;
-  float *restrict const p_pos_y = reg.pos_y;
-  float *restrict const p_size_w = reg.size_w;
-  float *restrict const p_size_h = reg.size_h;
+  creVec2 *restrict const p_pos = reg.pos;
+  creVec2 *restrict const p_size = reg.size;
   float *restrict const p_inv_mass = reg.inv_mass;
   uint64_t *restrict const p_flags = reg.state_flags;
   uint64_t *restrict const p_comps = reg.component_masks;
@@ -656,10 +645,10 @@ static void Phase3_DetectContacts(EntityRegistry &reg) {
     if (bad_flags | bad_comps)
       continue;
 
-    const float clampedX = PhysicsSystem_ClampCoord(p_pos_x[i]);
-    const float clampedY = PhysicsSystem_ClampCoord(p_pos_y[i]);
-    const float clampedW = PhysicsSystem_ClampSize(p_size_w[i]);
-    const float clampedH = PhysicsSystem_ClampSize(p_size_h[i]);
+    const float clampedX = PhysicsSystem_ClampCoord(p_pos[i].x);
+    const float clampedY = PhysicsSystem_ClampCoord(p_pos[i].y);
+    const float clampedW = PhysicsSystem_ClampSize(p_size[i].x);
+    const float clampedH = PhysicsSystem_ClampSize(p_size[i].y);
 
     // Query spatial hash for potential colliders
     const int count = SpatialHash_Query(
@@ -717,30 +706,30 @@ static void Phase3_DetectContacts(EntityRegistry &reg) {
       const bool aIsAABB = (compsA & COMP_COLLISION_AABB) != 0;
       const bool bIsAABB = (compsB & COMP_COLLISION_AABB) != 0;
 
-      float radiusA = p_size_w[i] * 0.5f;
-      float radiusB = p_size_w[j] * 0.5f;
+      float radiusA = p_size[i].x * 0.5f;
+      float radiusB = p_size[j].x * 0.5f;
 
       if (aIsCircle && bIsCircle) {
         // Circle vs Circle
         collided = CheckCircle_Circle(
-            p_pos_x[i] + radiusA, p_pos_y[i] + radiusA, radiusA,
-            p_pos_x[j] + radiusB, p_pos_y[j] + radiusB, radiusB, &overlap,
+            p_pos[i].x + radiusA, p_pos[i].y + radiusA, radiusA,
+            p_pos[j].x + radiusB, p_pos[j].y + radiusB, radiusB, &overlap,
             &normal);
       } else if (aIsAABB && bIsAABB) {
         // AABB vs AABB
-        collided = CheckAABB_AABB(p_pos_x[i], p_pos_y[i], p_size_w[i],
-                                  p_size_h[i], p_pos_x[j], p_pos_y[j],
-                                  p_size_w[j], p_size_h[j], &overlap, &normal);
+        collided = CheckAABB_AABB(p_pos[i].x, p_pos[i].y, p_size[i].x,
+                                  p_size[i].y, p_pos[j].x, p_pos[j].y,
+                                  p_size[j].x, p_size[j].y, &overlap, &normal);
       } else if (aIsCircle && bIsAABB) {
         // Circle (A) vs AABB (B)
         collided = CheckCircle_AABB(
-            p_pos_x[i] + radiusA, p_pos_y[i] + radiusA, radiusA, p_pos_x[j],
-            p_pos_y[j], p_size_w[j], p_size_h[j], &overlap, &normal);
+            p_pos[i].x + radiusA, p_pos[i].y + radiusA, radiusA, p_pos[j].x,
+            p_pos[j].y, p_size[j].x, p_size[j].y, &overlap, &normal);
       } else if (aIsAABB && bIsCircle) {
         // AABB (A) vs Circle (B) - swap and invert normal
         collided = CheckCircle_AABB(
-            p_pos_x[j] + radiusB, p_pos_y[j] + radiusB, radiusB, p_pos_x[i],
-            p_pos_y[i], p_size_w[i], p_size_h[i], &overlap, &normal);
+            p_pos[j].x + radiusB, p_pos[j].y + radiusB, radiusB, p_pos[i].x,
+            p_pos[i].y, p_size[i].x, p_size[i].y, &overlap, &normal);
         // Invert normal since we swapped A/B
         normal.x = -normal.x;
         normal.y = -normal.y;
@@ -1006,16 +995,16 @@ static void ResolveCollision(EntityRegistry &reg, uint32_t idA, uint32_t idB,
     correctionMag = MAX_CORRECTION;
   }
 
-  reg.pos_x[idA] -= normal.x * correctionMag * invMassA;
-  reg.pos_y[idA] -= normal.y * correctionMag * invMassA;
-  reg.pos_x[idB] += normal.x * correctionMag * invMassB;
-  reg.pos_y[idB] += normal.y * correctionMag * invMassB;
+  reg.pos[idA].x -= normal.x * correctionMag * invMassA;
+  reg.pos[idA].y -= normal.y * correctionMag * invMassA;
+  reg.pos[idB].x += normal.x * correctionMag * invMassB;
+  reg.pos[idB].y += normal.y * correctionMag * invMassB;
 
   // -------------------------------------------------------------------------
   // Step 3: Velocity Impulse (Restitution)
   // -------------------------------------------------------------------------
-  const float relVelX = reg.vel_x[idA] - reg.vel_x[idB];
-  const float relVelY = reg.vel_y[idA] - reg.vel_y[idB];
+  const float relVelX = reg.vel[idA].x - reg.vel[idB].y;
+  const float relVelY = reg.vel[idA].y - reg.vel[idB].y;
   const float velAlongNormal = relVelX * normal.x + relVelY * normal.y;
 
   // Don't resolve if velocities are separating
@@ -1026,17 +1015,17 @@ static void ResolveCollision(EntityRegistry &reg, uint32_t idA, uint32_t idB,
   const float j = -(1.0f + e) * velAlongNormal * EffectiveMassSum;
 
   // Apply impulse
-  reg.vel_x[idA] += j * invMassA * normal.x;
-  reg.vel_y[idA] += j * invMassA * normal.y;
-  reg.vel_x[idB] -= j * invMassB * normal.x;
-  reg.vel_y[idB] -= j * invMassB * normal.y;
+  reg.vel[idA].x += j * invMassA * normal.x;
+  reg.vel[idA].y += j * invMassA * normal.y;
+  reg.vel[idB].x -= j * invMassB * normal.x;
+  reg.vel[idB].y -= j * invMassB * normal.y;
 
   // -------------------------------------------------------------------------
   // Step 4: Friction Impulse (Tangent)
   // -------------------------------------------------------------------------
   // Recalculate relative velocity after normal impulse
-  const float relVelX2 = reg.vel_x[idA] - reg.vel_x[idB];
-  const float relVelY2 = reg.vel_y[idA] - reg.vel_y[idB];
+  const float relVelX2 = reg.vel[idA].x - reg.vel[idB].x;
+  const float relVelY2 = reg.vel[idA].y - reg.vel[idB].y;
 
   // Tangent vector (perpendicular to normal)
   const float tangentX =
@@ -1065,8 +1054,8 @@ static void ResolveCollision(EntityRegistry &reg, uint32_t idA, uint32_t idB,
     jt = maxFriction;
 
   // Apply friction impulse
-  reg.vel_x[idA] += jt * invMassA * tangentNormX;
-  reg.vel_y[idA] += jt * invMassA * tangentNormY;
-  reg.vel_x[idB] -= jt * invMassB * tangentNormX;
-  reg.vel_y[idB] -= jt * invMassB * tangentNormY;
+  reg.vel[idA].x += jt * invMassA * tangentNormX;
+  reg.vel[idA].y += jt * invMassA * tangentNormY;
+  reg.vel[idB].x -= jt * invMassB * tangentNormX;
+  reg.vel[idB].y -= jt * invMassB * tangentNormY;
 }

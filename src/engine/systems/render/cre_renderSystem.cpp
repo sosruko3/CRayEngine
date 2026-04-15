@@ -128,8 +128,7 @@ void renderSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       break;
 
     case CMD_RENDER_SET_VISUAL_SCALE:
-      reg.visual_scale_x[id] = cmd->vec2.value.x;
-      reg.visual_scale_y[id] = cmd->vec2.value.y;
+      reg.visual_scale[id] = cmd->vec2.value;
       break;
 
     case CMD_RENDER_SET_ROTATION:
@@ -226,9 +225,9 @@ void renderSystem_DrawEntities(EntityRegistry &reg, creRectangle cullRect) {
     if ((flags & (FLAG_ACTIVE | FLAG_VISIBLE)) != (FLAG_ACTIVE | FLAG_VISIBLE))
       continue;
 
-    const float rawDepth = (reg.pos_x[id] * g_WeightX) +
-                           (reg.pos_y[id] * g_WeightY) +
-                           (reg.size_h[id] * g_WeightH);
+    const float rawDepth = (reg.pos[id].x * g_WeightX) +
+                           (reg.pos[id].y * g_WeightY) +
+                           (reg.size[id].y * g_WeightH); // size.y is height
     const uint32_t depth = QuantizeDepth(rawDepth);
     const uint8_t layer = reg.render_layer[id];
     const uint8_t batchID = reg.batch_ids[id];
@@ -253,12 +252,10 @@ void renderSystem_DrawEntities(EntityRegistry &reg, creRectangle cullRect) {
     }
 
     const uint16_t spriteID = reg.sprite_ids[id];
-    creVec2 position = {reg.pos_x[id], reg.pos_y[id]};
-    const creVec2 size = {reg.size_w[id] * reg.visual_scale_x[id],
-                          reg.size_h[id] * reg.visual_scale_y[id]};
+    creVec2 position = reg.pos[id];
+    const creVec2 size = reg.size[id] * reg.visual_scale[id];
     const float rotation = reg.rotation[id];
-    const float pivotX = reg.pivot_x[id];
-    const float pivotY = reg.pivot_y[id];
+    const creVec2 pivot = reg.pivot[id];
     const creColor color = reg.colors[id];
     const bool flipX = false;
     const bool flipY = false;
@@ -266,8 +263,8 @@ void renderSystem_DrawEntities(EntityRegistry &reg, creRectangle cullRect) {
     // position.x += size.x * pivotX;
     // position.y += size.y * pivotY;
 
-    rendererCore_DrawSprite(spriteID, position, size, creVec2{pivotX, pivotY},
-                            rotation, flipX, flipY, color);
+    rendererCore_DrawSprite(spriteID, position, size, pivot, rotation, flipX,
+                            flipY, color);
   }
   rendererCore_EndBatch();
 }

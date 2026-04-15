@@ -94,6 +94,7 @@ void Engine_Shutdown(EngineContext& ctx) {
   Logger_Shutdown();
 }
 
+
 // ENGINE PHASES
 static void EnginePhase0_PlatformSync(TimeContext* time) {
   timeSystem_Update(time);
@@ -107,6 +108,7 @@ static void EnginePhase0_PlatformSync(TimeContext* time) {
         vp.height);
   }
 }
+
 static void EnginePhase1_InputAndLogic(EntityRegistry& reg, CommandBus& bus,
                                        TimeContext* time) {
   // Note: If you use command bus on phase0 , you need to move these to first
@@ -123,6 +125,7 @@ static void EnginePhase1_InputAndLogic(EntityRegistry& reg, CommandBus& bus,
   SceneManager_Update(reg, bus, time->gameDt);
   PROFILE_END(PROF_SCENE);
 }
+
 static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus,
                                     TimeContext* time) {
   // AI and Particle systems are not implemented right now.
@@ -147,6 +150,7 @@ static void EnginePhase2_Simulation(EntityRegistry& reg,CommandBus& bus,
 
   audioSystem_Update(reg, bus);
 }
+
 static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus,
                                      TimeContext* time) {
 #ifndef NDEBUG
@@ -163,6 +167,7 @@ static void EnginePhase3_RenderState(EntityRegistry& reg,CommandBus& bus,
   PROFILE_END(PROF_RENDER);
   rendererCore_EndFrame();
 }
+
 static void EnginePhase4_Cleanup(CommandBus& bus) {
   PROFILE_START(PROF_CLEANUP);
 #ifndef NDEBUG

@@ -1,7 +1,7 @@
 #ifndef CRE_TYPES_H
 #define CRE_TYPES_H
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 struct EntityRegistry;
 struct CommandBus;
@@ -18,9 +18,9 @@ struct CommandBus;
 #endif
 
 struct Arena {
-    uint8_t* base_ptr = nullptr; 
-    size_t capacity = 0;
-    size_t offset = 0;
+  uint8_t *base_ptr = nullptr;
+  size_t capacity = 0;
+  size_t offset = 0;
 };
 
 struct TimeContext {
@@ -37,10 +37,10 @@ struct EngineContext {
   Arena physicsArena;
   Arena audioArena;
   Arena busArena;
-  Arena frameArena; 
+  Arena frameArena;
   TimeContext time;
-  EntityRegistry* reg; 
-  CommandBus* bus;
+  EntityRegistry *reg;
+  CommandBus *bus;
 };
 
 // Enum Forward Declaration.
@@ -67,6 +67,21 @@ struct AudioID {
 struct creVec2 {
   float x;
   float y;
+
+  // OPERATOR OVERLOADS
+
+  inline creVec2 operator+(const creVec2 &other) const {
+    return {x + other.x, y + other.y};
+  }
+  inline creVec2 operator-(const creVec2 &other) const {
+    return {x - other.x, y - other.y};
+  }
+  inline creVec2 operator*(const creVec2 &other) const {
+    return {x * other.x, y * other.y};
+  }
+  inline creVec2 operator*(float scalar) const {
+    return {x * scalar, y * scalar};
+  }
 };
 
 struct creColor {

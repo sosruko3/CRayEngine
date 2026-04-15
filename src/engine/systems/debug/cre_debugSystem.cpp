@@ -217,8 +217,8 @@ static void DebugSystem_RenderAlarms(EntityRegistry &reg) {
       continue;
     }
 
-    const float px = reg.pos_x[i];
-    const float py = reg.pos_y[i];
+    const float px = reg.pos[i].x;
+    const float py = reg.pos[i].y;
 
     // Data corruption alarm: NaN/Inf transform values.
     if (isnan(px) || isnan(py) || isinf(px) || isinf(py)) {
