@@ -29,6 +29,9 @@
 // Forward declarations (dependency injection)
 struct EntityRegistry;
 struct CommandBus;
+struct animPacket;
+
+animPacket CreateAnimPacket(EntityRegistry *reg, CommandBus *bus, float dt);
 
 /**
  * @brief Process animation commands from the command bus.
@@ -36,21 +39,19 @@ struct CommandBus;
  * Handles CMD_ANIM_PLAY, CMD_ANIM_STOP, CMD_ANIM_PAUSE etc. commands.
  * Uses switch dispatch for command types.
  *
- * @param reg Pointer to EntityRegistry (SoA data)
- * @param bus Pointer to CommandBus (read-only iteration)
+ * @param packet Pointer to animPacket containing registry and command bus
+ * references.
  */
-void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
+void AnimationSystem_ProcessCommands(animPacket *packet);
 
 /**
  * @brief Advance animation state for all active animated entities.
  *
  * Pure SoA hot loop - reads ONLY from registry arrays, never from ASSET_ANIMS.
  * Writes sprite_ids[] only when frame changes and entity is visible.
- *
- * @param reg Pointer to EntityRegistry
- * @param bus Pointer to CommandBus
- * @param dt Delta time in seconds (clamped to 0.05f max internally)
+ * @param packet Pointer to animPacket containing registry references and delta
+ * time.
  */
-void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt);
+void AnimationSystem_Update(animPacket *packet);
 
 #endif

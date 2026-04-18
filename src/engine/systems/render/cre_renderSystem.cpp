@@ -271,7 +271,8 @@ void renderSystem_DrawEntities(EntityRegistry &reg, creRectangle cullRect) {
 
 void renderSystem_Draw(EntityRegistry &reg, CommandBus &bus,
                        creRectangle view) {
-
+  // Create renderSystem_Update and move processCommands there. This will stay
+  // here for now.
   renderSystem_ProcessCommands(reg, bus);
   renderSystem_DrawEntities(reg, view);
 }

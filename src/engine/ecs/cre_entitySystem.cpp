@@ -3,55 +3,64 @@
 #include "cre_entityRegistry.h"
 #include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_logger.h"
+#include "engine/core/cre_systemPackets.h"
 
 #include <assert.h>
 #include <stdint.h>
 
-static void EntitySystem_CopyPrototype(EntityRegistry &reg, uint32_t dst_id,
+entityPacket CreateEntityPacket(EntityRegistry *reg, CommandBus *bus) {
+  entityPacket pkt = {
+      .reg = reg,
+      .bus = bus,
+  };
+  return pkt;
+}
+
+static void EntitySystem_CopyPrototype(EntityRegistry *reg, uint32_t dst_id,
                                        uint32_t src_id, creVec2 position) {
 
-  reg.pos[dst_id] = reg.pos[src_id];
-  reg.size[dst_id] = reg.size[src_id];
-  reg.rotation[dst_id] = reg.rotation[src_id];
+  reg->pos[dst_id] = reg->pos[src_id];
+  reg->size[dst_id] = reg->size[src_id];
+  reg->rotation[dst_id] = reg->rotation[src_id];
 
-  reg.component_masks[dst_id] = reg.component_masks[src_id];
-  reg.state_flags[dst_id] = reg.state_flags[src_id] & ~CLONE_FLAGS_SCRUB_MASK;
-  reg.types[dst_id] = reg.types[src_id];
+  reg->component_masks[dst_id] = reg->component_masks[src_id];
+  reg->state_flags[dst_id] = reg->state_flags[src_id] & ~CLONE_FLAGS_SCRUB_MASK;
+  reg->types[dst_id] = reg->types[src_id];
 
-  reg.render_layer[dst_id] = reg.render_layer[src_id];
-  reg.batch_ids[dst_id] = reg.batch_ids[src_id];
-  reg.sprite_ids[dst_id] = reg.sprite_ids[src_id];
-  reg.colors[dst_id] = reg.colors[src_id];
-  reg.pivot[dst_id] = reg.pivot[src_id];
-  reg.visual_scale[dst_id] = reg.visual_scale[src_id];
+  reg->render_layer[dst_id] = reg->render_layer[src_id];
+  reg->batch_ids[dst_id] = reg->batch_ids[src_id];
+  reg->sprite_ids[dst_id] = reg->sprite_ids[src_id];
+  reg->colors[dst_id] = reg->colors[src_id];
+  reg->pivot[dst_id] = reg->pivot[src_id];
+  reg->visual_scale[dst_id] = reg->visual_scale[src_id];
 
-  reg.material_id[dst_id] = reg.material_id[src_id];
-  reg.drag[dst_id] = reg.drag[src_id];
-  reg.inv_mass[dst_id] = reg.inv_mass[src_id];
-  reg.gravity_scale[dst_id] = reg.gravity_scale[src_id];
+  reg->material_id[dst_id] = reg->material_id[src_id];
+  reg->drag[dst_id] = reg->drag[src_id];
+  reg->inv_mass[dst_id] = reg->inv_mass[src_id];
+  reg->gravity_scale[dst_id] = reg->gravity_scale[src_id];
 
-  reg.anim_speeds[dst_id] = reg.anim_speeds[src_id];
-  reg.anim_ids[dst_id] = reg.anim_ids[src_id];
-  reg.anim_base_durations[dst_id] = reg.anim_base_durations[src_id];
-  reg.anim_frame_counts[dst_id] = reg.anim_frame_counts[src_id];
-  reg.anim_start_sprites[dst_id] = reg.anim_start_sprites[src_id];
-  reg.anim_loops[dst_id] = reg.anim_loops[src_id];
+  reg->anim_speeds[dst_id] = reg->anim_speeds[src_id];
+  reg->anim_ids[dst_id] = reg->anim_ids[src_id];
+  reg->anim_base_durations[dst_id] = reg->anim_base_durations[src_id];
+  reg->anim_frame_counts[dst_id] = reg->anim_frame_counts[src_id];
+  reg->anim_start_sprites[dst_id] = reg->anim_start_sprites[src_id];
+  reg->anim_loops[dst_id] = reg->anim_loops[src_id];
 
-  reg.pos[dst_id] = position;
-  reg.anim_timers[dst_id] = 0.0f;
-  reg.anim_frames[dst_id] = 0;
-  reg.anim_finished[dst_id] = false;
+  reg->pos[dst_id] = position;
+  reg->anim_timers[dst_id] = 0.0f;
+  reg->anim_frames[dst_id] = 0;
+  reg->anim_finished[dst_id] = false;
 
-  reg.vel[dst_id] = creVec2{0.0f, 0.0f};
+  reg->vel[dst_id] = creVec2{0.0f, 0.0f};
 
-  reg.state_flags[dst_id] |= FLAG_ACTIVE;
+  reg->state_flags[dst_id] |= FLAG_ACTIVE;
 
-  if (dst_id >= reg.max_used_bound) {
-    reg.max_used_bound = dst_id + 1;
+  if (dst_id >= reg->max_used_bound) {
+    reg->max_used_bound = dst_id + 1;
   }
 
-  reg.active_count++;
-  assert(reg.active_count <= MAX_ENTITIES);
+  reg->active_count++;
+  assert(reg->active_count <= MAX_ENTITIES);
 }
 
 bool EntitySystem_SubscribeOnCloned(EntityRegistry &reg,
@@ -244,7 +253,7 @@ void EntitySystem_ClearAllHooks(EntityRegistry &reg) {
   EntitySystem_ClearDestroyHooks(reg);
 }
 
-void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
+static void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -281,12 +290,12 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
         break;
       }
 
-      if (!EntityRegistry_IsValid(reg, src)) {
+      if (!EntityRegistry_IsValid(reg.generations, src)) {
         EntityManager_ReturnReservedSlot(reg, dst);
         break;
       }
 
-      EntitySystem_CopyPrototype(reg, dst.id, src.id, spawnPos);
+      EntitySystem_CopyPrototype(&reg, dst.id, src.id, spawnPos);
 
       if (cmd->type == CMD_ENTITY_SPAWN) {
         reg.events.is_dispatching_spawn_hooks = true;
@@ -329,12 +338,12 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
         break;
       }
 
-      if (!EntityRegistry_IsValid(reg, src)) {
+      if (!EntityRegistry_IsValid(reg.generations, src)) {
         EntityManager_ReturnReservedSlot(reg, dst);
         break;
       }
 
-      EntitySystem_CopyPrototype(reg, dst.id, src.id, spawnPos);
+      EntitySystem_CopyPrototype(&reg, dst.id, src.id, spawnPos);
 
       reg.events.is_dispatching_clone_hooks = true;
       const uint8_t hook_count = reg.events.clone_hook_count;
@@ -348,7 +357,8 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       break;
     }
     case CMD_ENTITY_DESTROY: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
 
@@ -371,28 +381,32 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       break;
     }
     case CMD_ENTITY_ADD_COMPONENT: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.component_masks[id] |= cmd->u64.value;
       break;
     }
     case CMD_ENTITY_REMOVE_COMPONENT: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.component_masks[id] &= ~cmd->u64.value;
       break;
     }
     case CMD_ENTITY_SET_PIVOT: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.pivot[id] = cmd->vec2.value;
       break;
     }
     case CMD_ENTITY_SET_TYPE: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.types[id] = cmd->u16.value;
@@ -400,14 +414,16 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
     }
     case CMD_ENTITY_ADD_FLAGS: {
       // Change it's name to ADD_FLAGS
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.state_flags[id] |= cmd->u64.value;
       break;
     }
     case CMD_ENTITY_REMOVE_FLAGS: {
-      if (!EntityRegistry_IsAlive(reg, cmd->entity))
+      if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations,
+                                  cmd->entity))
         break;
       uint32_t id = cmd->entity.id;
       reg.state_flags[id] &= ~cmd->u64.value;
@@ -422,6 +438,12 @@ void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
   }
 }
 
-void EntitySystem_Update(EntityRegistry &reg, CommandBus &bus) {
+void EntitySystem_Update(entityPacket *packet) {
+  assert(packet != nullptr && "EntitySystem_Update: packet is NULL");
+  assert(packet->reg != nullptr && "EntitySystem_Update: reg is NULL");
+  assert(packet->bus != nullptr && "EntitySystem_Update: bus is NULL");
+
+  EntityRegistry &reg = *packet->reg;
+  CommandBus &bus = *packet->bus;
   EntitySystem_ProcessCommands(reg, bus);
 }

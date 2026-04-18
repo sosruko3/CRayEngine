@@ -1,10 +1,12 @@
 #ifndef CRE_ENTITYSYSTEM_H
 #define CRE_ENTITYSYSTEM_H
 
-#include "cre_entityRegistry.h"
+#include "engine/ecs/cre_entityRegistry.h"
 #include <stdbool.h>
 struct CommandBus;
+struct entityPacket;
 
+entityPacket CreateEntityPacket(EntityRegistry *reg, CommandBus *bus);
 bool EntitySystem_SubscribeOnCloned(EntityRegistry &reg,
                                     OnEntityClonedCallback cb);
 bool EntitySystem_UnsubscribeOnCloned(EntityRegistry &reg,
@@ -25,7 +27,5 @@ void EntitySystem_ClearDestroyHooks(EntityRegistry &reg);
 
 void EntitySystem_ClearAllHooks(EntityRegistry &reg);
 
-void EntitySystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
-
-void EntitySystem_Update(EntityRegistry &reg, CommandBus &bus);
+void EntitySystem_Update(entityPacket *packet);
 #endif

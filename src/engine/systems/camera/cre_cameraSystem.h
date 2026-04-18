@@ -1,6 +1,7 @@
 #ifndef CRE_CAMERASYSTEM_H
 #define CRE_CAMERASYSTEM_H
 
+#include "engine/core/cre_systemPackets.h"
 #include "engine/core/cre_types.h"
 #include "engine/ecs/cre_components.h"
 #include "engine/platform/cre_viewport.h"
@@ -10,9 +11,10 @@ struct CommandBus;
 
 void cameraSystem_Init(EntityRegistry &reg);
 
-void cameraSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
-void cameraSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt,
-                         ViewportSize vp);
+cameraPacket CreateCameraPacket(EntityRegistry *reg, CommandBus *bus, float dt);
+
+void cameraSystem_ProcessCommands(cameraPacket *packet);
+void cameraSystem_Update(cameraPacket *packet);
 
 CameraComponent cameraSystem_CreateDefault(void);
 

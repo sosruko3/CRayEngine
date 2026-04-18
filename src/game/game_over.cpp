@@ -30,8 +30,7 @@ void GameOver_Draw(EntityRegistry &reg, CommandBus &bus) {
   ClearBackground(BLACK);
   ViewportSize vp = Viewport_Get();
   const CameraComponent *activeCam = cameraSystem_GetActiveComponent(reg);
-  creRectangle cullBounds =
-      cameraSystem_GetActiveCullBounds(reg, activeCam, vp);
+  creRectangle cullBounds = cameraSystem_GetActiveCullBounds(reg, activeCam, vp);
 
   rendererCore_BeginWorldMode(activeCam, vp);
 

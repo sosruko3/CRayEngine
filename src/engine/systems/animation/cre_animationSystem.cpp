@@ -2,31 +2,58 @@
  * @file cre_animationSystem.c
  * @brief Pure SoA Animation System Implementation (Baked Data Architecture)
  *
- * The "Baker" pattern: AnimationSystem_Play copies constant animation data
- * from ASSET_ANIMS into registry arrays. The hot loop then reads ONLY from
- * the registry, achieving pure linear memory access with zero lookups.
- *
  * [NOTE] This system will get cleaning refactor, also directional anim feature.
  */
 
 #include "cre_animationSystem.h"
 #include "assert.h"
-#include "atlas_data.h" // Only used in AnimationSystem_Play (the baker)
+#include "atlas_data.h"
 #include "engine/core/cre_commandBus.h"
+#include "engine/core/cre_systemPackets.h"
 #include "engine/ecs/cre_entityRegistry.h"
-
-// This file doesn't seem to be using logs? ADD LOG CHECKS HERE!
-
-static void AnimationSystem_Play(EntityRegistry &reg, uint32_t entityID,
-                                 uint16_t animID, bool forceReset);
-
+animPacket CreateAnimPacket(EntityRegistry *reg, CommandBus *bus, float dt) {
+  animPacket pkt = {
+      .bus = bus,
+      .dt = dt,
+      .max_used_bound = reg->max_used_bound,
+      .read = {.component_masks = reg->component_masks,
+               .generations = reg->generations},
+      .write = {.state_flags = reg->state_flags,
+                .sprite_ids = reg->sprite_ids,
+                .anim_timers = reg->anim_timers,
+                .anim_speeds = reg->anim_speeds,
+                .anim_ids = reg->anim_ids,
+                .anim_frames = reg->anim_frames,
+                .anim_finished = reg->anim_finished,
+                .anim_base_durations = reg->anim_base_durations,
+                .anim_frame_counts = reg->anim_frame_counts,
+                .anim_start_sprites = reg->anim_start_sprites,
+                .anim_loops = reg->anim_loops},
+  };
+  return pkt;
+}
 // ============================================================================
-// Command Processing (Cold Path)
+// Command Processing
 // ============================================================================
 
-void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
+void AnimationSystem_ProcessCommands(animPacket *packet) {
+  // UNPACKING THE PACKET
+  CommandBus &bus = *packet->bus;
+  const uint64_t *masks = packet->read.component_masks;
+  const uint32_t *generations = packet->read.generations;
+  uint16_t *anim_ids = packet->write.anim_ids;
+  uint64_t *flags = packet->write.state_flags;
+  uint16_t *sprite_ids = packet->write.sprite_ids;
+  float *anim_timers = packet->write.anim_timers;
+  float *anim_speeds = packet->write.anim_speeds;
+  uint16_t *anim_frames = packet->write.anim_frames;
+  bool *anim_finished = packet->write.anim_finished;
+  float *base_durations = packet->write.anim_base_durations;
+  uint16_t *frame_counts = packet->write.anim_frame_counts;
+  uint16_t *start_sprites = packet->write.anim_start_sprites;
+  bool *anim_loops = packet->write.anim_loops;
 
-  CommandIterator iter = CommandBus_GetIterator(bus);
+  CommandIterator iter = CommandBus_GetIterator(*packet->bus);
   const Command *cmd;
 
   while (CommandBus_Next(bus, &iter, &cmd)) {
@@ -34,56 +61,82 @@ void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       continue;
     // This assumes every anim commands has entity. Change this if you add some
     // global command.
-    if (!EntityRegistry_IsAlive(reg, cmd->entity))
+    if (!EntityRegistry_IsAlive(flags, generations, cmd->entity))
       continue;
     const Entity entity = cmd->entity;
     const uint32_t id = entity.id;
-    if (!(reg.component_masks[id] & COMP_ANIMATION))
+    if (!(masks[id] & COMP_ANIMATION))
       continue;
 
     switch (cmd->type) {
     case CMD_ANIM_PLAY: {
       const uint16_t animID = cmd->anim.animID;
       const bool forceReset = (cmd->anim.flags & ANIM_FLAG_FORCE_RESET) != 0;
-      AnimationSystem_Play(reg, id, animID, forceReset);
+      assert(animID < ANIM_COUNT &&
+             "Invalid Animation ID! Check your Anim enum.");
+      if (animID >= ANIM_COUNT)
+        return;
+
+      // Skip if already playing this animation (unless forced)
+      if (!forceReset && anim_ids[id] == animID && !anim_finished[id]) {
+        return;
+      }
+
+      // === THE BAKING STEP ===
+      // Look up the AnimDef ONCE and copy constants into the registry
+      const AnimDef *def = &ASSET_ANIMS[animID];
+
+      // Bake constant data (copied from AnimDef)
+      base_durations[id] = def->defaultSpeed;
+      frame_counts[id] = def->frameCount;
+      start_sprites[id] = def->startSpriteID;
+      anim_loops[id] = def->loop;
+
+      // Reset dynamic state
+      anim_ids[id] = animID;
+      anim_frames[id] = 0;
+      anim_timers[id] = 0.0f;
+      anim_speeds[id] = 1.0f;
+      anim_finished[id] = false;
+      // Set initial sprite immediately
+      sprite_ids[id] = def->startSpriteID;
+
       break;
     }
     case CMD_ANIM_STOP: {
-      reg.anim_finished[id] = true;
-      reg.anim_timers[id] = 0.0f;
-      reg.anim_frames[id] = 0;
+      anim_finished[id] = true;
+      anim_timers[id] = 0.0f;
+      anim_frames[id] = 0;
       break;
     }
     case CMD_ANIM_PAUSE: {
-      reg.state_flags[id] |= FLAG_ANIM_PAUSED;
+      flags[id] |= FLAG_ANIM_PAUSED;
       break;
     }
     case CMD_ANIM_RESUME: {
-      reg.state_flags[id] &= ~FLAG_ANIM_PAUSED;
+      flags[id] &= ~FLAG_ANIM_PAUSED;
       break;
     }
     case CMD_ANIM_SET_FRAME: {
       // Set current frame safely and restart frame timer
-      const uint16_t frame_count = reg.anim_frame_counts[id];
       uint16_t frame = cmd->u16.value;
-
-      if (frame_count == 0) {
-        reg.anim_frames[id] = 0;
-        reg.anim_timers[id] = 0.0f;
-        reg.anim_finished[id] = true;
+      if (frame_counts[id] == 0) {
+        anim_frames[id] = 0;
+        anim_timers[id] = 0.0f;
+        anim_finished[id] = true;
         break;
       }
 
-      if (frame >= frame_count) {
-        frame = frame_count;
+      if (frame >= frame_counts[id]) {
+        frame = frame_counts[id];
         --frame; // frame = frame_count -1U;
       }
 
-      reg.anim_frames[id] = frame;
-      reg.anim_timers[id] = 0.0f;
+      anim_frames[id] = frame;
+      anim_timers[id] = 0.0f;
       // Policy: Revive-on-SetFrame so explicit frame seek resumes animation
       // flow.
-      reg.anim_finished[id] = false;
+      anim_finished[id] = false;
       break;
     }
     case CMD_ANIM_SET_SPEED: {
@@ -92,15 +145,15 @@ void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
       if (speed < 0.0001f) {
         speed = 0.0f;
       }
-      reg.anim_speeds[id] = speed;
+      anim_speeds[id] = speed;
       break;
     }
     case CMD_ANIM_SET_LOOP: {
       // Override loop flag and revive if loop is enabled
       const bool loop = cmd->b8.value;
-      reg.anim_loops[id] = loop;
+      anim_loops[id] = loop;
       if (loop) {
-        reg.anim_finished[id] = false;
+        anim_finished[id] = false;
       }
       break;
     }
@@ -111,82 +164,30 @@ void AnimationSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
 }
 
 // ============================================================================
-// The Baker - Copies constant data into registry on animation start
-// ============================================================================
-
-/**
- * @brief Play an animation on an entity (direct call, bypasses command bus).
- *
- * "The Baker" - looks up ASSET_ANIMS[animID] and copies constant data
- * (duration, frameCount, startSprite, loop) into the registry's baked arrays.
- *
- * @param reg Pointer to EntityRegistry
- * @param entityID Entity index
- * @param animID Animation ID to play
- * @param forceReset If true, restarts animation even if already playing
- */
-static void AnimationSystem_Play(EntityRegistry &reg, uint32_t entityID,
-                                 uint16_t animID, bool forceReset) {
-  assert(animID < ANIM_COUNT && "Invalid Animation ID! Check your Anim enum.");
-  if (animID >= ANIM_COUNT)
-    return;
-
-  // Skip if already playing this animation (unless forced)
-  if (!forceReset && reg.anim_ids[entityID] == animID &&
-      !reg.anim_finished[entityID]) {
-    return;
-  }
-
-  // === THE BAKING STEP ===
-  // Look up the AnimDef ONCE and copy constants into the registry
-  const AnimDef *def = &ASSET_ANIMS[animID];
-
-  // Bake constant data (copied from AnimDef)
-  reg.anim_base_durations[entityID] = def->defaultSpeed;
-  reg.anim_frame_counts[entityID] = def->frameCount;
-  reg.anim_start_sprites[entityID] = def->startSpriteID;
-  reg.anim_loops[entityID] = def->loop;
-
-  // Reset dynamic state
-  reg.anim_ids[entityID] = animID;
-  reg.anim_frames[entityID] = 0;
-  reg.anim_timers[entityID] = 0.0f;
-  reg.anim_speeds[entityID] = 1.0f;
-  reg.anim_finished[entityID] = false;
-
-  // Set initial sprite immediately
-  reg.sprite_ids[entityID] = def->startSpriteID;
-}
-
-// ============================================================================
 // The Hot Loop - Pure SoA
 // ============================================================================
 
-void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
+void AnimationSystem_Update(animPacket *packet) {
+  // UNPACKING THE PACKET
+  float dt = packet->dt;
+  const uint32_t max_used_bound = packet->max_used_bound;
+  const uint64_t *restrict masks = packet->read.component_masks;
+  uint64_t *restrict flags = packet->write.state_flags;
+  uint16_t *restrict sprite_ids = packet->write.sprite_ids;
+  float *restrict anim_timers = packet->write.anim_timers;
+  float *restrict anim_speeds = packet->write.anim_speeds;
+  uint16_t *restrict anim_frames = packet->write.anim_frames;
+  bool *restrict finished = packet->write.anim_finished;
+  float *restrict base_durations = packet->write.anim_base_durations;
+  uint16_t *restrict frame_counts = packet->write.anim_frame_counts;
+  uint16_t *restrict start_sprites = packet->write.anim_start_sprites;
+  bool *restrict anim_loops = packet->write.anim_loops;
 
   // Clamp delta time to prevent spiral of death
   if (dt > 0.05f)
     dt = 0.05f;
 
-  AnimationSystem_ProcessCommands(reg, bus);
-
-  // Cache array pointers for hot loop (12 streams + masks/flags)
-  const uint64_t *masks = reg.component_masks;
-  const uint64_t *flags = reg.state_flags;
-  uint32_t max_used_bound = reg.max_used_bound;
-
-  // Dynamic state arrays
-  float *timers = reg.anim_timers;
-  float *speeds = reg.anim_speeds;
-  uint16_t *frames = reg.anim_frames;
-  bool *finished = reg.anim_finished;
-  uint16_t *sprites = reg.sprite_ids;
-
-  // Baked constant arrays (read-only in hot loop)
-  const float *base_durations = reg.anim_base_durations;
-  const uint16_t *frame_counts = reg.anim_frame_counts;
-  const uint16_t *start_sprites = reg.anim_start_sprites;
-  const bool *loops = reg.anim_loops;
+  AnimationSystem_ProcessCommands(packet); // HANDLE THIS PART!
 
   const uint64_t required_mask = COMP_ANIMATION;
   const uint64_t required_flags = FLAG_ACTIVE;
@@ -205,7 +206,7 @@ void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
     if (finished[i]) {
       // Draw last frame?
       if (flags[i] & FLAG_VISIBLE)
-        sprites[i] = start_sprites[i] + frames[i];
+        sprite_ids[i] = start_sprites[i] + anim_frames[i];
       continue;
     }
     // Critical safety: prevent infinite loop on invalid duration
@@ -216,24 +217,24 @@ void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
     }
 
     // Calculate effective delta time with speed multiplier
-    float speed = speeds[i];
+    float speed = anim_speeds[i];
     if (speed <= 0.0001f)
       continue; // Paused (speed = 0)
 
     const float effectiveDt = dt * speed;
-    timers[i] += effectiveDt;
+    anim_timers[i] += effectiveDt;
 
     // Advance frames (while loop handles low FPS frame skipping)
-    while (timers[i] >= duration) {
-      timers[i] -= duration;
-      frames[i]++;
+    while (anim_timers[i] >= duration) {
+      anim_timers[i] -= duration;
+      anim_frames[i]++;
 
       // Handle end of animation
-      if (frames[i] >= frame_counts[i]) {
-        if (loops[i]) {
-          frames[i] = 0;
+      if (anim_frames[i] >= frame_counts[i]) {
+        if (anim_loops[i]) {
+          anim_frames[i] = 0;
         } else {
-          frames[i] = frame_counts[i] - 1;
+          anim_frames[i] = frame_counts[i] - 1;
           finished[i] = true;
           break;
         }
@@ -242,7 +243,7 @@ void AnimationSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
 
     // Optimization: Only write sprite if entity is visible
     if (flags[i] & FLAG_VISIBLE) {
-      sprites[i] = start_sprites[i] + frames[i];
+      sprite_ids[i] = start_sprites[i] + anim_frames[i];
     }
   }
 }

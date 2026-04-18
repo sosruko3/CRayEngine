@@ -7,15 +7,17 @@
 // Forward declarations (cleaner than including headers)
 struct EntityRegistry;
 struct CommandBus;
+struct scenePacket;
 
 typedef Scene (*SceneFactory)(int32_t stateID);
 
+scenePacket CreateScenePacket(EntityRegistry *reg, CommandBus *bus, float dt);
 // Start
 void SceneManager_Init(SceneFactory factory);
 
 // Main loop calls these
-void SceneManager_Update(EntityRegistry &reg, CommandBus &bus, float dt);
-void SceneManager_Draw(EntityRegistry &reg, CommandBus &bus);
+void SceneManager_Update(scenePacket *packet);
+void SceneManager_Draw(scenePacket *packet);
 
 // Clean up whatever scene is currently active
 void SceneManager_Shutdown(EntityRegistry &reg, CommandBus &bus);

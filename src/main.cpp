@@ -1,14 +1,12 @@
-#include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_engine.h"
 #include "engine/core/cre_types.h"
-#include "engine/ecs/cre_entityRegistry.h"
-#include "engine/scene/cre_sceneManager.h"
 #include "engine/memory/cre_arena.h"
-#include "game/game.h"
+#include "engine/scene/cre_sceneManager.h"
 #include "game/game_scenes.h"
 #include "game_config.h"
 
 int main() {
+
   EngineContext ctx = {};
   ctx.masterArena = arena_AllocateMemory(256 * 1024 * 1024); // 256MB
   if (!ctx.masterArena.base_ptr) {

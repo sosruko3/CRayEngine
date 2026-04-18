@@ -25,7 +25,7 @@ constexpr uint32_t CMD_DOMAIN_AUDIO = 0x0600U;
 // Command Types
 // ============================================================================
 // Use enum classes here.
-typedef enum CommandType {
+typedef enum CommandType : uint16_t {
   CMD_NONE = 0,
   // Physics commands
   CMD_PHYS_TELEPORT = CMD_DOMAIN_PHYS,

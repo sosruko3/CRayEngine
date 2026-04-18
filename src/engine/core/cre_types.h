@@ -26,6 +26,7 @@ struct Arena {
 struct TimeContext {
   float realDt;
   float gameDt;
+  float fixedDt;
   double lastTime;
   float accumulator;
   float timeScale;

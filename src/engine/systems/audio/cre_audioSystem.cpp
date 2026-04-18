@@ -103,12 +103,9 @@ void audioSystem_Init(void) {
   }
 }
 
-void audioSystem_Update(EntityRegistry &reg, CommandBus &bus) {
-  audioSystem_ProcessCommands(reg, bus);
-}
+void audioSystem_Update(CommandBus &bus) { audioSystem_ProcessCommands(bus); }
 
-void audioSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
-  static_cast<void>(reg);
+void audioSystem_ProcessCommands(CommandBus &bus) {
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -309,7 +306,8 @@ static void audio_GroupSetVolume(AudioGroupID groupID, float vol) {
   assert(s_audioInitialized && "Audio system is not initalized.");
 
   if (!audio_ValidateGroupID(groupID) || !s_groupInitialized[groupID]) {
-    Log(LogLevel::Warning, "[AUDIO] Group volume set on uninitialized group: {}",
+    Log(LogLevel::Warning,
+        "[AUDIO] Group volume set on uninitialized group: {}",
         static_cast<unsigned>(groupID));
     return;
   }
@@ -357,8 +355,8 @@ static void audio_PlayOneShot(AudioSourceID sourceID, AudioGroupID groupID) {
       ma_engine_play_sound(&s_audioEngine, filepath, &s_groups[groupID]);
 
   if (result != MA_SUCCESS) {
-    Log(LogLevel::Warning, "[AUDIO] One-shot play failed: {} (err={})", filepath,
-        static_cast<int>(result));
+    Log(LogLevel::Warning, "[AUDIO] One-shot play failed: {} (err={})",
+        filepath, static_cast<int>(result));
   }
 }
 
@@ -390,7 +388,7 @@ static void audio_SoundLoad(AudioID id, AudioSourceID sourceID,
   const ma_uint32 flags = s_usageFlags[static_cast<uint32_t>(usage)];
   const ma_result result =
       ma_sound_init_from_file(&s_audioEngine, filepath, flags,
-                  &s_groups[groupID], nullptr, &s_soundPool[slot]);
+                              &s_groups[groupID], nullptr, &s_soundPool[slot]);
 
   if (result != MA_SUCCESS) {
     Log(LogLevel::Warning, "[AUDIO] Failed to load sound idx={} path={} err={}",

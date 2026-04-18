@@ -3,8 +3,8 @@
 
 struct TimeContext;
 
-void timeSystem_Init(TimeContext* time);
-void timeSystem_Update(TimeContext* time);
-bool timeSystem_ConsumeFixedStep(TimeContext* time, float fixedDt);
+void timeSystem_Init(TimeContext *time);
+void timeSystem_Update(TimeContext *time);
+bool timeSystem_ConsumeFixedStep(TimeContext *time);
 
 #endif

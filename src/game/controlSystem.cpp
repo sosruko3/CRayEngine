@@ -28,14 +28,6 @@
 #define SCALE_FACTOR 4.0f
 #define ZOOM_RATE_PER_SEC 0.60f
 
-static Entity getActiveCameraEntity(const EntityRegistry &reg) {
-  int32_t camIdx = cameraSystem_FindActive(reg);
-  if (camIdx < 0 || camIdx >= static_cast<int32_t>(MAX_CAMERAS)) {
-    return ENTITY_INVALID;
-  }
-  return reg.cameras[camIdx].ownerEntity;
-}
-
 void ControlSystem_UpdateLogic(EntityRegistry &reg, float dt,
                                creRectangle cullBounds) {
   (void)dt;
@@ -86,12 +78,15 @@ void ControlSystem_ChangeZoom(EntityRegistry &reg, CommandBus &bus, float dt) {
   if (dt <= 0.0f)
     return;
 
-  Entity camEntity = getActiveCameraEntity(reg);
-  if (!EntityRegistry_IsAlive(reg, camEntity))
+  const CameraComponent *activeCam = cameraSystem_GetActiveComponent(reg);
+  if (!activeCam)
     return;
 
-  int32_t camIdx = cameraSystem_FindActive(reg);
-  float currentZoom = (camIdx >= 0) ? reg.cameras[camIdx].zoom : 1.0f;
+  Entity camEntity = activeCam->ownerEntity;
+  if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations, camEntity))
+    return;
+
+  float currentZoom = activeCam->zoom;
 
   if (Input_IsDown(ACTION_PRIMARY)) {
     float zoomScale = expf(ZOOM_RATE_PER_SEC * dt);
@@ -108,7 +103,7 @@ void ControlSystem_SetCameraTarget(EntityRegistry &reg, CommandBus &bus,
   if (!ENTITY_IS_VALID(target))
     return;
 
-  if (!EntityRegistry_IsAlive(reg, camEntity))
+  if (!EntityRegistry_IsAlive(reg.state_flags, reg.generations, camEntity))
     return;
 
   // Target can be a reserved handle from entityAPI_Spawn and may become alive
@@ -116,7 +111,7 @@ void ControlSystem_SetCameraTarget(EntityRegistry &reg, CommandBus &bus,
   cameraAPI_SetFollowTarget(bus, camEntity, target, 10.0f, creVec2{0.0f, 0.0f});
 
   // Snap immediately only when target already exists in registry.
-  if (EntityRegistry_IsAlive(reg, target)) {
+  if (EntityRegistry_IsAlive(reg.state_flags, reg.generations, target)) {
     creVec2 pos = reg.pos[target.id];
     reg.pos[camEntity.id].x = pos.x;
     reg.pos[camEntity.id].y = pos.y;
@@ -125,8 +120,6 @@ void ControlSystem_SetCameraTarget(EntityRegistry &reg, CommandBus &bus,
 
 void ControlSystem_UpdateSleepState(EntityRegistry &reg,
                                     const CameraComponent *cam) {
-
-  cam = cameraSystem_GetActiveComponent(reg);
   if (!cam)
     return;
 

@@ -101,7 +101,6 @@ void EntityManager_ReturnReservedSlot(EntityRegistry &reg,
          "Double return / Free list overflow!");
 
   reg.free_list[reg.free_count++] = reserved_entity.id;
-
   reg.generations[reserved_entity.id]++;
 }
 

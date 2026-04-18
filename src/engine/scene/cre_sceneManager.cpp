@@ -1,7 +1,8 @@
 #include "cre_sceneManager.h"
 #include "engine/core/cre_logger.h"
+#include "engine/core/cre_systemPackets.h"
 #include "engine/ecs/cre_entitySystem.h"
-#include "stdbool.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 // Internal state
@@ -18,6 +19,11 @@ static SceneManagerContext ctx = {.currentScene = {},
                                   .nextState = -1,
                                   .isSwitchPending = false,
                                   .factory = nullptr};
+
+scenePacket CreateScenePacket(EntityRegistry *reg, CommandBus *bus, float dt) {
+  scenePacket pkt = {.reg = reg, .bus = bus, .gameDt = dt};
+  return pkt;
+}
 // Public API
 void SceneManager_Init(SceneFactory factory) {
   ctx.factory = factory;
@@ -26,27 +32,28 @@ void SceneManager_Init(SceneFactory factory) {
   Log(LogLevel::Info, "Scene Manager Initialized.");
 }
 
-void SceneManager_Update(EntityRegistry &reg, CommandBus &bus, float dt) {
+void SceneManager_Update(scenePacket *packet) {
+
   if (ctx.isSwitchPending) {
     if (ctx.currentScene.Unload)
-      ctx.currentScene.Unload(reg, bus);
-    EntitySystem_ClearAllHooks(reg);
+      ctx.currentScene.Unload(*packet->reg, *packet->bus);
+    EntitySystem_ClearAllHooks(*packet->reg);
 
     if (ctx.factory) {
       ctx.currentScene = ctx.factory(ctx.nextState);
     }
     ctx.activeState = ctx.nextState;
     if (ctx.currentScene.Init)
-      ctx.currentScene.Init(reg, bus);
+      ctx.currentScene.Init(*packet->reg, *packet->bus);
     ctx.isSwitchPending = false;
   }
   if (ctx.currentScene.Update) {
-    ctx.currentScene.Update(reg, bus, dt);
+    ctx.currentScene.Update(*packet->reg, *packet->bus, packet->gameDt);
   }
 }
-void SceneManager_Draw(EntityRegistry &reg, CommandBus &bus) {
+void SceneManager_Draw(scenePacket *packet) {
   if (ctx.currentScene.Draw) {
-    ctx.currentScene.Draw(reg, bus);
+    ctx.currentScene.Draw(*packet->reg, *packet->bus);
   }
 }
 

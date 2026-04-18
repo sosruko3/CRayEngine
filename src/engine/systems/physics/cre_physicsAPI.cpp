@@ -123,7 +123,7 @@ void physicsAPI_ResetWorld(CommandBus &bus) {
 
 creVec2 physicsAPI_GetVelocity(const EntityRegistry &reg, Entity entity) {
   if (!EntityRegistry_IsAlive(reg, entity)) {
-    return creVec2{.x = 0.0f, .y = 0.0f};
+    return creVec2{0.0f, 0.0f};
   }
 
   const uint32_t id = entity.id;

@@ -50,8 +50,23 @@ Camera2D cameraUtils_GetActiveRaylib(const EntityRegistry &reg,
                                      ViewportSize vp) {
   Camera2D out = {};
 
-  int32_t idx = cameraSystem_FindActive(reg);
-  if (idx < 0 || idx >= static_cast<int16_t>(MAX_CAMERAS))
+  int32_t idx = -1;
+  int32_t highestPriority = -1;
+
+  for (uint32_t i = 0; i < reg.camera_count; i++) {
+    const CameraComponent *cam = &reg.cameras[i];
+    if (!cam->isActive)
+      continue;
+    if (!EntityRegistry_IsAlive(reg, cam->ownerEntity))
+      continue;
+
+    if (cam->priority > highestPriority) {
+      highestPriority = cam->priority;
+      idx = static_cast<int32_t>(i);
+    }
+  }
+
+  if (idx < 0 || idx >= static_cast<int32_t>(MAX_CAMERAS))
     return out;
 
   return cameraUtils_buildRaylibCam(&reg.cameras[idx], vp);

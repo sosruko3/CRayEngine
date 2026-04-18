@@ -132,7 +132,7 @@ void CommandBus_Clear(CommandBus &bus);
  * @param cmd The command to push
  * @return true if successful, false if buffer is full
  */
-static inline bool CommandBus_Push(CommandBus & bus, Command cmd) {
+static inline bool CommandBus_Push(CommandBus &bus, Command cmd) {
 
 #ifndef NDEBUG
   const uint32_t domain = cmd.type & CMD_DOMAIN_MASK;

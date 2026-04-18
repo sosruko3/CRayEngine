@@ -51,6 +51,8 @@ void Game_Draw(EntityRegistry &reg, CommandBus &bus) {
   creRectangle cullBounds =
       cameraSystem_GetActiveCullBounds(reg, activeCam, vp);
 
+  // THIS PART SHOULD NOT BE HERE ,WILL BE MOVED TO RENDER SYSTEM LATER. WILL
+  // STAY UNTIL SDL3 IMPLEMENTATION.
   rendererCore_BeginWorldMode(activeCam, vp);
   // WORLD RENDERING:
 

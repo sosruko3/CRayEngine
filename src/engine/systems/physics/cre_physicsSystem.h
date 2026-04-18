@@ -20,6 +20,7 @@
 
 struct EntityRegistry;
 struct CommandBus;
+struct physicsPacket;
 
 // ============================================================================
 // Core API
@@ -48,7 +49,7 @@ void PhysicsSystem_Init(void);
  * @param bus    Command bus for physics commands
  * @param dt     Delta time in seconds (clamped to 0.05f max internally)
  */
-void PhysicsSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt);
+void PhysicsSystem_Update(physicsPacket *packet);
 
 /**
  * @brief Process physics commands from the command bus.
@@ -59,6 +60,9 @@ void PhysicsSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt);
  * @param reg    Pointer to the EntityRegistry
  * @param bus    Command bus to read from
  */
-void PhysicsSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus);
+void PhysicsSystem_ProcessCommands(physicsPacket* packet);
+
+physicsPacket CreatePhysicsPacket(EntityRegistry *reg, CommandBus *bus,
+                                  float fixedDt);
 
 #endif // PHYSICS_SYSTEM_H

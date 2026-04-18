@@ -146,18 +146,37 @@ static_assert(alignof(EntityRegistry) == 64,
 static_assert(sizeof(EntityRegistry) % 64 == 0,
               "EntityRegistry size MUST be a multiple of 64 bytes!");
 
-static inline bool EntityRegistry_IsAlive(const EntityRegistry &reg, Entity e) {
+static inline bool EntityRegistry_IsAlive(const uint64_t *state_flags,
+                                          const uint32_t *generations,
+                                          Entity e) {
   if (e.id >= MAX_ENTITIES)
     return false;
-  if (!(reg.state_flags[e.id] & FLAG_ACTIVE))
+  if (!(state_flags[e.id] & FLAG_ACTIVE))
     return false;
-  return reg.generations[e.id] == e.generation;
+  return generations[e.id] == e.generation;
+}
+
+static inline bool EntityRegistry_IsValid(const uint32_t *generations,
+                                          Entity e) {
+  if (e.id >= MAX_ENTITIES)
+    return false;
+  return (generations[e.id] == e.generation);
+}
+/// THESE ARE TEMPORARY!!!!
+static inline bool EntityRegistry_IsAlive(const EntityRegistry &reg, Entity e) {
+  return EntityRegistry_IsAlive(reg.state_flags, reg.generations, e);
+}
+
+static inline bool EntityRegistry_IsAlive(const EntityRegistry *reg, Entity e) {
+  return EntityRegistry_IsAlive(reg->state_flags, reg->generations, e);
 }
 
 static inline bool EntityRegistry_IsValid(const EntityRegistry &reg, Entity e) {
-  if (e.id >= MAX_ENTITIES)
-    return false;
-  return (reg.generations[e.id] == e.generation);
+  return EntityRegistry_IsValid(reg.generations, e);
+}
+
+static inline bool EntityRegistry_IsValid(const EntityRegistry *reg, Entity e) {
+  return EntityRegistry_IsValid(reg->generations, e);
 }
 
 #endif

@@ -24,17 +24,35 @@ CameraComponent cameraSystem_CreateDefault(void) {
 
 void cameraSystem_Init(EntityRegistry &reg) { reg.camera_count = 0; }
 
-static int32_t findCameraByOwner(const EntityRegistry &reg, Entity owner) {
+cameraPacket CreateCameraPacket(EntityRegistry *reg, CommandBus *bus, float dt) {
+  cameraPacket pkt = {
+      .bus = bus,
+      .dt = dt,
+      .read = {.component_masks = reg->component_masks,
+               .state_flags = reg->state_flags,
+               .generations = reg->generations,
+               .cameras = reg->cameras,
+               .camera_count = reg->camera_count},
+      .write = {.pos = reg->pos, .cameras = reg->cameras},
+  };
+  return pkt;
+}
+
+static int32_t findCameraByOwner(const cameraPacket *packet, Entity owner) {
   // Feeling like i can handle this part better. Without static_cast.
-  for (uint32_t i = 0; i < reg.camera_count; i++) {
-    if (ENTITY_MATCH(reg.cameras[i].ownerEntity, owner)) {
+  for (uint32_t i = 0; i < packet->read.camera_count; i++) {
+    if (ENTITY_MATCH(packet->read.cameras[i].ownerEntity, owner)) {
       return static_cast<int32_t>(i);
     }
   }
   return -1;
 }
 
-void cameraSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
+void cameraSystem_ProcessCommands(cameraPacket *packet) {
+  assert(packet && "camera packet is NULL");
+  assert(packet->bus && "camera packet bus is NULL");
+
+  CommandBus &bus = *packet->bus;
 
   CommandIterator iter = CommandBus_GetIterator(bus);
   const Command *cmd;
@@ -43,18 +61,19 @@ void cameraSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
     if ((cmd->type & CMD_DOMAIN_MASK) != CMD_DOMAIN_CAMERA)
       continue;
 
-    if (!EntityRegistry_IsAlive(reg, cmd->entity))
+    if (!EntityRegistry_IsAlive(packet->read.state_flags,
+                                packet->read.generations, cmd->entity))
       continue;
 
     const uint32_t id = cmd->entity.id;
-    if (!(reg.component_masks[id] & COMP_CAMERA))
+    if (!(packet->read.component_masks[id] & COMP_CAMERA))
       continue;
 
-    const int32_t camIdx = findCameraByOwner(reg, cmd->entity);
+    const int32_t camIdx = findCameraByOwner(packet, cmd->entity);
     if (camIdx < 0)
       continue;
 
-    CameraComponent *cam = &reg.cameras[camIdx];
+    CameraComponent *cam = &packet->write.cameras[camIdx];
 
     switch (cmd->type) {
     case CMD_CAM_SET_ACTIVE:
@@ -100,42 +119,44 @@ void cameraSystem_ProcessCommands(EntityRegistry &reg, CommandBus &bus) {
   }
 }
 
-static void applyFollowLogic(CameraComponent *cam, EntityRegistry &reg,
+static void applyFollowLogic(CameraComponent *cam, const cameraPacket *packet,
                              float dt, uint32_t ownerId) {
-  if (EntityRegistry_IsAlive(reg, cam->follow.targetEntity)) {
+  if (EntityRegistry_IsAlive(packet->read.state_flags, packet->read.generations,
+                             cam->follow.targetEntity)) {
     const uint32_t targetId = cam->follow.targetEntity.id;
-    const creVec2 desired = reg.pos[targetId] + cam->follow.offset;
+    const creVec2 desired = packet->write.pos[targetId] + cam->follow.offset;
 
-    creVec2 current = reg.pos[ownerId];
+    creVec2 current = packet->write.pos[ownerId];
 
     creVec2 nextPos = desired;
     if (cam->follow.smoothSpeed > cam_safety_epsilon) {
       nextPos = cameraUtils_Lerp(current, desired, cam->follow.smoothSpeed, dt);
     }
 
-    reg.pos[ownerId] = nextPos;
+    packet->write.pos[ownerId] = nextPos;
   } else {
     cam->follow.enabled = false;
     cam->follow.targetEntity = ENTITY_INVALID;
   }
 }
 
-void cameraSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt,
-                         ViewportSize vp) {
-  (void)vp;
+void cameraSystem_Update(cameraPacket *packet) {
+  assert(packet && "camera packet is NULL");
 
+  float dt = packet->dt;
   if (dt > 0.05f)
     dt = 0.05f;
   if (dt < cam_safety_epsilon)
     dt = 0.0f;
 
-  cameraSystem_ProcessCommands(reg, bus);
+  cameraSystem_ProcessCommands(packet);
 
-  uint32_t cam_count = reg.camera_count;
+  uint32_t cam_count = packet->read.camera_count;
 
   for (uint32_t i = 0; i < cam_count; i++) {
-    CameraComponent *cam = &reg.cameras[i];
-    if (!(EntityRegistry_IsAlive(reg, cam->ownerEntity)))
+    CameraComponent *cam = &packet->write.cameras[i];
+    if (!EntityRegistry_IsAlive(packet->read.state_flags,
+                                packet->read.generations, cam->ownerEntity))
       continue;
 
     Entity ownEntity = cam->ownerEntity;
@@ -143,11 +164,11 @@ void cameraSystem_Update(EntityRegistry &reg, CommandBus &bus, float dt,
 
     // Follow logic
     if (cam->follow.enabled)
-      applyFollowLogic(cam, reg, dt, ownerId);
+      applyFollowLogic(cam, packet, dt, ownerId);
 
     // Sync Phase: cache final world position for renderer
     uint32_t id = cam->ownerEntity.id;
-    cam->viewPosition = reg.pos[id];
+    cam->viewPosition = packet->write.pos[id];
   }
 }
 
@@ -157,7 +178,7 @@ creRectangle cameraSystem_GetViewBounds(const EntityRegistry &reg,
   assert(cam && "cam is NULL");
 
   Entity ownEntity = cam->ownerEntity;
-  if (!(EntityRegistry_IsAlive(reg, ownEntity))) {
+  if (!EntityRegistry_IsAlive(reg, ownEntity)) {
     return creRectangle{0.0f, 0.0f, 0.0f, 0.0f};
   }
 
@@ -217,15 +238,14 @@ int32_t cameraSystem_FindActive(const EntityRegistry &reg) {
 
     if (cam->priority > highestPriority) {
       highestPriority = cam->priority;
-      activeIndex = static_cast<int16_t>(i);
+      activeIndex = static_cast<int32_t>(i);
     }
   }
 
   return activeIndex;
 }
 
-const CameraComponent *
-cameraSystem_GetActiveComponent(const EntityRegistry &reg) {
+const CameraComponent *cameraSystem_GetActiveComponent(const EntityRegistry &reg) {
   static bool s_warned = false;
   int32_t camIdx = cameraSystem_FindActive(reg);
   if (camIdx < 0) {
