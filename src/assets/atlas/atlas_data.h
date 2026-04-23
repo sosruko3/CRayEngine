@@ -58,7 +58,7 @@ typedef enum {
 } AnimID;
 
 // ---------------------------------------------------------------------------
-// External Data Arrays (defined in atlas_data.c)
+// External Data Arrays (defined in atlas_data.cpp)
 // ---------------------------------------------------------------------------
 
 extern const SpriteMeta ASSET_SPRITES[SPRITE_COUNT];

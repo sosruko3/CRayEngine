@@ -3,16 +3,13 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR "In-source builds are not allowed. Please run 'cmake -B build' and 'cmake --build build'.")
 endif()
 
-project(CRayEngine VERSION 0.11 LANGUAGES C CXX)
+project(CRayEngine VERSION 0.11 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # This finds the actual path to 'python3' on Linux/Mac or 'python' on Windows
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
@@ -26,7 +23,7 @@ set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 file(GLOB_RECURSE RAW_PNGS CONFIGURE_DEPENDS "${RAW_TEXTURES_DIR}/*.png")
 
 add_custom_command(
-    OUTPUT "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.c" "${GEN_DIR}/atlas.png"
+  OUTPUT "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.cpp" "${GEN_DIR}/atlas.png"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${GEN_DIR}"
     COMMAND ${Python3_EXECUTABLE} "${ASSET_SCRIPT}" --input "${RAW_TEXTURES_DIR}" --output "${GEN_DIR}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/src/assets/atlas"
@@ -37,7 +34,7 @@ add_custom_command(
     VERBATIM
 )
 
-add_custom_target(GenerateAtlas DEPENDS "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.c" "${GEN_DIR}/atlas.png")
+add_custom_target(GenerateAtlas DEPENDS "${GEN_DIR}/atlas_data.h" "${GEN_DIR}/atlas_data.cpp" "${GEN_DIR}/atlas.png")
 
 # Use local raylib for now, will be removing it in a few weeks anyway.
 set(BUILD_EXAMPLES    OFF CACHE BOOL "" FORCE)
@@ -52,7 +49,7 @@ set(SOURCES
     src/main.cpp
 
     # Generated Atlas
-    src/assets/atlas/atlas_data.c
+  ${GEN_DIR}/atlas_data.cpp
 
     # Core Engine
     src/engine/core/cre_engine.cpp
@@ -68,6 +65,8 @@ set(SOURCES
     src/engine/ecs/cre_entityAPI.cpp
     src/engine/ecs/cre_entitySystem.cpp
     src/engine/loaders/cre_assetManager.cpp
+    src/engine/loaders/cre_assetLoader.cpp
+    src/engine/loaders/cre_assetRegistry.h
     src/engine/systems/audio/cre_audioSystem.cpp
     src/engine/systems/audio/cre_audioAPI.cpp
     src/engine/systems/render/cre_rendererCore.cpp
@@ -96,7 +95,7 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # --- Link Time Optimization (LTO) ---
-# This allows inlining functions across different .c files
+# This allows inlining functions across translation units
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   include(CheckIPOSupported)
   check_ipo_supported(RESULT result OUTPUT output)
@@ -114,7 +113,7 @@ endif()
 add_dependencies(${PROJECT_NAME} GenerateAtlas)
 
 # --- EXTERNAL LIBRARIES (Vendored) ---
-add_library(miniaudio_lib STATIC src/external/miniaudio/miniaudio_impl.c)
+add_library(miniaudio_lib STATIC src/external/miniaudio/miniaudio_impl.cpp)
 add_library(fmt_lib STATIC src/external/fmt/src/format.cc)
 
 target_link_libraries(miniaudio_lib PRIVATE m pthread dl)

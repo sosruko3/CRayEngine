@@ -727,7 +727,7 @@ def generate_header(sprites: list[SpriteData], animations: list[AnimationDef]) -
     # External declarations
     lines.extend([
         "// ---------------------------------------------------------------------------",
-        "// External Data Arrays (defined in atlas_data.c)",
+        "// External Data Arrays (defined in atlas_data.cpp)",
         "// ---------------------------------------------------------------------------",
         "",
         "extern const SpriteMeta ASSET_SPRITES[SPRITE_COUNT];",
@@ -747,7 +747,7 @@ def generate_header(sprites: list[SpriteData], animations: list[AnimationDef]) -
 
 def generate_source(sprites: list[SpriteData], animations: list[AnimationDef]) -> str:
     """
-    Generate the atlas_data.c source file content.
+    Generate the atlas_data.cpp source file content.
     
     IMPORTANT: For edge extrusion, we output (atlas_x + 1, atlas_y + 1) so the
     engine points to the clean pixels, not the smeared border.
@@ -1288,9 +1288,9 @@ Examples:
         header_path.write_text(header_content)
         print(f"      Saved: {header_path}")
         
-        # Save C source (uses ALL sprites, duplicates reference originals)
+        # Save source file (uses ALL sprites, duplicates reference originals)
         source_content = generate_source(sprites, animations)
-        source_path = header_dir / "atlas_data.c"
+        source_path = header_dir / "atlas_data.cpp"
         source_path.write_text(source_content)
         print(f"      Saved: {source_path}")
         

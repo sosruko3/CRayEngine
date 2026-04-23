@@ -1,0 +1,4 @@
+#ifndef CRE_ASSETREGISTRY_H
+#define CRE_ASSETREGISTRY_H
+
+#endif
