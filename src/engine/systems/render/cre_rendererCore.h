@@ -1,12 +1,15 @@
 #ifndef CRE_RENDERERCORE_H
 #define CRE_RENDERERCORE_H
 
-#include "engine/core/cre_types.h"
-#include "engine/ecs/cre_components.h"
+#include "engine/core/cre_colors.h"
+
+#include "raylib.h"
 #include "engine/platform/cre_viewport.h"
-#include "raylib.h" // For Texture2D, Shader internals
 #include <stdbool.h>
 #include <stdint.h>
+
+struct CameraComponent;
+struct creVec2;
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * 2D Renderer Pipeline (Extend Strategy)

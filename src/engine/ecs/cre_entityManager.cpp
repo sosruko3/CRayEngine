@@ -1,5 +1,5 @@
 /**
- * @file cre_entityManager.c
+ * @file cre_entityManager.cpp
  * @brief Packed Parallel SoA Entity Manager Implementation
  */
 
@@ -24,7 +24,6 @@ void EntityManager_Init(EntityRegistry &reg) {
   for (uint32_t i = 0; i < MAX_ENTITIES; i++) {
     reg.free_list[i] = (MAX_ENTITIES - 1) - i;
   }
-
   reg.free_count = MAX_ENTITIES;
   reg.active_count = 0;
   reg.max_used_bound = 0;

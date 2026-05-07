@@ -36,11 +36,11 @@ NOTE: AI Agent is being used as an helper for development, it is responsible for
 - [x] Audio System(using miniaudio)
 - [x] Switching to C++20, using "Orthodox C++".
 
-- [ ] Arena Allocator (For one-time memory allocation and splitting that to domains for required systems.)
-- [ ] Asset Loader (will be using stb_image for loading textures, and custom loaders for other asset types.)
+- [x] Arena Allocator (For one-time memory allocation and splitting that to domains for required systems.)
+- [ ] Asset Loader 
 - [ ] Asset Registry (for keeping track of loaded assets and their references)
-- [ ] Updating LogSystem with fmt library for better formatting and performance.
-- [ ] Accumulator for fixed timestep updates in the main game loop.
+- [x] Updating LogSystem with fmt library for better formatting and performance.
+- [x] Accumulator for fixed timestep updates in the main game loop.
 - [ ] Switching Raylib with SDL3 and SDL3_GPU for better performance and more control over rendering and input.
 - [ ] Switching to Box2D v3, why: It is better on every aspect and it uses my exact philosophy for physics engine design, and it is also more stable and has more features than my current physics system. It would take +6 month to reach that stage with my current physics system.
 
@@ -51,14 +51,14 @@ NOTE: AI Agent is being used as an helper for development, it is responsible for
 - [ ] Lighting System (using Radiance Cascades)
 - [ ] Editor (using Dear ImGui)
 - [ ] Live coding feature for the editor.
-- [ ] Animation Engine (Procedural Animation)
+- [ ] Animation Engine (hybrid-Procedural Animation)
 - [ ] Modding tools
 
 ## Building
 
 ### Prerequisites
 * **CMake** (3.14+)
-* C++ compiler that supprts C++20 (GCC 10+, Clang 10+, MSVC 19.28+)
+* C++ compiler that supports C++20 (GCC 10+, Clang 10+, MSVC 19.28+)
 * **Raylib** (Cmake fetches Raylib automatically)
 * **Python3** (Required for Automated TextureAtlas script)
 * **Pip and Pillow**(If not included in Python3)

@@ -1,7 +1,6 @@
 #include "cre_audioSystem.h"
 #include "engine/core/cre_commandBus.h"
 #include "engine/core/cre_logger.h"
-#include "engine/ecs/cre_entityRegistry.h"
 #include "external/miniaudio/miniaudio.h"
 #include <assert.h>
 #include <stdbool.h>

@@ -80,9 +80,9 @@ constexpr uint64_t CLONE_FLAGS_SCRUB_MASK =
 
 // Clear and set helpers
 #define CLEAR_LAYER(flags)                                                     \
-  static_cast<uint32_t>(flags) & ~(0xFFFFULL << LAYER_SHIFT)
+  (static_cast<uint32_t>(flags) & ~(0xFFFFULL << LAYER_SHIFT))
 #define CLEAR_MASK(flags)                                                      \
-  (static_cast<uint32_t>(flags) & ~(0xFFFFULL << MASK_SHIFT)
+  (static_cast<uint32_t>(flags) & ~(0xFFFFULL << MASK_SHIFT))
 
 // ============================================================================
 // Entity Registry (Packed Parallel SoA)
